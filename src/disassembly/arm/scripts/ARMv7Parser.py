@@ -736,7 +736,9 @@ class CPPTranslatorVisitor(TranslatorVisitor):
 
         else:
             if self.get_type(node) != type_ and self.get_type(node) != ('unknown', None):
-                print "// XXX: Type already present: original='%s' new='%s'" % (str(self.get_type(node)), type_)
+                print "    // Type already present:"
+                print "    // expr='%s'" % str(node)
+                print "    // original='%s' new='%s'" % (str(self.get_type(node)), type_)
 
     def get_type(self, node):
         # Stupid hack.
@@ -993,7 +995,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
     def accept_RepeatUntil(self, node):
         t = "do {\n"
         for st in node.statements:
-            t += "    %s;\n" % self.accept(st)
+            t += "    %s\n" % self.accept(st)
 
         t += "} while (%s);\n\n" % self.accept(node.condition)
 
@@ -1002,7 +1004,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
     def accept_While(self, node):
         t = "while (%s) {\n" % self.accept(node.condition)
         for st in node.statements:
-            t += "    %s;\n" % self.accept(st)
+            t += "    %s\n" % self.accept(st)
         t += "}\n\n"
 
         return t
@@ -1017,7 +1019,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
 
         t = "for(unsigned i = %s; i < %s; ++i) {\n" % (from_, to_)
         for st in statements:
-            t += "    %s;\n" % st
+            t += "    %s\n" % st
         t += "}\n\n"
 
         return t
@@ -1025,13 +1027,13 @@ class CPPTranslatorVisitor(TranslatorVisitor):
     def accept_If(self, node):
         t = "\nif (%s) {\n" % self.accept(node.condition)
         for st in node.if_statements:
-            t += "    %s;\n" % self.accept(st)
+            t += "    %s\n" % self.accept(st)
         t += "}"
 
         if len(node.else_statements):
             t += "\nelse {\n"
             for st in node.else_statements:
-                t += "    %s;\n" % self.accept(st)
+                t += "    %s\n" % self.accept(st)
             t += "}\n"
 
         t += "\n"
@@ -1091,7 +1093,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             t = "case %s:\n" % self.accept(node.value)
 
         for st in node.statements:
-            t += "    %s;\n" % self.accept(st)
+            t += "    %s\n" % self.accept(st)
         t += "    break;\n"
 
         return t
@@ -1107,26 +1109,26 @@ class CPPTranslatorVisitor(TranslatorVisitor):
 
     def accept_Undefined(self, node):
         self.set_type(node, ("unknown", None))
-        return "return UndefinedInstruction()"
+        return "return UndefinedInstruction();"
 
     def accept_Unpredictable(self, node):
         self.set_type(node, ("unknown", None))
-        return "return UnpredictableInstruction()"
+        return "return UnpredictableInstruction();"
 
     def accept_See(self, node):
         self.set_type(node, ("unknown", None))
-        return "return SeeInstruction(\"%s\")" % str(node.msg)
+        return "return SeeInstruction(\"%s\");" % str(node.msg)
 
     def accept_ImplementationDefined(self, node):
         self.set_type(node, ("unknown", None))
-        return "return ImplementationDefinedInstruction()"
+        return "return ImplementationDefinedInstruction();"
 
     def accept_SubArchitectureDefined(self, node):
         self.set_type(node, ("unknown", None))
-        return "return SubArchitectureDefinedInstruction()"
+        return "return SubArchitectureDefinedInstruction();"
 
     def accept_Return(self, node):
-        t = "return %s" % self.accept(node.value)
+        t = "return %s;" % self.accept(node.value)
         self.set_type(node, self.get_type(node.value))
         return t
 
@@ -1733,7 +1735,7 @@ unsigned VFPExpandImm(unsigned a, unsigned b) {
             l = visitor.accept(ast[0])
             body += indent(l)
             if type(ast[0]) == ProcedureCall:
-                body += ";"
+                body = body[:-1] + ";\n"
 
         print "    // Local variables:"
         for var in visitor.define_me:
