@@ -821,6 +821,11 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             left_expr_type = self.get_type(node.left_expr)
             right_expr_type = self.get_type(node.right_expr)
 
+            # Since all constants have the same string representation, we need to
+            # cheat a bit and use the bit_size instead of the inferred type.
+            if type(node.right_expr) is NumberValue and right_expr_type[1] != node.right_expr.bit_size:
+                right_expr_type = (right_expr_type[0], node.right_expr.bit_size)
+
             # Create a new type.
             result_expr_type = ("unsigned", left_expr_type[1] + right_expr_type[1])
             self.set_type(node, result_expr_type)
@@ -1257,7 +1262,7 @@ def decode_list(x):
     return List(x[0:])
 
 # Define the boolean values.
-boolean = (TRUE ^ FALSE).setParseAction(lambda x: BooleanValue(x == "TRUE"))
+boolean = (TRUE ^ FALSE).setParseAction(lambda x: BooleanValue(x[0] == "TRUE"))
 
 # An identifier is a name.
 identifier = Word(alphas + "_", alphanums + "_.").setParseAction(lambda x: Identifier(x[0]))
