@@ -1017,6 +1017,10 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             assert len(node.arguments) == 1
             self.set_type(node, self.get_type(node.arguments[0]))
 
+        elif str(node.name) == "Consistent":
+            # We replace Consistent(Rm) with (Rm == Rm_).
+            return "(%s == %s_)" % (node.arguments[0], node.arguments[0])
+
         return "%s(%s)" % (node.name, ", ".join(arguments))
 
     def accept_RepeatUntil(self, node):
@@ -1707,6 +1711,9 @@ unsigned Zeros(unsigned c) {
 unsigned VFPExpandImm(unsigned a, unsigned b) {
     return 0;
 }
+
+#define likely(x)      __builtin_expect(!!(x), 1)
+#define unlikely(x)    __builtin_expect(!!(x), 0)
 """
     print pre
 
