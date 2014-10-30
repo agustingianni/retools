@@ -928,7 +928,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
                     if not name in self.symbol_table:
                         # Declare it and initialize it.
                         self.symbol_table.add(name)
-                        acum += "unsigned %s;\n" % name
+                        self.define_me.add(name)
                         names.append(name)
 
                     if not type(var) is Ignore:
