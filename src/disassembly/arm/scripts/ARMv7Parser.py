@@ -1771,7 +1771,7 @@ unsigned VFPExpandImm(unsigned a, unsigned b) {
 
         #print "    // Local variables:"
         for var in visitor.define_me:
-            print "    unsigned %s;" % var
+            print "    int %s = 0;" % var
 
 
         print body
