@@ -734,11 +734,10 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             # print "// Adding node `%s' with type `%s'" % (str(node), type_)
             self.node_types[str(node)] = type_
 
-        else:
-            if self.get_type(node) != type_ and self.get_type(node) != ('unknown', None):
-                print "    // Type already present:"
-                print "    // expr='%s'" % str(node)
-                print "    // original='%s' new='%s'" % (str(self.get_type(node)), type_)
+        # XXX: Enable this for useful debugging information.
+        # else:
+        #     if self.get_type(node) != type_ and self.get_type(node) != ('unknown', None):
+        #         print "    // DEBUG Type redefinition: e='%s' o='%s' n='%s'" % (str(node), str(self.get_type(node)), type_)
 
     def get_type(self, node):
         # Stupid hack.
@@ -1539,8 +1538,6 @@ def __translate_bit_patterns__(bit_patterns):
 
     ret = []
 
-    ret.append("// Debug: %s" % (" ".join(bit_patterns)))
-
     i = 31
     for bit_pattern in bit_patterns:
         # print "Decoding bit pattern: %r" % bit_pattern
@@ -1765,7 +1762,7 @@ unsigned VFPExpandImm(unsigned a, unsigned b) {
             if type(ast[0]) == ProcedureCall:
                 body = body[:-1] + ";\n"
 
-        print "    // Local variables:"
+        #print "    // Local variables:"
         for var in visitor.define_me:
             print "    unsigned %s;" % var
 
