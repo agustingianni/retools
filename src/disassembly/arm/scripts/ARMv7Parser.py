@@ -727,7 +727,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         for input_var in self.input_vars:
             self.var_bit_length[input_var[0]] = input_var[1]
             self.symbol_table.add(input_var[0])
-            self.set_type(Identifier(input_var[0]), ("unsigned", input_var[1]))
+            self.set_type(Identifier(input_var[0]), ("int", input_var[1]))
 
     def set_type(self, node, type_, override=False):
         if not self.node_types.has_key(str(node)):
@@ -743,7 +743,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         # Stupid hack.
         if not self.node_types.has_key(str(node)):
             if str(node) in self.symbol_table:
-               return ("unsigned", self.var_bit_length[str(node)])
+               return ("int", self.var_bit_length[str(node)])
 
             return ("unknown", None)
 
@@ -752,14 +752,14 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         return type_
 
     def accept_BooleanValue(self, node):
-        self.set_type(node, ("unsigned", 1))
+        self.set_type(node, ("int", 1))
         return str(node)
 
     def accept_Identifier(self, node):
         return str(node)
 
     def accept_NumberValue(self, node):
-        self.set_type(node, ("unsigned", len(node)))
+        self.set_type(node, ("int", len(node)))
         return str(node)
 
     def accept_UnaryExpression(self, node):
@@ -795,7 +795,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             left_expr = self.accept(node.left_expr)
 
             # We set the type to boolean.
-            self.set_type(node, ("unsigned", 1))
+            self.set_type(node, ("int", 1))
 
             # Handle:
             #   c in {0, 1} -> ((c == 0) || (c == 1))
@@ -814,11 +814,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
                 cases_ = cases(node.right_expr.value)
 
                 if can_optimize(cases_):
-                    if cases_[0] == 0:
-                        return "(%s <= %d)" % (left_expr, cases_[-1])
-
-                    else:
-                        return "(%s >= %d && %s <= %d)" % (left_expr, cases_[0], left_expr, cases_[-1])
+                    return "(%s >= %d && %s <= %d)" % (left_expr, cases_[0], left_expr, cases_[-1])
 
                 else:
                     t = []
@@ -849,7 +845,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
                 right_expr_type = (right_expr_type[0], node.right_expr.bit_size)
 
             # Create a new type.
-            result_expr_type = ("unsigned", left_expr_type[1] + right_expr_type[1])
+            result_expr_type = ("int", left_expr_type[1] + right_expr_type[1])
             self.set_type(node, result_expr_type)
 
             return "Concatenate(%s, %s, %d)" % (left_expr, right_expr, right_expr_type[1])
@@ -883,8 +879,8 @@ class CPPTranslatorVisitor(TranslatorVisitor):
                         t += "%s %s %s;\n" % (var, name_op[node.type], node.right_expr.values[i])
 
                     # Set the types of the assignee and the assigned.
-                    self.set_type(var, ("unsigned", 32))
-                    self.set_type(node.right_expr.values[i], ("unsigned", 32))
+                    self.set_type(var, ("int", 32))
+                    self.set_type(node.right_expr.values[i], ("int", 32))
 
                     i += 1
 
@@ -932,7 +928,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
                         names.append(name)
 
                     if not type(var) is Ignore:
-                        self.set_type(var, ("unsigned", 32))
+                        self.set_type(var, ("int", 32))
 
                     i += 1
 
@@ -988,7 +984,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             self.set_type(node, left_expr_type)
 
         else:
-            self.set_type(node, ("unsigned", 1))
+            self.set_type(node, ("int", 1))
 
         return "(%s %s %s)" % (left_expr, type_, right_expr)
 
@@ -1004,10 +1000,10 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             arguments.append(self.accept(arg))
 
         if str(node.name) in ["UInt", "ThumbExpandImm"]:
-            self.set_type(node, ("unsigned", 32))
+            self.set_type(node, ("int", 32))
 
         elif str(node.name) in ["InITBlock", "LastInITBlock"]:
-            self.set_type(node, ("unsigned", 1))
+            self.set_type(node, ("int", 1))
 
         elif str(node.name) in ["DecodeImmShift", "ARMExpandImm_C", "ThumbExpandImm_C"]:
             self.set_type(node, ("list", 2))
@@ -1056,7 +1052,13 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         return t
 
     def accept_If(self, node):
-        t = "\nif (%s) {\n" % self.accept(node.condition)
+        def hint(condition, statements):
+            if len(statements) == 1 and type(statements[0]) in [Undefined, Unpredictable, See]:
+                return "unlikely(%s)" % condition
+
+            return condition
+
+        t = "\nif (%s) {\n" % hint(self.accept(node.condition), node.if_statements)
         for st in node.if_statements:
             t += "    %s\n" % self.accept(st)
         t += "}"
@@ -1074,7 +1076,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
     def accept_BitExtraction(self, node):
         if len(node.range) == 1:
             # The type is a one bit integer.
-            self.set_type(node, ("unsigned", 1))
+            self.set_type(node, ("int", 1))
             return "get_bit(%s, %s)" % (node.identifier, self.accept(node.range[0]))
 
         # We know that limits here are integers so we can get the size.
@@ -1087,12 +1089,12 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         if type(node.range[0]) is NumberValue and type(node.range[1]) is NumberValue:
             bit_size = int(hi_lim) - int(lo_lim) + 1
             assert bit_size > 0 and bit_size <= 32
-            self.set_type(node, ("unsigned", bit_size))
+            self.set_type(node, ("int", bit_size))
             return "get_bits(%s, %s, %s)" % (node.identifier, hi_lim, lo_lim)
 
         else:
             print "// DEBUG: assuming type of expression to be 32 bits"
-            self.set_type(node, ("unsigned", 32))
+            self.set_type(node, ("int", 32))
             return "get_bits(%s, %s, %s)" % (node.identifier, hi_lim, lo_lim)
 
 
@@ -1557,9 +1559,9 @@ def __translate_bit_patterns__(bit_patterns):
 
             # print "  Extracting bits into %s from [%d-%d]" % (name, i, i - size + 1)
             if size == 1:
-                ret.append("unsigned %5s = get_bit(opcode, %2d);" % (name, i))
+                ret.append("int %5s = get_bit(opcode, %2d);" % (name, i))
             else:
-                ret.append("unsigned %5s = get_bits(opcode, %2d, %2d);" % (name, i, i - size + 1))
+                ret.append("int %5s = get_bits(opcode, %2d, %2d);" % (name, i, i - size + 1))
 
             i -= size
 
@@ -1620,7 +1622,7 @@ struct SeeInstruction : public Instruction {
   SeeInstruction(const char *);
 };
 
-unsigned Concatenate(unsigned a, unsigned b, unsigned c) {
+int Concatenate(int a, int b, int c) {
   return 0;
 }
 
