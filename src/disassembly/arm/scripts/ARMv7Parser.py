@@ -800,15 +800,38 @@ class CPPTranslatorVisitor(TranslatorVisitor):
 
             # Handle:
             #   c in {0, 1} -> ((c == 0) || (c == 1))
-            #   c in "1x"   -> (c >= 10b and c <= 11b)
+            #   c in "1x"   -> (c == 10b || c == 11b)
             if type(node.right_expr) is MaskedBinary:
-                tmp = cases(node.right_expr.value)
-                return "(%s >= %d && %s <= %d)" % (left_expr, tmp[0], left_expr, tmp[-1])
+                def can_optimize(cases_):
+                    prev = cases_[0]
+                    for i in xrange(1, len(cases_)):
+                        if cases_[i] != prev + 1:
+                            return False
+
+                        prev += 1
+
+                    return True
+
+                cases_ = cases(node.right_expr.value)
+
+                if can_optimize(cases_):
+                    if cases_[0] == 0:
+                        return "(%s <= %d)" % (left_expr, cases_[-1])
+
+                    else:
+                        return "(%s >= %d && %s <= %d)" % (left_expr, cases_[0], left_expr, cases_[-1])
+
+                else:
+                    t = []
+                    for case in cases_:
+                        t.append("%s == %d" % (left_expr, case))
+
+                    return "(%s)" % (" || ".join(t))
 
             elif type(node.right_expr) in [List, Enumeration]:
                 t = []
                 for cond in node.right_expr.values:
-                    t.append("(%s == %s)" % (left_expr, self.accept(cond)))
+                    t.append("%s == %s" % (left_expr, self.accept(cond)))
 
                 return "(%s)" % (" || ".join(t))
 
