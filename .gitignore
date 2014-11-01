@@ -1,2 +1,8 @@
 *.pyc
 .DS_Store
+.cproject
+.project
+.pydevproject
+.settings/
+retools
+src/disassembly/arm/gen/
