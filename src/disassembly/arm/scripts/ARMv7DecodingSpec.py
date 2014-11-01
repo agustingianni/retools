@@ -10,7 +10,7 @@ instructions = [
 } , {
     "name" : "ADC Immediate",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADC{S}<c> <Rd>, <Rn>, #<const>",
     "pattern" : "cond#4 0010101 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -18,7 +18,7 @@ instructions = [
 } , {
     "name" : "ADC Register",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100000101 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock();
@@ -35,7 +35,7 @@ instructions = [
 } , {
     "name" : "ADC Register",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADC{S}<c> <Rd>, <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0000101 S#1 Rn#4 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -44,7 +44,7 @@ instructions = [
 } , {
     "name" : "ADC (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADC{S}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0000101 S#1 Rn#4 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); s = UInt(Rs);
@@ -53,14 +53,14 @@ instructions = [
 } , {
     "name" : "ADD (immediate, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0001110 imm3#3 Rn#3 Rd#3",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); setflags = !InITBlock(); imm32 = ZeroExtend(imm3, 32);"""
 } , {
     "name" : "ADD (immediate, Thumb)",
     "encoding" : "T2",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "00110 Rdn#3 imm8#8",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); setflags = !InITBlock(); imm32 = ZeroExtend(imm8, 32);"""
@@ -87,7 +87,7 @@ instructions = [
 } , {
     "name" : "ADD (immediate, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADD{S}<c> <Rd>, <Rn>, #<const>",
     "pattern" : "cond#4 0010100 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rn == '1111' && S == '0' then SEE ADR;
@@ -97,14 +97,14 @@ instructions = [
 } , {
     "name" : "ADD (register, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0001100 Rm#3 Rn#3 Rd#3",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
 } , {
     "name" : "ADD (register, Thumb)",
     "encoding" : "T2",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7 otherwise",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADD<c> <Rdn>, <Rm>",
     "pattern" : "01000100 DN#1 Rm#4 Rdn#3",
     "decoder" : """if (DN:Rdn) == '1101' || Rm == '1101' then SEE ADD (SP plus register);
@@ -125,7 +125,7 @@ instructions = [
 } , {
     "name" : "ADD (register, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADD{S}<c> <Rd>, <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0000100 S#1 Rn#4 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -135,7 +135,7 @@ instructions = [
 } , {
     "name" : "ADD (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADD{S}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0000100 S#1 Rn#4 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); s = UInt(Rs);
@@ -144,14 +144,14 @@ instructions = [
 } , {
     "name" : "ADD (SP plus immediate)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADD<c> <Rd>, SP, #<imm>",
     "pattern" : "10101 Rd#3 imm8#8",
     "decoder" : """d = UInt(Rd); setflags = FALSE; imm32 = ZeroExtend(imm8:'00', 32);"""
 } , {
     "name" : "ADD (SP plus immediate)",
     "encoding" : "T2",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADD<c> SP, SP, #<imm>",
     "pattern" : "101100000 imm7#7",
     "decoder" : """d = 13; setflags = FALSE; imm32 = ZeroExtend(imm7:'00', 32);"""
@@ -175,7 +175,7 @@ instructions = [
 } , {
     "name" : "ADD (SP plus immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADD{S}<c> <Rd>, SP, #<const>",
     "pattern" : "cond#4 0010100 S#1 1101 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -183,7 +183,7 @@ instructions = [
 } , {
     "name" : "ADD (SP plus register, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADD<c> <Rdm>, SP, <Rdm>",
     "pattern" : "01000100 DM#1 1101 Rdm#3",
     "decoder" : """d = UInt(DM:Rdm); m = UInt(DM:Rdm); setflags = FALSE;
@@ -192,7 +192,7 @@ instructions = [
 } , {
     "name" : "ADD (SP plus register, Thumb)",
     "encoding" : "T2",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADD<c> SP, <Rm>",
     "pattern" : "01000100 1 Rm#4 101",
     "decoder" : """if Rm == '1101' then SEE encoding T1;
@@ -211,7 +211,7 @@ instructions = [
 } , {
     "name" : "ADD (SP plus register, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADD{S}<c> <Rd>, SP, <Rm>{, <shift>}",
     "pattern" : "cond#4 0000100 S#1 1101 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -220,7 +220,7 @@ instructions = [
 } , {
     "name" : "ADR",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADR<c> <Rd>, <label>",
     "pattern" : "10100 Rd#3 imm8#8",
     "decoder" : """d = UInt(Rd); imm32 = ZeroExtend(imm8:'00', 32); add = TRUE;"""
@@ -243,14 +243,14 @@ instructions = [
 } , {
     "name" : "ADR",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADR<c> <Rd>, <label>",
     "pattern" : "cond#4 001010001111 Rd#4 imm12#12",
     "decoder" : """d = UInt(Rd); imm32 = ARMExpandImm(imm12); add = TRUE;"""
 } , {
     "name" : "ADR",
     "encoding" : "A2",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ADR<c> <Rd>, <label>",
     "pattern" : "cond#4 001001001111 Rd#4 imm12#12",
     "decoder" : """d = UInt(Rd); imm32 = ARMExpandImm(imm12); add = FALSE;"""
@@ -267,7 +267,7 @@ instructions = [
 } , {
     "name" : "AND (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "AND{S}<c> <Rd>, <Rn>, #<const>",
     "pattern" : "cond#4 0010000 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -276,7 +276,7 @@ instructions = [
 } , {
     "name" : "AND (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100000000 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -293,7 +293,7 @@ instructions = [
 } , {
     "name" : "AND (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "AND{S}<c> <Rd>, <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0000000 S#1 Rn#4 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -301,7 +301,7 @@ instructions = [
 } , {
     "name" : "AND (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "AND{S}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0000000 S#1 Rn#4 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); s = UInt(Rs); setflags = (S == '1'); shift_t = DecodeRegShift(type);
@@ -309,7 +309,7 @@ instructions = [
 } , {
     "name" : "ASR (immediate)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "00010 imm5#5 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); setflags = !InITBlock(); (-, shift_n) = DecodeImmShift('10', imm5);"""
@@ -324,7 +324,7 @@ instructions = [
 } , {
     "name" : "ASR (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ASR{S}<c> <Rd>, <Rm>, #<imm>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 imm5#5 100 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -333,7 +333,7 @@ instructions = [
 } , {
     "name" : "ASR (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100000100 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock();"""
@@ -348,7 +348,7 @@ instructions = [
 } , {
     "name" : "ASR (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ASR{S}<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 Rm#4 0101 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); setflags = (S == '1');
@@ -356,7 +356,7 @@ instructions = [
 } , {
     "name" : "B",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "B<c> <label>",
     "pattern" : "1101 cond#4 imm8#8",
     "decoder" : """if cond == '1110' then UNDEFINED;
@@ -366,7 +366,7 @@ instructions = [
 } , {
     "name" : "B",
     "encoding" : "T2",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "B<c> <label>",
     "pattern" : "11100 imm11#11",
     "decoder" : """imm32 = SignExtend(imm11:'0', 32);
@@ -391,7 +391,7 @@ instructions = [
 } , {
     "name" : "B",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "B<c> <label>",
     "pattern" : "cond#4 1010 imm24#24",
     "decoder" : """imm32 = SignExtend(imm24:'00', 32);"""
@@ -440,7 +440,7 @@ instructions = [
 } , {
     "name" : "BIC (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BIC{S}<c> <Rd>, <Rn>, #<const>",
     "pattern" : "cond#4 0011110 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -449,7 +449,7 @@ instructions = [
 } , {
     "name" : "BIC (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100001110 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -464,7 +464,7 @@ instructions = [
 } , {
     "name" : "BIC (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BIC{S}<c> <Rd>, <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0001110 S#1 Rn#4 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -472,7 +472,7 @@ instructions = [
 } , {
     "name" : "BIC (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BIC{S}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0001110 S#1 Rn#4 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); s = UInt(Rs); setflags = (S == '1'); shift_t = DecodeRegShift(type);
@@ -480,14 +480,14 @@ instructions = [
 } , {
     "name" : "BKPT",
     "encoding" : "T1",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BKPT #<imm8>",
     "pattern" : "10111110 imm8#8",
     "decoder" : """imm32 = ZeroExtend(imm8, 32);"""
 } , {
     "name" : "BKPT",
     "encoding" : "A1",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BKPT #<imm16>",
     "pattern" : "cond#4 00010010 imm12#12 0111 imm4#4",
     "decoder" : """imm32 = ZeroExtend(imm12:imm4, 32);
@@ -496,7 +496,7 @@ instructions = [
 } , {
     "name" : "BL, BLX (immediate)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BL<c> <label>",
     "pattern" : "11110 S#1 imm10#10 11 J1#1 1 J2#1 imm11#11",
     "decoder" : """I1 = NOT(J1 EOR S); I2 = NOT(J2 EOR S); imm32 = SignExtend(S:I1:I2:imm10:imm11:'0', 32);
@@ -504,7 +504,7 @@ instructions = [
 } , {
     "name" : "BL, BLX (immediate)",
     "encoding" : "T2",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BLX<c> <label>",
     "pattern" : "11110 S#1 imm10H#10 11 J1#1 0 J2#1 imm10L#10 H#1",
     "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE || H == '1' then UNDEFINED;
@@ -513,21 +513,21 @@ instructions = [
 } , {
     "name" : "BL, BLX (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BL<c> <label>",
     "pattern" : "cond#4 1011 imm24#24",
     "decoder" : """imm32 = SignExtend(imm24:'00', 32); targetInstrSet = InstrSet_ARM;"""
 } , {
     "name" : "BL, BLX (immediate)",
     "encoding" : "A2",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BLX <label>",
     "pattern" : "1111101 H#1 imm24#24",
     "decoder" : """imm32 = SignExtend(imm24:H:'0', 32); targetInstrSet = InstrSet_Thumb;"""
 } , {
     "name" : "BLX (register)",
     "encoding" : "T1",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BLX<c> <Rm>",
     "pattern" : "010001111 Rm#4 000",
     "decoder" : """m = UInt(Rm);
@@ -536,7 +536,7 @@ instructions = [
 } , {
     "name" : "BLX (register)",
     "encoding" : "A1",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BLX<c> <Rm>",
     "pattern" : "cond#4 000100101111111111110011 Rm#4",
     "decoder" : """m = UInt(Rm);
@@ -544,7 +544,7 @@ instructions = [
 } , {
     "name" : "BX",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BX<c> <Rm>",
     "pattern" : "010001110 Rm#4 000",
     "decoder" : """m = UInt(Rm);
@@ -552,7 +552,7 @@ instructions = [
 } , {
     "name" : "BX",
     "encoding" : "A1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "BX<c> <Rm>",
     "pattern" : "cond#4 000100101111111111110001 Rm#4",
     "decoder" : """m = UInt(Rm);"""
@@ -568,7 +568,7 @@ instructions = [
 } , {
     "name" : "BXJ",
     "encoding" : "A1",
-    "version" : "ARMv5TEJ, ARMv6*, ARMv7",
+    "version" : "ARMv5TEJ, ARMv6All, ARMv7",
     "format" : "BXJ<c> <Rm>",
     "pattern" : "cond#4 000100101111111111110010 Rm#4",
     "decoder" : """m = UInt(Rm);
@@ -592,7 +592,7 @@ instructions = [
 } , {
     "name" : "CDP, CDP2",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CDP<c> <coproc>, <opc1>, <CRd>, <CRn>, <CRm>, <opc2>",
     "pattern" : "cond#4 1110 opc1#4 CRn#4 CRd#4 coproc#4 opc2#3 0 CRm#4",
     "decoder" : """if coproc IN "101x" then SEE "Floating-point instructions";
@@ -607,7 +607,7 @@ instructions = [
 } , {
     "name" : "CDP, CDP2",
     "encoding" : "A2",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CDP2<c> <coproc>, <opc1>, <CRd>, <CRn>, <CRm>, <opc2>",
     "pattern" : "11111110 opc1#4 CRn#4 CRd#4 coproc#4 opc2#3 0 CRm#4",
     "decoder" : """cp = UInt(coproc);"""
@@ -637,7 +637,7 @@ instructions = [
 } , {
     "name" : "CLZ",
     "encoding" : "A1",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CLZ<c> <Rd>, <Rm>",
     "pattern" : "cond#4 000101101111 Rd#4 11110001 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm);
@@ -653,14 +653,14 @@ instructions = [
 } , {
     "name" : "CMN (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CMN<c> <Rn>, #<const>",
     "pattern" : "cond#4 00110111 Rn#4 0000 imm12#12",
     "decoder" : """n = UInt(Rn); imm32 = ARMExpandImm(imm12);"""
 } , {
     "name" : "CMN (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CMN<c> <Rn>, <Rm>",
     "pattern" : "0100001011 Rm#3 Rn#3",
     "decoder" : """n = UInt(Rn); m = UInt(Rm); (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -676,7 +676,7 @@ instructions = [
 } , {
     "name" : "CMN (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CMN<c> <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 00010111 Rn#4 0000 imm5#5 type#2 0 Rm#4",
     "decoder" : """n = UInt(Rn); m = UInt(Rm);
@@ -684,7 +684,7 @@ instructions = [
 } , {
     "name" : "CMN (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CMN<c> <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 00010111 Rn#4 0000 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """n = UInt(Rn); m = UInt(Rm); s = UInt(Rs);
@@ -693,7 +693,7 @@ instructions = [
 } , {
     "name" : "CMP (immediate)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CMP<c> <Rn>, #<imm8>",
     "pattern" : "00101 Rn#3 imm8#8",
     "decoder" : """n = UInt(Rn); imm32 = ZeroExtend(imm8, 32);"""
@@ -708,21 +708,21 @@ instructions = [
 } , {
     "name" : "CMP (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CMP<c> <Rn>, #<const>",
     "pattern" : "cond#4 00110101 Rn#4 0000 imm12#12",
     "decoder" : """n = UInt(Rn); imm32 = ARMExpandImm(imm12);"""
 } , {
     "name" : "CMP (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CMP<c> <Rn>, <Rm>",
     "pattern" : "0100001010 Rm#3 Rn#3",
     "decoder" : """n = UInt(Rn); m = UInt(Rm); (shift_t, shift_n) = (SRType_LSL, 0);"""
 } , {
     "name" : "CMP (register)",
     "encoding" : "T2",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CMP<c> <Rn>, <Rm>",
     "pattern" : "01000101 N#1 Rm#4 Rn#3",
     "decoder" : """n = UInt(N:Rn); m = UInt(Rm);
@@ -741,14 +741,14 @@ instructions = [
 } , {
     "name" : "CMP (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CMP<c> <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 00010101 Rn#4 0000 imm5#5 type#2 0 Rm#4",
     "decoder" : """n = UInt(Rn); m = UInt(Rm); (shift_t, shift_n) = DecodeImmShift(type, imm5);"""
 } , {
     "name" : "CMP (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CMP<c> <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 00010101 Rn#4 0000 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """n = UInt(Rn); m = UInt(Rm); s = UInt(Rs);
@@ -809,7 +809,7 @@ instructions = [
 } , {
     "name" : "EOR (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "EOR{S}<c> <Rd>, <Rn>, #<const>",
     "pattern" : "cond#4 0010001 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -818,7 +818,7 @@ instructions = [
 } , {
     "name" : "EOR (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100000001 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -835,7 +835,7 @@ instructions = [
 } , {
     "name" : "EOR (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "EOR{S}<c> <Rd>, <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0000001 S#1 Rn#4 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -843,7 +843,7 @@ instructions = [
 } , {
     "name" : "EOR (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "EOR{S}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0000001 S#1 Rn#4 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); s = UInt(Rs); setflags = (S == '1'); shift_t = DecodeRegShift(type);
@@ -880,19 +880,19 @@ instructions = [
     "decoder" : """if Rn == '1111' then SEE LDC (literal);
     if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
     if P == '0' && U == '0' && D == '1' && W == '0' then SEE MRRC, MRRC2;
-    if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     n = UInt(Rn); cp = UInt(coproc);
     imm32 = ZeroExtend(imm8:'00', 32); index = (P == '1'); add = (U == '1'); wback = (W == '1');"""
 } , {
     "name" : "LDC, LDC2 (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 110 P#1 U#1 D#1 W#1 1 Rn#4 CRd#4 coproc#4 imm8#8",
     "decoder" : """if Rn == '1111' then SEE LDC (literal);
     if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
     if P == '0' && U == '0' && D == '1' && W == '0' then SEE MRRC, MRRC2;
-    if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     n = UInt(Rn); cp = UInt(coproc);
     imm32 = ZeroExtend(imm8:'00', 32); index = (P == '1'); add = (U == '1'); wback = (W == '1');"""
 } , {
@@ -910,7 +910,7 @@ instructions = [
 } , {
     "name" : "LDC, LDC2 (immediate)",
     "encoding" : "A2",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "1111110 P#1 U#1 D#1 W#1 1 Rn#4 CRd#4 coproc#4 imm8#8",
     "decoder" : """if Rn == '1111' then SEE LDC (literal);
@@ -927,18 +927,18 @@ instructions = [
     "pattern" : "1110110 P#1 U#1 D#1 W#1 11111 CRd#4 coproc#4 imm8#8",
     "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
     if P == '0' && U == '0' && D == '1' && W == '0' then SEE MRRC, MRRC2;
-    if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     index = (P == '1'); add = (U == '1'); cp = UInt(coproc); imm32 = ZeroExtend(imm8:'00', 32);
     if W == '1' || (P == '0' && CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
     "name" : "LDC, LDC2 (literal)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 110 P#1 U#1 D#1 W#1 11111 CRd#4 coproc#4 imm8#8",
     "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
     if P == '0' && U == '0' && D == '1' && W == '0' then SEE MRRC, MRRC2;
-    if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     index = (P == '1'); add = (U == '1'); cp = UInt(coproc); imm32 = ZeroExtend(imm8:'00', 32);
     if W == '1' || (P == '0' && CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
@@ -955,7 +955,7 @@ instructions = [
 } , {
     "name" : "LDC, LDC2 (literal)",
     "encoding" : "A2",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "1111110 P#1 U#1 D#1 W#1 11111 CRd#4 coproc#4 imm8#8",
     "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
@@ -966,7 +966,7 @@ instructions = [
 } , {
     "name" : "LDM/LDMIA/LDMFD (Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "11001 Rn#3 register_list#8",
     "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then SEE "ThumbEE instructions";
@@ -986,7 +986,7 @@ instructions = [
 } , {
     "name" : "LDM/LDMIA/LDMFD (ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDM<c> <Rn>{!}, <registers>",
     "pattern" : "cond#4 100010 W#1 1 Rn#4 register_list#16",
     "decoder" : """if W == '1' && Rn == '1101' && BitCount(register_list) > 1 then SEE POP (ARM);
@@ -996,7 +996,7 @@ instructions = [
 } , {
     "name" : "LDMDA/LDMFA",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDMDA<c> <Rn>{!}, <registers>",
     "pattern" : "cond#4 100000 W#1 1 Rn#4 register_list#16",
     "decoder" : """n = UInt(Rn); registers = register_list; wback = (W == '1');
@@ -1015,7 +1015,7 @@ instructions = [
 } , {
     "name" : "LDMDB/LDMEA",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDMDB<c> <Rn>{!}, <registers>",
     "pattern" : "cond#4 100100 W#1 1 Rn#4 register_list#16",
     "decoder" : """n = UInt(Rn); registers = register_list; wback = (W == '1');
@@ -1024,7 +1024,7 @@ instructions = [
 } , {
     "name" : "LDMIB/LDMED",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDMIB<c> <Rn>{!}, <registers>",
     "pattern" : "cond#4 100110 W#1 1 Rn#4 register_list#16",
     "decoder" : """n = UInt(Rn); registers = register_list; wback = (W == '1');
@@ -1033,14 +1033,14 @@ instructions = [
 } , {
     "name" : "LDR (immediate, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDR<c> <Rt>, [<Rn>{, #<imm>}]",
     "pattern" : "01101 imm5#5 Rn#3 Rt#3",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); imm32 = ZeroExtend(imm5:'00', 32); index = TRUE; add = TRUE; wback = FALSE;"""
 } , {
     "name" : "LDR (immediate, Thumb)",
     "encoding" : "T2",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDR<c> <Rt>, [SP{, #<imm>}]",
     "pattern" : "10011 Rt#3 imm8#8",
     "decoder" : """t = UInt(Rt); n = 13; imm32 = ZeroExtend(imm8:'00', 32); index = TRUE; add = TRUE; wback = FALSE;"""
@@ -1069,7 +1069,7 @@ instructions = [
 } , {
     "name" : "LDR (immediate, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 010 P#1 U#1 0 W#1 1 Rn#4 Rt#4 imm12#12",
     "decoder" : """if Rn == '1111' then SEE LDR (literal);
@@ -1081,7 +1081,7 @@ instructions = [
 } , {
     "name" : "LDR (literal)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDR<c> <Rt>, <label>",
     "pattern" : "01001 Rt#3 imm8#8",
     "decoder" : """t = UInt(Rt); imm32 = ZeroExtend(imm8:'00', 32); add = TRUE;"""
@@ -1096,14 +1096,14 @@ instructions = [
 } , {
     "name" : "LDR (literal)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDR<c> <Rt>, <label>",
     "pattern" : "cond#4 0101 U#1 0011111 Rt#4 imm12#12",
     "decoder" : """t = UInt(Rt); imm32 = ZeroExtend(imm12, 32); add = (U == '1');"""
 } , {
     "name" : "LDR (register, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDR<c> <Rt>, [<Rn>, <Rm>]",
     "pattern" : "0101100 Rm#3 Rn#3 Rt#3",
     "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then SEE "Modified operation in ThumbEE";
@@ -1123,7 +1123,7 @@ instructions = [
 } , {
     "name" : "LDR (register, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 011 P#1 U#1 0 W#1 1 Rn#4 Rt#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if P == '0' && W == '1' then SEE LDRT;
@@ -1135,7 +1135,7 @@ instructions = [
 } , {
     "name" : "LDRB (immediate, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRB<c> <Rt>, [<Rn>{, #<imm5>}]",
     "pattern" : "01111 imm5#5 Rn#3 Rt#3",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); imm32 = ZeroExtend(imm5, 32); index = TRUE; add = TRUE; wback = FALSE;"""
@@ -1165,7 +1165,7 @@ instructions = [
 } , {
     "name" : "LDRB (immediate, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 010 P#1 U#1 1 W#1 1 Rn#4 Rt#4 imm12#12",
     "decoder" : """if Rn == '1111' then SEE LDRB (literal);
@@ -1185,7 +1185,7 @@ instructions = [
 } , {
     "name" : "LDRB (literal)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRB<c> <Rt>, <label>",
     "pattern" : "cond#4 0101 U#1 1011111 Rt#4 imm12#12",
     "decoder" : """t = UInt(Rt); imm32 = ZeroExtend(imm12, 32); add = (U == '1');
@@ -1193,7 +1193,7 @@ instructions = [
 } , {
     "name" : "LDRB (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRB<c> <Rt>, [<Rn>, <Rm>]",
     "pattern" : "0101110 Rm#3 Rn#3 Rt#3",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); m = UInt(Rm); index = TRUE; add = TRUE; wback = FALSE; (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -1210,7 +1210,7 @@ instructions = [
 } , {
     "name" : "LDRB (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 011 P#1 U#1 1 W#1 1 Rn#4 Rt#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if P == '0' && W == '1' then SEE LDRBT;
@@ -1231,7 +1231,7 @@ instructions = [
 } , {
     "name" : "LDRBT",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRBT<c> <Rt>, [<Rn>], #+/-<imm12>",
     "pattern" : "cond#4 0100 U#1 111 Rn#4 Rt#4 imm12#12",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); postindex = TRUE; add = (U == '1'); register_form = FALSE; imm32 = ZeroExtend(imm12, 32);
@@ -1239,7 +1239,7 @@ instructions = [
 } , {
     "name" : "LDRBT",
     "encoding" : "A2",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRBT<c> <Rt>, [<Rn>],+/-<Rm>{, <shift>}",
     "pattern" : "cond#4 0110 U#1 111 Rn#4 Rt#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); m = UInt(Rm); postindex = TRUE; add = (U == '1'); register_form = TRUE; (shift_t, shift_n) = DecodeImmShift(type, imm5);
@@ -1259,7 +1259,7 @@ instructions = [
 } , {
     "name" : "LDRD (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 000 P#1 U#1 1 W#1 0 Rn#4 Rt#4 imm4H#4 1101 imm4L#4",
     "decoder" : """if Rn == '1111' then SEE LDRD (literal);
@@ -1283,7 +1283,7 @@ instructions = [
 } , {
     "name" : "LDRD (literal)",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "LDRD<c> <Rt>, <Rt2>, <label>",
     "pattern" : "cond#4 0001 U#1 1001111 Rt#4 imm4H#4 1101 imm4L#4",
     "decoder" : """if Rt<0> == '1' then UNPREDICTABLE;
@@ -1292,7 +1292,7 @@ instructions = [
 } , {
     "name" : "LDRD (register)",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 000 P#1 U#1 0 W#1 0 Rn#4 Rt#4 00001101 Rm#4",
     "decoder" : """if Rt<0> == '1' then UNPREDICTABLE;
@@ -1313,7 +1313,7 @@ instructions = [
 } , {
     "name" : "LDREX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "LDREX<c> <Rt>, [<Rn>]",
     "pattern" : "cond#4 00011001 Rn#4 Rt#4 111110011111",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); imm32 = Zeros(32);
@@ -1369,7 +1369,7 @@ instructions = [
 } , {
     "name" : "LDRH (immediate, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRH<c> <Rt>, [<Rn>{, #<imm>}]",
     "pattern" : "10001 imm5#5 Rn#3 Rt#3",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); imm32 = ZeroExtend(imm5:'0', 32); index = TRUE; add = TRUE; wback = FALSE;"""
@@ -1399,7 +1399,7 @@ instructions = [
 } , {
     "name" : "LDRH (immediate, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 000 P#1 U#1 1 W#1 1 Rn#4 Rt#4 imm4H#4 1011 imm4L#4",
     "decoder" : """if Rn == '1111' then SEE LDRH (literal);
@@ -1419,7 +1419,7 @@ instructions = [
 } , {
     "name" : "LDRH (literal)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRH<c> <Rt>, <label>",
     "pattern" : "cond#4 0001 U#1 1011111 Rt#4 imm4H#4 1011 imm4L#4",
     "decoder" : """t = UInt(Rt); imm32 = ZeroExtend(imm4H:imm4L, 32); add = (U == '1');
@@ -1427,7 +1427,7 @@ instructions = [
 } , {
     "name" : "LDRH (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRH<c> <Rt>, [<Rn>, <Rm>]",
     "pattern" : "0101101 Rm#3 Rn#3 Rt#3",
     "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then SEE "Modified operation in ThumbEE";
@@ -1448,7 +1448,7 @@ instructions = [
 } , {
     "name" : "LDRH (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 000 P#1 U#1 0 W#1 1 Rn#4 Rt#4 00001011 Rm#4",
     "decoder" : """if P == '0' && W == '1' then SEE LDRHT;
@@ -1508,7 +1508,7 @@ instructions = [
 } , {
     "name" : "LDRSB (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 000 P#1 U#1 1 W#1 1 Rn#4 Rt#4 imm4H#4 1101 imm4L#4",
     "decoder" : """if Rn == '1111' then SEE LDRSB (literal);
@@ -1528,7 +1528,7 @@ instructions = [
 } , {
     "name" : "LDRSB (literal)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRSB<c> <Rt>, <label>",
     "pattern" : "cond#4 0001 U#1 1011111 Rt#4 imm4H#4 1101 imm4L#4",
     "decoder" : """t = UInt(Rt); imm32 = ZeroExtend(imm4H:imm4L, 32); add = (U == '1');
@@ -1536,7 +1536,7 @@ instructions = [
 } , {
     "name" : "LDRSB (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRSB<c> <Rt>, [<Rn>, <Rm>]",
     "pattern" : "0101011 Rm#3 Rn#3 Rt#3",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); m = UInt(Rm); add = TRUE; wback = FALSE; index = TRUE;
@@ -1554,7 +1554,7 @@ instructions = [
 } , {
     "name" : "LDRSB (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 000 P#1 U#1 0 W#1 1 Rn#4 Rt#4 00001101 Rm#4",
     "decoder" : """if P == '0' && W == '1' then SEE LDRSBT;
@@ -1614,7 +1614,7 @@ instructions = [
 } , {
     "name" : "LDRSH (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 000 P#1 U#1 1 W#1 1 Rn#4 Rt#4 imm4H#4 1111 imm4L#4",
     "decoder" : """if Rn == '1111' then SEE LDRSH (literal);
@@ -1634,7 +1634,7 @@ instructions = [
 } , {
     "name" : "LDRSH (literal)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRSH<c> <Rt>, <label>",
     "pattern" : "cond#4 0001 U#1 1011111 Rt#4 imm4H#4 1111 imm4L#4",
     "decoder" : """t = UInt(Rt); imm32 = ZeroExtend(imm4H:imm4L, 32); add = (U == '1');
@@ -1642,7 +1642,7 @@ instructions = [
 } , {
     "name" : "LDRSH (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRSH<c> <Rt>, [<Rn>, <Rm>]",
     "pattern" : "0101111 Rm#3 Rn#3 Rt#3",
     "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then SEE "Modified operation in ThumbEE";
@@ -1662,7 +1662,7 @@ instructions = [
 } , {
     "name" : "LDRSH (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 000 P#1 U#1 0 W#1 1 Rn#4 Rt#4 00001111 Rm#4",
     "decoder" : """if P == '0' && W == '1' then SEE LDRSHT;
@@ -1708,7 +1708,7 @@ instructions = [
 } , {
     "name" : "LDRT",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRT<c> <Rt>, [<Rn>] {, #+/-<imm12>}",
     "pattern" : "cond#4 0100 U#1 011 Rn#4 Rt#4 imm12#12",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); postindex = TRUE; add = (U == '1'); register_form = FALSE; imm32 = ZeroExtend(imm12, 32);
@@ -1716,7 +1716,7 @@ instructions = [
 } , {
     "name" : "LDRT",
     "encoding" : "A2",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LDRT<c> <Rt>, [<Rn>],+/-<Rm>{, <shift>}",
     "pattern" : "cond#4 0110 U#1 011 Rn#4 Rt#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); m = UInt(Rm); postindex = TRUE; add = (U == '1'); register_form = TRUE; (shift_t, shift_n) = DecodeImmShift(type, imm5);
@@ -1725,7 +1725,7 @@ instructions = [
 } , {
     "name" : "LSL (immediate)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "00000 imm5#5 Rm#3 Rd#3",
     "decoder" : """if imm5 == '00000' then SEE MOV (register);
@@ -1742,7 +1742,7 @@ instructions = [
 } , {
     "name" : "LSL (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LSL{S}<c> <Rd>, <Rm>, #<imm5>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 imm5#5 000 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -1752,7 +1752,7 @@ instructions = [
 } , {
     "name" : "LSL (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100000010 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock();"""
@@ -1767,7 +1767,7 @@ instructions = [
 } , {
     "name" : "LSL (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LSL{S}<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 Rm#4 0001 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); setflags = (S == '1');
@@ -1775,7 +1775,7 @@ instructions = [
 } , {
     "name" : "LSR (immediate)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "00001 imm5#5 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); setflags = !InITBlock(); (-, shift_n) = DecodeImmShift('01', imm5);"""
@@ -1790,7 +1790,7 @@ instructions = [
 } , {
     "name" : "LSR (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LSR{S}<c> <Rd>, <Rm>, #<imm>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 imm5#5 010 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -1799,7 +1799,7 @@ instructions = [
 } , {
     "name" : "LSR (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100000011 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock();"""
@@ -1814,7 +1814,7 @@ instructions = [
 } , {
     "name" : "LSR (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LSR{S}<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 Rm#4 0011 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); setflags = (S == '1');
@@ -1825,16 +1825,16 @@ instructions = [
     "version" : "ARMv6T2, ARMv7",
     "format" : "MCR<c> <coproc>, <opc1>, <Rt>, <CRn>, <CRm>{, <opc2>}",
     "pattern" : "11101110 opc1#3 0 CRn#4 Rt#4 coproc#4 opc2#3 1 CRm#4",
-    "decoder" : """if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    "decoder" : """if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     t = UInt(Rt); cp = UInt(coproc);
     if t == 15 || (t == 13 && (CurrentInstrSet() != InstrSet_ARM)) then UNPREDICTABLE;"""
 } , {
     "name" : "MCR, MCR2",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MCR<c> <coproc>, <opc1>, <Rt>, <CRn>, <CRm>{, <opc2>}",
     "pattern" : "cond#4 1110 opc1#3 0 CRn#4 Rt#4 coproc#4 opc2#3 1 CRm#4",
-    "decoder" : """if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    "decoder" : """if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     t = UInt(Rt); cp = UInt(coproc);
     if t == 15 || (t == 13 && (CurrentInstrSet() != InstrSet_ARM)) then UNPREDICTABLE;"""
 } , {
@@ -1849,7 +1849,7 @@ instructions = [
 } , {
     "name" : "MCR, MCR2",
     "encoding" : "A2",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MCR2<c> <coproc>, <opc1>, <Rt>, <CRn>, <CRm>{, <opc2>}",
     "pattern" : "11111110 opc1#3 0 CRn#4 Rt#4 coproc#4 opc2#3 1 CRm#4",
     "decoder" : """if coproc IN "101x" then UNDEFINED;
@@ -1861,17 +1861,17 @@ instructions = [
     "version" : "ARMv6T2, ARMv7",
     "format" : "MCRR<c> <coproc>, <opc1>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "111011000100 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
-    "decoder" : """if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    "decoder" : """if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     t = UInt(Rt); t2 = UInt(Rt2); cp = UInt(coproc);
     if t == 15 || t2 == 15 then UNPREDICTABLE;
     if (t == 13 || t2 == 13) && (CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
     "name" : "MCRR, MCRR2",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "MCRR<c> <coproc>, <opc1>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "cond#4 11000100 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
-    "decoder" : """if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    "decoder" : """if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     t = UInt(Rt); t2 = UInt(Rt2); cp = UInt(coproc);
     if t == 15 || t2 == 15 then UNPREDICTABLE;
     if (t == 13 || t2 == 13) && (CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
@@ -1888,7 +1888,7 @@ instructions = [
 } , {
     "name" : "MCRR, MCRR2",
     "encoding" : "A2",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "MCRR2<c> <coproc>, <opc1>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "111111000100 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
     "decoder" : """if coproc IN "101x" then UNDEFINED;
@@ -1907,7 +1907,7 @@ instructions = [
 } , {
     "name" : "MLA",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MLA{S}<c> <Rd>, <Rn>, <Rm>, <Ra>",
     "pattern" : "cond#4 0000001 S#1 Rd#4 Ra#4 Rm#4 1001 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); a = UInt(Ra); setflags = (S == '1');
@@ -1932,7 +1932,7 @@ instructions = [
 } , {
     "name" : "MOV (immediate)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "00100 Rd#3 imm8#8",
     "decoder" : """d = UInt(Rd); setflags = !InITBlock(); imm32 = ZeroExtend(imm8, 32); carry = APSR.C;"""
@@ -1955,7 +1955,7 @@ instructions = [
 } , {
     "name" : "MOV (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MOV{S}<c> <Rd>, #<const>",
     "pattern" : "cond#4 0011101 S#1 0000 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -1971,7 +1971,7 @@ instructions = [
 } , {
     "name" : "MOV (register, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MOV<c> <Rd>, <Rm>",
     "pattern" : "01000110 D#1 Rm#4 Rd#3",
     "decoder" : """d = UInt(D:Rd); m = UInt(Rm); setflags = FALSE;
@@ -1979,7 +1979,7 @@ instructions = [
 } , {
     "name" : "MOV (register, Thumb)",
     "encoding" : "T2",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MOVS <Rd>, <Rm>",
     "pattern" : "0000000000 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); setflags = TRUE;
@@ -1996,7 +1996,7 @@ instructions = [
 } , {
     "name" : "MOV (register, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MOV{S}<c> <Rd>, <Rm>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 00000000 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2023,16 +2023,16 @@ instructions = [
     "version" : "ARMv6T2, ARMv7",
     "format" : "MRC<c> <coproc>, <opc1>, <Rt>, <CRn>, <CRm>{, <opc2>}",
     "pattern" : "11101110 opc1#3 1 CRn#4 Rt#4 coproc#4 opc2#3 1 CRm#4",
-    "decoder" : """if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    "decoder" : """if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     t = UInt(Rt); cp = UInt(coproc);
     if t == 13 && (CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
     "name" : "MRC, MRC2",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MRC<c> <coproc>, <opc1>, <Rt>, <CRn>, <CRm>{, <opc2>}",
     "pattern" : "cond#4 1110 opc1#3 1 CRn#4 Rt#4 coproc#4 opc2#3 1 CRm#4",
-    "decoder" : """if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    "decoder" : """if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     t = UInt(Rt); cp = UInt(coproc);
     if t == 13 && (CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
@@ -2047,7 +2047,7 @@ instructions = [
 } , {
     "name" : "MRC, MRC2",
     "encoding" : "A2",
-    "version" : "ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MRC2<c> <coproc>, <opc1>, <Rt>, <CRn>, <CRm>{, <opc2>}",
     "pattern" : "11111110 opc1#3 1 CRn#4 Rt#4 coproc#4 opc2#3 1 CRm#4",
     "decoder" : """if coproc IN "101x" then UNDEFINED;
@@ -2059,17 +2059,17 @@ instructions = [
     "version" : "ARMv6T2, ARMv7",
     "format" : "MRRC<c> <coproc>, <opc>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "111011000101 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
-    "decoder" : """if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    "decoder" : """if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     t = UInt(Rt); t2 = UInt(Rt2); cp = UInt(coproc);
     if t == 15 || t2 == 15 || t == t2 then UNPREDICTABLE;
     if (t == 13 || t2 == 13) && (CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
     "name" : "MRRC, MRRC2",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "MRRC<c> <coproc>, <opc>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "cond#4 11000101 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
-    "decoder" : """if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    "decoder" : """if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     t = UInt(Rt); t2 = UInt(Rt2); cp = UInt(coproc);
     if t == 15 || t2 == 15 || t == t2 then UNPREDICTABLE;
     if (t == 13 || t2 == 13) && (CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
@@ -2086,7 +2086,7 @@ instructions = [
 } , {
     "name" : "MRRC, MRRC2",
     "encoding" : "A2",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "MRRC2<c> <coproc>, <opc>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "111111000101 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
     "decoder" : """if coproc IN "101x" then UNDEFINED;
@@ -2104,7 +2104,7 @@ instructions = [
 } , {
     "name" : "MRS",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MRS<c> <Rd>, <spec_reg>",
     "pattern" : "cond#4 000100001111 Rd#4 000000000000",
     "decoder" : """d = UInt(Rd);
@@ -2112,7 +2112,7 @@ instructions = [
 } , {
     "name" : "MSR (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MSR<c> <spec_reg>, #<const>",
     "pattern" : "cond#4 00110010 mask#2 001111 imm12#12",
     "decoder" : """if mask == '00' then SEE "Related encodings";
@@ -2129,7 +2129,7 @@ instructions = [
 } , {
     "name" : "MSR (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MSR<c> <spec_reg>, <Rn>",
     "pattern" : "cond#4 00010010 mask#2 00111100000000 Rn#4",
     "decoder" : """n = UInt(Rn); write_nzcvq = (mask<1> == '1'); write_g = (mask<0> == '1');
@@ -2138,7 +2138,7 @@ instructions = [
 } , {
     "name" : "MUL",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100001101 Rn#3 Rdm#3",
     "decoder" : """d = UInt(Rdm); n = UInt(Rn); m = UInt(Rdm); setflags = !InITBlock();
@@ -2154,7 +2154,7 @@ instructions = [
 } , {
     "name" : "MUL",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MUL{S}<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0000000 S#1 Rd#4 0000 Rm#4 1001 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); setflags = (S == '1');
@@ -2172,7 +2172,7 @@ instructions = [
 } , {
     "name" : "MVN (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MVN{S}<c> <Rd>, #<const>",
     "pattern" : "cond#4 0011111 S#1 0000 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2181,7 +2181,7 @@ instructions = [
 } , {
     "name" : "MVN (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100001111 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -2196,7 +2196,7 @@ instructions = [
 } , {
     "name" : "MVN (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MVN{S}<c> <Rd>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0001111 S#1 0000 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2205,7 +2205,7 @@ instructions = [
 } , {
     "name" : "MVN (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MVN{S}<c> <Rd>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0001111 S#1 0000 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); s = UInt(Rs);
@@ -2262,7 +2262,7 @@ instructions = [
 } , {
     "name" : "ORR (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ORR{S}<c> <Rd>, <Rn>, #<const>",
     "pattern" : "cond#4 0011100 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2271,7 +2271,7 @@ instructions = [
 } , {
     "name" : "ORR (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100001100 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -2287,7 +2287,7 @@ instructions = [
 } , {
     "name" : "ORR (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ORR{S}<c> <Rd>, <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0001100 S#1 Rn#4 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2295,7 +2295,7 @@ instructions = [
 } , {
     "name" : "ORR (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ORR{S}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0001100 S#1 Rn#4 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); s = UInt(Rs); setflags = (S == '1'); shift_t = DecodeRegShift(type);
@@ -2313,7 +2313,7 @@ instructions = [
 } , {
     "name" : "PKH",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 01101000 Rn#4 Rd#4 imm5#5 tb#1 01 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); tbform = (tb == '1');
@@ -2338,7 +2338,7 @@ instructions = [
 } , {
     "name" : "PLD, PLDW (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "PLD{W} [<Rn>, #+/-<imm12>]",
     "pattern" : "11110101 U#1 R#1 01 Rn#4 1111 imm12#12",
     "decoder" : """if Rn == '1111' then SEE PLD (literal);
@@ -2353,7 +2353,7 @@ instructions = [
 } , {
     "name" : "PLD (literal)",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "PLD <label>",
     "pattern" : "11110101 U#1 10111111111 imm12#12",
     "decoder" : """imm32 = ZeroExtend(imm12, 32); add = (U == '1');"""
@@ -2369,7 +2369,7 @@ instructions = [
 } , {
     "name" : "PLD, PLDW (register)",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "PLD{W} [<Rn>,+/-<Rm>{, <shift>}]",
     "pattern" : "11110111 U#1 R#1 01 Rn#4 1111 imm5#5 type#2 0 Rm#4",
     "decoder" : """n = UInt(Rn); m = UInt(Rm); add = (U == '1'); is_pldw = (R == '0'); (shift_t, shift_n) = DecodeImmShift(type, imm5);
@@ -2424,7 +2424,7 @@ instructions = [
 } , {
     "name" : "POP (Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "POP<c> <registers>",
     "pattern" : "1011110 P#1 register_list#8",
     "decoder" : """registers = P:'0000000':register_list; UnalignedAllowed = FALSE;
@@ -2450,7 +2450,7 @@ instructions = [
 } , {
     "name" : "POP (ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "POP<c> <registers>",
     "pattern" : "cond#4 100010111101 register_list#16",
     "decoder" : """if BitCount(register_list) < 2 then SEE LDM / LDMIA / LDMFD;
@@ -2459,7 +2459,7 @@ instructions = [
 } , {
     "name" : "POP (ARM)",
     "encoding" : "A2",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "POP<c> <registers>",
     "pattern" : "cond#4 010010011101 Rt#4 000000000100",
     "decoder" : """t = UInt(Rt); registers = Zeros(16); registers = 1 << t; UnalignedAllowed = TRUE;
@@ -2467,7 +2467,7 @@ instructions = [
 } , {
     "name" : "PUSH",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "PUSH<c> <registers>",
     "pattern" : "1011010 M#1 register_list#8",
     "decoder" : """registers = '0':M:'000000':register_list; UnalignedAllowed = FALSE;
@@ -2491,7 +2491,7 @@ instructions = [
 } , {
     "name" : "PUSH",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "PUSH<c> <registers>",
     "pattern" : "cond#4 100100101101 register_list#16",
     "decoder" : """if BitCount(register_list) < 2 then SEE STMDB / STMFD;
@@ -2499,7 +2499,7 @@ instructions = [
 } , {
     "name" : "PUSH",
     "encoding" : "A2",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "PUSH<c> <registers>",
     "pattern" : "cond#4 010100101101 Rt#4 000000000100",
     "decoder" : """t = UInt(Rt); registers = Zeros(16); registers = 1 << t; UnalignedAllowed = TRUE;
@@ -2515,7 +2515,7 @@ instructions = [
 } , {
     "name" : "QADD",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "QADD<c> <Rd>, <Rm>, <Rn>",
     "pattern" : "cond#4 00010000 Rn#4 Rd#4 00000101 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2531,7 +2531,7 @@ instructions = [
 } , {
     "name" : "QADD16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "QADD16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 01100010 Rn#4 Rd#4 11110001 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2547,7 +2547,7 @@ instructions = [
 } , {
     "name" : "QADD8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "QADD8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 01100010 Rn#4 Rd#4 11111001 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2563,7 +2563,7 @@ instructions = [
 } , {
     "name" : "QASX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "QASX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 01100010 Rn#4 Rd#4 11110011 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2579,7 +2579,7 @@ instructions = [
 } , {
     "name" : "QDADD",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "QDADD<c> <Rd>, <Rm>, <Rn>",
     "pattern" : "cond#4 00010100 Rn#4 Rd#4 00000101 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2595,7 +2595,7 @@ instructions = [
 } , {
     "name" : "QDSUB",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "QDSUB<c> <Rd>, <Rm>, <Rn>",
     "pattern" : "cond#4 00010110 Rn#4 Rd#4 00000101 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2611,7 +2611,7 @@ instructions = [
 } , {
     "name" : "QSAX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "QSAX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 01100010 Rn#4 Rd#4 11110101 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2627,7 +2627,7 @@ instructions = [
 } , {
     "name" : "QSUB",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "QSUB<c> <Rd>, <Rm>, <Rn>",
     "pattern" : "cond#4 00010010 Rn#4 Rd#4 00000101 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2643,7 +2643,7 @@ instructions = [
 } , {
     "name" : "QSUB16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "QSUB16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 01100010 Rn#4 Rd#4 11110111 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2659,7 +2659,7 @@ instructions = [
 } , {
     "name" : "QSUB8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "QSUB8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 01100010 Rn#4 Rd#4 11111111 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2684,7 +2684,7 @@ instructions = [
 } , {
     "name" : "REV",
     "encoding" : "T1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "REV<c> <Rd>, <Rm>",
     "pattern" : "1011101000 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm);"""
@@ -2700,7 +2700,7 @@ instructions = [
 } , {
     "name" : "REV",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "REV<c> <Rd>, <Rm>",
     "pattern" : "cond#4 011010111111 Rd#4 11110011 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm);
@@ -2708,7 +2708,7 @@ instructions = [
 } , {
     "name" : "REV16",
     "encoding" : "T1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "REV16<c> <Rd>, <Rm>",
     "pattern" : "1011101001 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm);"""
@@ -2724,7 +2724,7 @@ instructions = [
 } , {
     "name" : "REV16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "REV16<c> <Rd>, <Rm>",
     "pattern" : "cond#4 011010111111 Rd#4 11111011 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm);
@@ -2732,7 +2732,7 @@ instructions = [
 } , {
     "name" : "REVSH",
     "encoding" : "T1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "REVSH<c> <Rd>, <Rm>",
     "pattern" : "1011101011 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm);"""
@@ -2748,7 +2748,7 @@ instructions = [
 } , {
     "name" : "REVSH",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "REVSH<c> <Rd>, <Rm>",
     "pattern" : "cond#4 011011111111 Rd#4 11111011 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm);
@@ -2765,7 +2765,7 @@ instructions = [
 } , {
     "name" : "ROR (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ROR{S}<c> <Rd>, <Rm>, #<imm>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 imm5#5 110 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2775,7 +2775,7 @@ instructions = [
 } , {
     "name" : "ROR (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0100000111 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock();"""
@@ -2790,7 +2790,7 @@ instructions = [
 } , {
     "name" : "ROR (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "ROR{S}<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 Rm#4 0111 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); setflags = (S == '1');
@@ -2806,7 +2806,7 @@ instructions = [
 } , {
     "name" : "RRX",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "RRX{S}<c> <Rd>, <Rm>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 00000110 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2814,7 +2814,7 @@ instructions = [
 } , {
     "name" : "RSB (immediate)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0 1 0 0 0 0 1 0 0 1 Rn#3 Rd#3",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); setflags = !InITBlock(); imm32 = Zeros(32);"""
@@ -2829,7 +2829,7 @@ instructions = [
 } , {
     "name" : "RSB (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "RSB{S}<c> <Rd>, <Rn>, #<const>",
     "pattern" : "cond#4 0 0 1 0 0 1 1 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2845,7 +2845,7 @@ instructions = [
 } , {
     "name" : "RSB (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "RSB{S}<c> <Rd>, <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0 0 0 0 0 1 1 S#1 Rn#4 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2853,7 +2853,7 @@ instructions = [
 } , {
     "name" : "RSB (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "RSB{S}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0 0 0 0 0 1 1 S#1 Rn#4 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); s = UInt(Rs); setflags = (S == '1'); shift_t = DecodeRegShift(type);
@@ -2861,7 +2861,7 @@ instructions = [
 } , {
     "name" : "RSC (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "RSC{S}<c> <Rd>, <Rn>, #<const>",
     "pattern" : "cond#4 0 0 1 0 1 1 1 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2869,7 +2869,7 @@ instructions = [
 } , {
     "name" : "RSC (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "RSC{S}<c> <Rd>, <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0 0 0 0 1 1 1 S#1 Rn#4 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2877,7 +2877,7 @@ instructions = [
 } , {
     "name" : "RSC (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "RSC{S}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0 0 0 0 1 1 1 S#1 Rn#4 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); s = UInt(Rs); setflags = (S == '1'); shift_t = DecodeRegShift(type);
@@ -2893,7 +2893,7 @@ instructions = [
 } , {
     "name" : "SADD16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SADD16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 0 1 Rn#4 Rd#4 1 1 1 1 0 0 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2909,7 +2909,7 @@ instructions = [
 } , {
     "name" : "SADD8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SADD8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 0 1 Rn#4 Rd#4 1 1 1 1 1 0 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2925,7 +2925,7 @@ instructions = [
 } , {
     "name" : "SASX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SASX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 0 1 Rn#4 Rd#4 1 1 1 1 0 0 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -2941,7 +2941,7 @@ instructions = [
 } , {
     "name" : "SBC (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SBC{S}<c> <Rd>, <Rn>, #<const>",
     "pattern" : "cond#4 0 0 1 0 1 1 0 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2949,7 +2949,7 @@ instructions = [
 } , {
     "name" : "SBC (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0 1 0 0 0 0 0 1 1 0 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -2964,7 +2964,7 @@ instructions = [
 } , {
     "name" : "SBC (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SBC{S}<c> <Rd>, <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0 0 0 0 1 1 0 S#1 Rn#4 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -2972,7 +2972,7 @@ instructions = [
 } , {
     "name" : "SBC (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SBC{S}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0 0 0 0 1 1 0 S#1 Rn#4 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); s = UInt(Rs); setflags = (S == '1'); shift_t = DecodeRegShift(type);
@@ -2998,7 +2998,7 @@ instructions = [
 } , {
     "name" : "SDIV",
     "encoding" : "T1",
-    "version" : "ARMv7-R, ARMv7VE",
+    "version" : "ARMv7R, ARMv7VE",
     "format" : "SDIV<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "1 1 1 1 1 0 1 1 1 0 0 1 Rn#4 1 1 1 1 Rd#4 1 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3022,7 +3022,7 @@ instructions = [
 } , {
     "name" : "SEL",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SEL<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 1 0 0 0 Rn#4 Rd#4 1 1 1 1 1 0 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3030,7 +3030,7 @@ instructions = [
 } , {
     "name" : "SETEND",
     "encoding" : "T1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SETEND <endian_specifier>",
     "pattern" : "1 0 1 1 0 1 1 0 0 1 0 1 E#1 0 0 0",
     "decoder" : """set_bigend = (E == '1');
@@ -3038,7 +3038,7 @@ instructions = [
 } , {
     "name" : "SETEND",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SETEND <endian_specifier>",
     "pattern" : "1 1 1 1 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 E#1 0 0 0 0 0 0 0 0 0",
     "decoder" : """set_bigend = (E == '1');"""
@@ -3074,7 +3074,7 @@ instructions = [
 } , {
     "name" : "SHADD16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SHADD16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 1 1 Rn#4 Rd#4 1 1 1 1 0 0 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3090,7 +3090,7 @@ instructions = [
 } , {
     "name" : "SHADD8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SHADD8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 1 1 Rn#4 Rd#4 1 1 1 1 1 0 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3106,7 +3106,7 @@ instructions = [
 } , {
     "name" : "SHASX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SHASX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 1 1 Rn#4 Rd#4 1 1 1 1 0 0 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3122,7 +3122,7 @@ instructions = [
 } , {
     "name" : "SHSAX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SHSAX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 1 1 Rn#4 Rd#4 1 1 1 1 0 1 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3138,7 +3138,7 @@ instructions = [
 } , {
     "name" : "SHSUB16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SHSUB16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 1 1 Rn#4 Rd#4 1 1 1 1 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3154,7 +3154,7 @@ instructions = [
 } , {
     "name" : "SHSUB8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SHSUB8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 1 1 Rn#4 Rd#4 1 1 1 1 1 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3172,7 +3172,7 @@ instructions = [
 } , {
     "name" : "SMLABB, SMLABT, SMLATB, SMLATT",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "SMLA<x><y><c> <Rd>, <Rn>, <Rm>, <Ra>",
     "pattern" : "cond#4 0 0 0 1 0 0 0 0 Rd#4 Ra#4 Rm#4 1 M#1 N#1 0 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); a = UInt(Ra); n_high = (N == '1'); m_high = (M == '1');
@@ -3190,7 +3190,7 @@ instructions = [
 } , {
     "name" : "SMLAD",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SMLAD{X}<c> <Rd>, <Rn>, <Rm>, <Ra>",
     "pattern" : "cond#4 0 1 1 1 0 0 0 0 Rd#4 Ra#4 Rm#4 0 0 M#1 1 Rn#4",
     "decoder" : """if Ra == '1111' then SEE SMUAD;
@@ -3208,7 +3208,7 @@ instructions = [
 } , {
     "name" : "SMLAL",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SMLAL{S}<c> <RdLo>, <RdHi>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 0 0 0 1 1 1 S#1 RdHi#4 RdLo#4 Rm#4 1 0 0 1 Rn#4",
     "decoder" : """dLo = UInt(RdLo); dHi = UInt(RdHi); n = UInt(Rn); m = UInt(Rm); setflags = (S == '1');
@@ -3228,7 +3228,7 @@ instructions = [
 } , {
     "name" : "SMLALBB, SMLALBT, SMLALTB, SMLALTT",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "SMLAL<x><y><c> <RdLo>, <RdHi>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 0 0 1 0 1 0 0 RdHi#4 RdLo#4 Rm#4 1 M#1 N#1 0 Rn#4",
     "decoder" : """dLo = UInt(RdLo); dHi = UInt(RdHi); n = UInt(Rn); m = UInt(Rm); n_high = (N == '1'); m_high = (M == '1');
@@ -3246,7 +3246,7 @@ instructions = [
 } , {
     "name" : "SMLALD",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SMLALD{X}<c> <RdLo>, <RdHi>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 1 0 1 0 0 RdHi#4 RdLo#4 Rm#4 0 0 M#1 1 Rn#4",
     "decoder" : """dLo = UInt(RdLo); dHi = UInt(RdHi); n = UInt(Rn); m = UInt(Rm); m_swap = (M == '1');
@@ -3264,7 +3264,7 @@ instructions = [
 } , {
     "name" : "SMLAWB, SMLAWT",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "SMLAW<y><c> <Rd>, <Rn>, <Rm>, <Ra>",
     "pattern" : "cond#4 0 0 0 1 0 0 1 0 Rd#4 Ra#4 Rm#4 1 M#1 0 0 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); a = UInt(Ra); m_high = (M == '1');
@@ -3281,7 +3281,7 @@ instructions = [
 } , {
     "name" : "SMLSD",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SMLSD{X}<c> <Rd>, <Rn>, <Rm>, <Ra>",
     "pattern" : "cond#4 0 1 1 1 0 0 0 0 Rd#4 Ra#4 Rm#4 0 1 M#1 1 Rn#4",
     "decoder" : """if Ra == '1111' then SEE SMUSD;
@@ -3299,7 +3299,7 @@ instructions = [
 } , {
     "name" : "SMLSLD",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SMLSLD{X}<c> <RdLo>, <RdHi>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 1 0 1 0 0 RdHi#4 RdLo#4 Rm#4 0 1 M#1 1 Rn#4",
     "decoder" : """dLo = UInt(RdLo); dHi = UInt(RdHi); n = UInt(Rn); m = UInt(Rm); m_swap = (M == '1');
@@ -3317,7 +3317,7 @@ instructions = [
 } , {
     "name" : "SMMLA",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SMMLA{R}<c> <Rd>, <Rn>, <Rm>, <Ra>",
     "pattern" : "cond#4 0 1 1 1 0 1 0 1 Rd#4 Ra#4 Rm#4 0 0 R#1 1 Rn#4",
     "decoder" : """if Ra == '1111' then SEE SMMUL;
@@ -3334,7 +3334,7 @@ instructions = [
 } , {
     "name" : "SMMLS",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SMMLS{R}<c> <Rd>, <Rn>, <Rm>, <Ra>",
     "pattern" : "cond#4 0 1 1 1 0 1 0 1 Rd#4 Ra#4 Rm#4 1 1 R#1 1 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); a = UInt(Ra); round = (R == '1');
@@ -3350,7 +3350,7 @@ instructions = [
 } , {
     "name" : "SMMUL",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SMMUL{R}<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 1 0 1 0 1 Rd#4 1 1 1 1 Rm#4 0 0 R#1 1 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); round = (R == '1');
@@ -3366,7 +3366,7 @@ instructions = [
 } , {
     "name" : "SMUAD",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SMUAD{X}<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 1 0 0 0 0 Rd#4 1 1 1 1 Rm#4 0 0 M#1 1 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); m_swap = (M == '1');
@@ -3383,7 +3383,7 @@ instructions = [
 } , {
     "name" : "SMULBB, SMULBT, SMULTB, SMULTT",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "SMUL<x><y><c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 0 0 1 0 1 1 0 Rd#4 0 0 0 0 Rm#4 1 M#1 N#1 0 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3401,7 +3401,7 @@ instructions = [
 } , {
     "name" : "SMULL",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SMULL{S}<c> <RdLo>, <RdHi>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 0 0 0 1 1 0 S#1 RdHi#4 RdLo#4 Rm#4 1 0 0 1 Rn#4",
     "decoder" : """dLo = UInt(RdLo); dHi = UInt(RdHi); n = UInt(Rn); m = UInt(Rm); setflags = (S == '1');
@@ -3419,7 +3419,7 @@ instructions = [
 } , {
     "name" : "SMULWB, SMULWT",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "SMULW<y><c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 0 0 1 0 0 1 0 Rd#4 0 0 0 0 Rm#4 1 M#1 1 0 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); m_high = (M == '1');
@@ -3435,7 +3435,7 @@ instructions = [
 } , {
     "name" : "SMUSD",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SMUSD{X}<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 1 0 0 0 0 Rd#4 1 1 1 1 Rm#4 0 1 M#1 1 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); m_swap = (M == '1');
@@ -3452,7 +3452,7 @@ instructions = [
 } , {
     "name" : "SSAT",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SSAT<c> <Rd>, #<imm>, <Rn>{, <shift>}",
     "pattern" : "cond#4 0 1 1 0 1 0 1 sat_imm#5 Rd#4 imm5#5 sh#1 0 1 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); saturate_to = UInt(sat_imm)+1; (shift_t, shift_n) = DecodeImmShift(sh:'0', imm5);
@@ -3468,7 +3468,7 @@ instructions = [
 } , {
     "name" : "SSAT16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SSAT16<c> <Rd>, #<imm>, <Rn>",
     "pattern" : "cond#4 0 1 1 0 1 0 1 0 sat_imm#4 Rd#4 1 1 1 1 0 0 1 1 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); saturate_to = UInt(sat_imm)+1;
@@ -3484,7 +3484,7 @@ instructions = [
 } , {
     "name" : "SSAX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SSAX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 0 1 Rn#4 Rd#4 1 1 1 1 0 1 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3500,7 +3500,7 @@ instructions = [
 } , {
     "name" : "SSUB16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SSUB16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 0 1 Rn#4 Rd#4 1 1 1 1 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3516,7 +3516,7 @@ instructions = [
 } , {
     "name" : "SSUB8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SSUB8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 0 0 1 Rn#4 Rd#4 1 1 1 1 1 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -3529,19 +3529,19 @@ instructions = [
     "pattern" : "1 1 1 0 1 1 0 P#1 U#1 D#1 W#1 0 Rn#4 CRd#4 coproc#4 imm8#8",
     "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
     if P == '0' && U == '0' && D == '1' && W == '0' then SEE MCRR, MCRR2;
-    if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     n = UInt(Rn); cp = UInt(coproc);
     imm32 = ZeroExtend(imm8:'00', 32); index = (P == '1'); add = (U == '1'); wback = (W == '1');
     if n == 15 && (wback || CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
     "name" : "STC, STC2",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 1 1 0 P#1 U#1 D#1 W#1 0 Rn#4 CRd#4 coproc#4 imm8#8",
     "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
     if P == '0' && U == '0' && D == '1' && W == '0' then SEE MCRR, MCRR2;
-    if coproc IN "101x" then SEE "Advanced SIMD and Floating-point";
+    if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     n = UInt(Rn); cp = UInt(coproc);
     imm32 = ZeroExtend(imm8:'00', 32); index = (P == '1'); add = (U == '1'); wback = (W == '1');
     if n == 15 && (wback || CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
@@ -3560,7 +3560,7 @@ instructions = [
 } , {
     "name" : "STC, STC2",
     "encoding" : "A2",
-    "version" : "ARMv5T*, ARMv6*, ARMv7 ",
+    "version" : "ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 0 P#1 U#1 D#1 W#1 0 Rn#4 CRd#4 coproc#4 imm8#8",
     "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
@@ -3572,7 +3572,7 @@ instructions = [
 } , {
     "name" : "STM (STMIA, STMEA)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STM<c> <Rn>!, <registers>",
     "pattern" : "1 1 0 0 0 Rn#3 register_list#8",
     "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then SEE "ThumbEE instructions";
@@ -3590,7 +3590,7 @@ instructions = [
 } , {
     "name" : "STM (STMIA, STMEA)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STM<c> <Rn>{!}, <registers>",
     "pattern" : "cond#4 1 0 0 0 1 0 W#1 0 Rn#4 register_list#16",
     "decoder" : """n = UInt(Rn); registers = register_list; wback = (W == '1');
@@ -3598,7 +3598,7 @@ instructions = [
 } , {
     "name" : "STMDA (STMED)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STMDA<c> <Rn>{!}, <registers>",
     "pattern" : "cond#4 1 0 0 0 0 0 W#1 0 Rn#4 register_list#16",
     "decoder" : """n = UInt(Rn); registers = register_list; wback = (W == '1');
@@ -3616,7 +3616,7 @@ instructions = [
 } , {
     "name" : "STMDB (STMFD)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STMDB<c> <Rn>{!}, <registers>",
     "pattern" : "cond#4 1 0 0 1 0 0 W#1 0 Rn#4 register_list#16",
     "decoder" : """if W == '1' && Rn == '1101' && BitCount(register_list) >= 2 then SEE PUSH;
@@ -3625,7 +3625,7 @@ instructions = [
 } , {
     "name" : "STMIB (STMFA)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STMIB<c> <Rn>{!}, <registers>",
     "pattern" : "cond#4 1 0 0 1 1 0 W#1 0 Rn#4 register_list#16",
     "decoder" : """n = UInt(Rn); registers = register_list; wback = (W == '1');
@@ -3633,14 +3633,14 @@ instructions = [
 } , {
     "name" : "STR (immediate, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STR<c> <Rt>, [<Rn>{, #<imm>}]",
     "pattern" : "0 1 1 0 0 imm5#5 Rn#3 Rt#3",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); imm32 = ZeroExtend(imm5:'00', 32); index = TRUE; add = TRUE; wback = FALSE;"""
 } , {
     "name" : "STR (immediate, Thumb)",
     "encoding" : "T2",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STR<c> <Rt>, [SP, #<imm>]",
     "pattern" : "1 0 0 1 0 Rt#3 imm8#8",
     "decoder" : """t = UInt(Rt); n = 13; imm32 = ZeroExtend(imm8:'00', 32);
@@ -3669,7 +3669,7 @@ instructions = [
 } , {
     "name" : "STR (immediate, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 0 1 0 P#1 U#1 0 W#1 0 Rn#4 Rt#4 imm12#12",
     "decoder" : """if P == '0' && W == '1' then SEE STRT;
@@ -3680,7 +3680,7 @@ instructions = [
 } , {
     "name" : "STR (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STR<c> <Rt>, [<Rn>, <Rm>]",
     "pattern" : "0 1 0 1 0 0 0 Rm#3 Rn#3 Rt#3",
     "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then SEE "Modified operation in ThumbEE";
@@ -3699,7 +3699,7 @@ instructions = [
 } , {
     "name" : "STR (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 0 1 1 P#1 U#1 0 W#1 0 Rn#4 Rt#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if P == '0' && W == '1' then SEE STRT;
@@ -3711,7 +3711,7 @@ instructions = [
 } , {
     "name" : "STRB (immediate, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STRB<c> <Rt>, [<Rn>, #<imm5>]",
     "pattern" : "0 1 1 1 0 imm5#5 Rn#3 Rt#3",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); imm32 = ZeroExtend(imm5, 32); index = TRUE; add = TRUE; wback = FALSE;"""
@@ -3737,7 +3737,7 @@ instructions = [
 } , {
     "name" : "STRB (immediate, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 0 1 0 P#1 U#1 1 W#1 0 Rn#4 Rt#4 imm12#12",
     "decoder" : """if P == '0' && W == '1' then SEE STRBT;
@@ -3748,7 +3748,7 @@ instructions = [
 } , {
     "name" : "STRB (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STRB<c> <Rt>, [<Rn>, <Rm>]",
     "pattern" : "0 1 0 1 0 1 0 Rm#3 Rn#3 Rt#3",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); m = UInt(Rm); index = TRUE; add = TRUE; wback = FALSE; (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -3765,7 +3765,7 @@ instructions = [
 } , {
     "name" : "STRB (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 0 1 1 P#1 U#1 1 W#1 0 Rn#4 Rt#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if P == '0' && W == '1' then SEE STRBT;
@@ -3786,7 +3786,7 @@ instructions = [
 } , {
     "name" : "STRBT",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STRBT<c> <Rt>, [<Rn>], #+/-<imm12>",
     "pattern" : "cond#4 0 1 0 0 U#1 1 1 0 Rn#4 Rt#4 imm12#12",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); postindex = TRUE; add = (U == '1'); register_form = FALSE; imm32 = ZeroExtend(imm12, 32);
@@ -3794,7 +3794,7 @@ instructions = [
 } , {
     "name" : "STRBT",
     "encoding" : "A2",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STRBT<c> <Rt>, [<Rn>],+/-<Rm>{, <shift>}",
     "pattern" : "cond#4 0 1 1 0 U#1 1 1 0 Rn#4 Rt#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); m = UInt(Rm); postindex = TRUE; add = (U == '1'); register_form = TRUE; (shift_t, shift_n) = DecodeImmShift(type, imm5);
@@ -3813,7 +3813,7 @@ instructions = [
 } , {
     "name" : "STRD (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 0 0 0 P#1 U#1 1 W#1 0 Rn#4 Rt#4 imm4H#4 1 1 1 1 imm4L#4",
     "decoder" : """if Rt<0> == '1' then UNPREDICTABLE;
@@ -3824,7 +3824,7 @@ instructions = [
 } , {
     "name" : "STRD (register)",
     "encoding" : "A1",
-    "version" : "ARMv5TE*, ARMv6*, ARMv7",
+    "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 0 0 0 P#1 U#1 0 W#1 0 Rn#4 Rt#4 0 0 0 0 1 1 1 1 Rm#4",
     "decoder" : """if Rt<0> == '1' then UNPREDICTABLE;
@@ -3846,7 +3846,7 @@ instructions = [
 } , {
     "name" : "STREX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "STREX<c> <Rd>, <Rt>, [<Rn>]",
     "pattern" : "cond#4 0 0 0 1 1 0 0 0 Rn#4 Rd#4 1 1 1 1 1 0 0 1 Rt#4",
     "decoder" : """d = UInt(Rd); t = UInt(Rt); n = UInt(Rn); imm32 = Zeros(32);
@@ -3909,7 +3909,7 @@ instructions = [
 } , {
     "name" : "STRH (immediate, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STRH<c> <Rt>, [<Rn>{, #<imm>}]",
     "pattern" : "1 0 0 0 0 imm5#5 Rn#3 Rt#3",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); imm32 = ZeroExtend(imm5:'0', 32); index = TRUE; add = TRUE; wback = FALSE;"""
@@ -3935,7 +3935,7 @@ instructions = [
 } , {
     "name" : "STRH (immediate, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 0 0 0 P#1 U#1 1 W#1 0 Rn#4 Rt#4 imm4H#4 1 0 1 1 imm4L#4",
     "decoder" : """if P == '0' && W == '1' then SEE STRHT;
@@ -3946,7 +3946,7 @@ instructions = [
 } , {
     "name" : "STRH (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STRH<c> <Rt>, [<Rn>, <Rm>]",
     "pattern" : "0 1 0 1 0 0 1 Rm#3 Rn#3 Rt#3",
     "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then SEE "Modified operation in ThumbEE";
@@ -3966,7 +3966,7 @@ instructions = [
 } , {
     "name" : "STRH (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "cond#4 0 0 0 P#1 U#1 0 W#1 0 Rn#4 Rt#4 0 0 0 0 1 0 1 1 Rm#4",
     "decoder" : """if P == '0' && W == '1' then SEE STRHT;
@@ -4012,7 +4012,7 @@ instructions = [
 } , {
     "name" : "STRT",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STRT<c> <Rt>, [<Rn>] {, +/-<imm12>}",
     "pattern" : "cond#4 0 1 0 0 U#1 0 1 0 Rn#4 Rt#4 imm12#12",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); postindex = TRUE; add = (U == '1'); register_form = FALSE; imm32 = ZeroExtend(imm12, 32);
@@ -4020,7 +4020,7 @@ instructions = [
 } , {
     "name" : "STRT",
     "encoding" : "A2",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "STRT<c> <Rt>, [<Rn>],+/-<Rm>{, <shift>}",
     "pattern" : "cond#4 0 1 1 0 U#1 0 1 0 Rn#4 Rt#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """t = UInt(Rt); n = UInt(Rn); m = UInt(Rm); postindex = TRUE; add = (U == '1'); register_form = TRUE; (shift_t, shift_n) = DecodeImmShift(type, imm5);
@@ -4029,14 +4029,14 @@ instructions = [
 } , {
     "name" : "SUB (immediate, Thumb)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0 0 0 1 1 1 1 imm3#3 Rn#3 Rd#3",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); setflags = !InITBlock(); imm32 = ZeroExtend(imm3, 32);"""
 } , {
     "name" : "SUB (immediate, Thumb)",
     "encoding" : "T2",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0 0 1 1 1 Rdn#3 imm8#8",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); setflags = !InITBlock(); imm32 = ZeroExtend(imm8, 32);"""
@@ -4063,7 +4063,7 @@ instructions = [
 } , {
     "name" : "SUB (immediate, ARM)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SUB{S}<c> <Rd>, <Rn>, #<const>",
     "pattern" : "cond#4 0 0 1 0 0 1 0 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rn == '1111' && S == '0' then SEE ADR;
@@ -4073,7 +4073,7 @@ instructions = [
 } , {
     "name" : "SUB (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "CUSTOM",
     "pattern" : "0 0 0 1 1 0 1 Rm#3 Rn#3 Rd#3",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -4091,7 +4091,7 @@ instructions = [
 } , {
     "name" : "SUB (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SUB{S}<c> <Rd>, <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0 0 0 0 0 1 0 S#1 Rn#4 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -4100,7 +4100,7 @@ instructions = [
 } , {
     "name" : "SUB (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SUB{S}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0 0 0 0 0 1 0 S#1 Rn#4 Rd#4 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); s = UInt(Rs); setflags = (S == '1'); shift_t = DecodeRegShift(type);
@@ -4108,7 +4108,7 @@ instructions = [
 } , {
     "name" : "SUB (SP minus immediate)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SUB<c> SP, SP, #<imm>",
     "pattern" : "1 0 1 1 0 0 0 0 1 imm7#7",
     "decoder" : """d = 13; setflags = FALSE; imm32 = ZeroExtend(imm7:'00', 32);"""
@@ -4132,7 +4132,7 @@ instructions = [
 } , {
     "name" : "SUB (SP minus immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SUB{S}<c> <Rd>, SP, #<const>",
     "pattern" : "cond#4 0 0 1 0 0 1 0 S#1 1 1 0 1 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -4151,7 +4151,7 @@ instructions = [
 } , {
     "name" : "SUB (SP minus register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SUB{S}<c> <Rd>, SP, <Rm>{, <shift>}",
     "pattern" : "cond#4 0 0 0 0 0 1 0 S#1 1 1 0 1 Rd#4 imm5#5 type#2 0 Rm#4",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
@@ -4160,21 +4160,21 @@ instructions = [
 } , {
     "name" : "SVC",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SVC<c> #<imm8>",
     "pattern" : "1 1 0 1 1 1 1 1 imm8#8",
     "decoder" : """imm32 = ZeroExtend(imm8, 32);"""
 } , {
     "name" : "SVC",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "SVC<c> #<imm24>",
     "pattern" : "cond#4 1 1 1 1 imm24#24",
     "decoder" : """imm32 = ZeroExtend(imm24, 32);"""
 } , {
     "name" : "SWP, SWPB",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv7, ARMv7VE",
+    "version" : "ARMv4All, ARMv5TAll, ARMv7, ARMv7VE",
     "format" : "SWP{B}<c> <Rt>, <Rt2>, [<Rn>]",
     "pattern" : "cond#4 0 0 0 1 0 B#1 0 0 Rn#4 Rt#4 0 0 0 0 1 0 0 1 Rt2#4",
     "decoder" : """t = UInt(Rt); t2 = UInt(Rt2); n = UInt(Rn); size = if B == '1' then 1 else 4;
@@ -4191,7 +4191,7 @@ instructions = [
 } , {
     "name" : "SXTAB",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SXTAB<c> <Rd>, <Rn>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 0 1 0 Rn#4 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """if Rn == '1111' then SEE SXTB;
@@ -4209,7 +4209,7 @@ instructions = [
 } , {
     "name" : "SXTAB16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SXTAB16<c> <Rd>, <Rn>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 0 0 0 Rn#4 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """if Rn == '1111' then SEE SXTB16;
@@ -4227,7 +4227,7 @@ instructions = [
 } , {
     "name" : "SXTAH",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SXTAH<c> <Rd>, <Rn>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 0 1 1 Rn#4 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """if Rn == '1111' then SEE SXTH;
@@ -4236,7 +4236,7 @@ instructions = [
 } , {
     "name" : "SXTB",
     "encoding" : "T1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SXTB<c> <Rd>, <Rm>",
     "pattern" : "1 0 1 1 0 0 1 0 0 1 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = 0;"""
@@ -4251,7 +4251,7 @@ instructions = [
 } , {
     "name" : "SXTB",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SXTB<c> <Rd>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 0 1 0 1 1 1 1 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = UInt(rotate:'000');
@@ -4267,7 +4267,7 @@ instructions = [
 } , {
     "name" : "SXTB16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SXTB16<c> <Rd>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 0 0 0 1 1 1 1 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = UInt(rotate:'000');
@@ -4275,7 +4275,7 @@ instructions = [
 } , {
     "name" : "SXTH",
     "encoding" : "T1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SXTH<c> <Rd>, <Rm>",
     "pattern" : "1 0 1 1 0 0 1 0 0 0 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = 0;"""
@@ -4290,7 +4290,7 @@ instructions = [
 } , {
     "name" : "SXTH",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "SXTH<c> <Rd>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 0 1 1 1 1 1 1 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = UInt(rotate:'000');
@@ -4316,7 +4316,7 @@ instructions = [
 } , {
     "name" : "TEQ (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "TEQ<c> <Rn>, #<const>",
     "pattern" : "cond#4 0 0 1 1 0 0 1 1 Rn#4 0 0 0 0 imm12#12",
     "decoder" : """n = UInt(Rn);
@@ -4333,7 +4333,7 @@ instructions = [
 } , {
     "name" : "TEQ (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "TEQ<c> <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0 0 0 1 0 0 1 1 Rn#4 0 0 0 0 imm5#5 type#2 0 Rm#4",
     "decoder" : """n = UInt(Rn); m = UInt(Rm);
@@ -4341,7 +4341,7 @@ instructions = [
 } , {
     "name" : "TEQ (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "TEQ<c> <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0 0 0 1 0 0 1 1 Rn#4 0 0 0 0 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """n = UInt(Rn); m = UInt(Rm); s = UInt(Rs);
@@ -4359,7 +4359,7 @@ instructions = [
 } , {
     "name" : "TST (immediate)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "TST<c> <Rn>, #<const>",
     "pattern" : "cond#4 0 0 1 1 0 0 0 1 Rn#4 0 0 0 0 imm12#12",
     "decoder" : """n = UInt(Rn);
@@ -4367,7 +4367,7 @@ instructions = [
 } , {
     "name" : "TST (register)",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "TST<c> <Rn>, <Rm>",
     "pattern" : "0 1 0 0 0 0 1 0 0 0 Rm#3 Rn#3",
     "decoder" : """n = UInt(Rn); m = UInt(Rm); (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -4383,7 +4383,7 @@ instructions = [
 } , {
     "name" : "TST (register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "TST<c> <Rn>, <Rm>{, <shift>}",
     "pattern" : "cond#4 0 0 0 1 0 0 0 1 Rn#4 0 0 0 0 imm5#5 type#2 0 Rm#4",
     "decoder" : """n = UInt(Rn); m = UInt(Rm);
@@ -4391,7 +4391,7 @@ instructions = [
 } , {
     "name" : "TST (register-shifted register)",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "TST<c> <Rn>, <Rm>, <type> <Rs>",
     "pattern" : "cond#4 0 0 0 1 0 0 0 1 Rn#4 0 0 0 0 Rs#4 0 type#2 1 Rm#4",
     "decoder" : """n = UInt(Rn); m = UInt(Rm); s = UInt(Rs);
@@ -4408,7 +4408,7 @@ instructions = [
 } , {
     "name" : "UADD16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UADD16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 0 1 Rn#4 Rd#4 1 1 1 1 0 0 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4424,7 +4424,7 @@ instructions = [
 } , {
     "name" : "UADD8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UADD8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 0 1 Rn#4 Rd#4 1 1 1 1 1 0 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4440,7 +4440,7 @@ instructions = [
 } , {
     "name" : "UASX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UASX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 0 1 Rn#4 Rd#4 1 1 1 1 0 0 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4466,7 +4466,7 @@ instructions = [
 } , {
     "name" : "UDF",
     "encoding" : "T1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6, ARMv7",
     "format" : "UDF<c> #<imm8>",
     "pattern" : "1 1 0 1 1 1 1 0 imm8#8",
     "decoder" : """imm32 = ZeroExtend(imm8, 32);"""
@@ -4480,14 +4480,14 @@ instructions = [
 } , {
     "name" : "UDF",
     "encoding" : "A1",
-    "version" : "ARMv4T, ARMv5T*, ARMv6, ARMv7",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6, ARMv7",
     "format" : "UDF<c> #<imm16>",
     "pattern" : "1 1 1 0 0 1 1 1 1 1 1 1 imm12#12 1 1 1 1 imm4#4",
     "decoder" : """imm32 = ZeroExtend(imm12:imm4, 32);"""
 } , {
     "name" : "UDIV",
     "encoding" : "T1",
-    "version" : "ARMv7-R, ARMv7VE",
+    "version" : "ARMv7R, ARMv7VE",
     "format" : "UDIV<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "1 1 1 1 1 0 1 1 1 0 1 1 Rn#4 1 1 1 1 Rd#4 1 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4511,7 +4511,7 @@ instructions = [
 } , {
     "name" : "UHADD16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UHADD16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 1 Rn#4 Rd#4 1 1 1 1 0 0 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4527,7 +4527,7 @@ instructions = [
 } , {
     "name" : "UHADD8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UHADD8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 1 Rn#4 Rd#4 1 1 1 1 1 0 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4543,7 +4543,7 @@ instructions = [
 } , {
     "name" : "UHASX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UHASX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 1 Rn#4 Rd#4 1 1 1 1 0 0 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4559,7 +4559,7 @@ instructions = [
 } , {
     "name" : "UHSAX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UHSAX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 1 Rn#4 Rd#4 1 1 1 1 0 1 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4575,7 +4575,7 @@ instructions = [
 } , {
     "name" : "UHSUB16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UHSUB16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 1 Rn#4 Rd#4 1 1 1 1 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4591,7 +4591,7 @@ instructions = [
 } , {
     "name" : "UHSUB8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UHSUB8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 1 Rn#4 Rd#4 1 1 1 1 1 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4608,7 +4608,7 @@ instructions = [
 } , {
     "name" : "UMAAL",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UMAAL<c> <RdLo>, <RdHi>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 0 0 0 0 1 0 0 RdHi#4 RdLo#4 Rm#4 1 0 0 1 Rn#4",
     "decoder" : """dLo = UInt(RdLo); dHi = UInt(RdHi); n = UInt(Rn); m = UInt(Rm);
@@ -4626,7 +4626,7 @@ instructions = [
 } , {
     "name" : "UMLAL",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "UMLAL{S}<c> <RdLo>, <RdHi>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 0 0 0 1 0 1 S#1 RdHi#4 RdLo#4 Rm#4 1 0 0 1 Rn#4",
     "decoder" : """dLo = UInt(RdLo); dHi = UInt(RdHi); n = UInt(Rn); m = UInt(Rm); setflags = (S == '1');
@@ -4645,7 +4645,7 @@ instructions = [
 } , {
     "name" : "UMULL",
     "encoding" : "A1",
-    "version" : "ARMv4*, ARMv5T*, ARMv6*, ARMv7",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "UMULL{S}<c> <RdLo>, <RdHi>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 0 0 0 1 0 0 S#1 RdHi#4 RdLo#4 Rm#4 1 0 0 1 Rn#4",
     "decoder" : """dLo = UInt(RdLo); dHi = UInt(RdHi); n = UInt(Rn); m = UInt(Rm); setflags = (S == '1');
@@ -4663,7 +4663,7 @@ instructions = [
 } , {
     "name" : "UQADD16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UQADD16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 0 Rn#4 Rd#4 1 1 1 1 0 0 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4679,7 +4679,7 @@ instructions = [
 } , {
     "name" : "UQADD8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UQADD8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 0 Rn#4 Rd#4 1 1 1 1 1 0 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4695,7 +4695,7 @@ instructions = [
 } , {
     "name" : "UQASX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UQASX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 0 Rn#4 Rd#4 1 1 1 1 0 0 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4711,7 +4711,7 @@ instructions = [
 } , {
     "name" : "UQSAX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UQSAX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 0 Rn#4 Rd#4 1 1 1 1 0 1 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4727,7 +4727,7 @@ instructions = [
 } , {
     "name" : "UQSUB16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UQSUB16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 0 Rn#4 Rd#4 1 1 1 1 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4743,7 +4743,7 @@ instructions = [
 } , {
     "name" : "UQSUB8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UQSUB8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 1 0 Rn#4 Rd#4 1 1 1 1 1 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4759,7 +4759,7 @@ instructions = [
 } , {
     "name" : "USAD8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "USAD8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 1 1 0 0 0 Rd#4 1 1 1 1 Rm#4 0 0 0 1 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4776,7 +4776,7 @@ instructions = [
 } , {
     "name" : "USADA8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "USADA8<c> <Rd>, <Rn>, <Rm>, <Ra>",
     "pattern" : "cond#4 0 1 1 1 1 0 0 0 Rd#4 Ra#4 Rm#4 0 0 0 1 Rn#4",
     "decoder" : """if Ra == '1111' then SEE USAD8;
@@ -4794,7 +4794,7 @@ instructions = [
 } , {
     "name" : "USAT",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "USAT<c> <Rd>, #<imm5>, <Rn>{, <shift>}",
     "pattern" : "cond#4 0 1 1 0 1 1 1 sat_imm#5 Rd#4 imm5#5 sh#1 0 1 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); saturate_to = UInt(sat_imm); (shift_t, shift_n) = DecodeImmShift(sh:'0', imm5);
@@ -4810,7 +4810,7 @@ instructions = [
 } , {
     "name" : "USAT16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "USAT16<c> <Rd>, #<imm4>, <Rn>",
     "pattern" : "cond#4 0 1 1 0 1 1 1 0 sat_imm#4 Rd#4 1 1 1 1 0 0 1 1 Rn#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); saturate_to = UInt(sat_imm);
@@ -4826,7 +4826,7 @@ instructions = [
 } , {
     "name" : "USAX",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "USAX<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 0 1 Rn#4 Rd#4 1 1 1 1 0 1 0 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4842,7 +4842,7 @@ instructions = [
 } , {
     "name" : "USUB16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "USUB16<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 0 1 Rn#4 Rd#4 1 1 1 1 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4858,7 +4858,7 @@ instructions = [
 } , {
     "name" : "USUB8",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "USUB8<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "cond#4 0 1 1 0 0 1 0 1 Rn#4 Rd#4 1 1 1 1 1 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm);
@@ -4875,7 +4875,7 @@ instructions = [
 } , {
     "name" : "UXTAB",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UXTAB<c> <Rd>, <Rn>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 1 1 0 Rn#4 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """if Rn == '1111' then SEE UXTB;
@@ -4893,7 +4893,7 @@ instructions = [
 } , {
     "name" : "UXTAB16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UXTAB16<c> <Rd>, <Rn>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 1 0 0 Rn#4 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """if Rn == '1111' then SEE UXTB16;
@@ -4911,7 +4911,7 @@ instructions = [
 } , {
     "name" : "UXTAH",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UXTAH<c> <Rd>, <Rn>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 1 1 1 Rn#4 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """if Rn == '1111' then SEE UXTH;
@@ -4920,7 +4920,7 @@ instructions = [
 } , {
     "name" : "UXTB",
     "encoding" : "T1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UXTB<c> <Rd>, <Rm>",
     "pattern" : "1 0 1 1 0 0 1 0 1 1 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = 0;"""
@@ -4935,7 +4935,7 @@ instructions = [
 } , {
     "name" : "UXTB",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UXTB<c> <Rd>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 1 1 0 1 1 1 1 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = UInt(rotate:'000');
@@ -4951,7 +4951,7 @@ instructions = [
 } , {
     "name" : "UXTB16",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UXTB16<c> <Rd>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 1 0 0 1 1 1 1 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = UInt(rotate:'000');
@@ -4959,7 +4959,7 @@ instructions = [
 } , {
     "name" : "UXTH",
     "encoding" : "T1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UXTH<c> <Rd>, <Rm>",
     "pattern" : "1 0 1 1 0 0 1 0 1 0 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = 0;"""
@@ -4974,7 +4974,7 @@ instructions = [
 } , {
     "name" : "UXTH",
     "encoding" : "A1",
-    "version" : "ARMv6*, ARMv7",
+    "version" : "ARMv6All, ARMv7",
     "format" : "UXTH<c> <Rd>, <Rm>{, <rotation>}",
     "pattern" : "cond#4 0 1 1 0 1 1 1 1 1 1 1 1 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = UInt(rotate:'000');
@@ -4982,7 +4982,7 @@ instructions = [
 } , {
     "name" : "VABA, VABAL",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 1 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -4993,7 +4993,7 @@ instructions = [
 } , {
     "name" : "VABA, VABAL",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 1 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -5004,7 +5004,7 @@ instructions = [
 } , {
     "name" : "VABA, VABAL",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 0 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -5015,7 +5015,7 @@ instructions = [
 } , {
     "name" : "VABA, VABAL",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 0 1 0 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -5026,7 +5026,7 @@ instructions = [
 } , {
     "name" : "VABD, VABDL (integer)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 1 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -5037,7 +5037,7 @@ instructions = [
 } , {
     "name" : "VABD, VABDL (integer)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 1 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -5048,7 +5048,7 @@ instructions = [
 } , {
     "name" : "VABD, VABDL (integer)",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -5059,7 +5059,7 @@ instructions = [
 } , {
     "name" : "VABD, VABDL (integer)",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -5070,7 +5070,7 @@ instructions = [
 } , {
     "name" : "VABD (floating-point)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 1 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5080,7 +5080,7 @@ instructions = [
 } , {
     "name" : "VABD (floating-point)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 1 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5090,7 +5090,7 @@ instructions = [
 } , {
     "name" : "VABS",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 1 1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5101,7 +5101,7 @@ instructions = [
 } , {
     "name" : "VABS",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 1 1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5112,7 +5112,7 @@ instructions = [
 } , {
     "name" : "VABS",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 0 1 D#1 1 1 0 0 0 0 Vd#4 1 0 1 sz#1 1 1 M#1 0 Vm#4",
     "decoder" : """if FPSCR.LEN != '000' || FPSCR.STRIDE != '00' then SEE "VFP vectors";
@@ -5122,7 +5122,7 @@ instructions = [
 } , {
     "name" : "VABS",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "cond#4 1 1 1 0 1 D#1 1 1 0 0 0 0 Vd#4 1 0 1 sz#1 1 1 M#1 0 Vm#4",
     "decoder" : """if FPSCR.LEN != '000' || FPSCR.STRIDE != '00' then SEE "VFP vectors";
@@ -5132,7 +5132,7 @@ instructions = [
 } , {
     "name" : "VACGE, VACGT, VACLE, VACLT",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 1 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5142,7 +5142,7 @@ instructions = [
 } , {
     "name" : "VACGE, VACGT, VACLE, VACLT",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 1 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5152,7 +5152,7 @@ instructions = [
 } , {
     "name" : "VADD",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 0 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5161,7 +5161,7 @@ instructions = [
 } , {
     "name" : "VADD",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 size#2 Vn#4 Vd#4 1 0 0 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5170,7 +5170,7 @@ instructions = [
 } , {
     "name" : "VADD (floating-point)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5180,7 +5180,7 @@ instructions = [
 } , {
     "name" : "VADD (floating-point)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5190,7 +5190,7 @@ instructions = [
 } , {
     "name" : "VADD (floating-point)",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 0 0 D#1 1 1 Vn#4 Vd#4 1 0 1 sz#1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if FPSCR.LEN != '000' || FPSCR.STRIDE != '00' then SEE "VFP vectors";
@@ -5201,7 +5201,7 @@ instructions = [
 } , {
     "name" : "VADD (floating-point)",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "cond#4 1 1 1 0 0 D#1 1 1 Vn#4 Vd#4 1 0 1 sz#1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if FPSCR.LEN != '000' || FPSCR.STRIDE != '00' then SEE "VFP vectors";
@@ -5212,7 +5212,7 @@ instructions = [
 } , {
     "name" : "VADDHN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VADDHN<c>.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -5221,7 +5221,7 @@ instructions = [
 } , {
     "name" : "VADDHN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VADDHN<c>.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -5230,7 +5230,7 @@ instructions = [
 } , {
     "name" : "VADDL, VADDW",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 0 0 op#1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -5240,7 +5240,7 @@ instructions = [
 } , {
     "name" : "VADDL, VADDW",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 0 0 0 op#1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -5250,7 +5250,7 @@ instructions = [
 } , {
     "name" : "VAND (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 0 0 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5258,7 +5258,7 @@ instructions = [
 } , {
     "name" : "VAND (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 0 0 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5266,7 +5266,7 @@ instructions = [
 } , {
     "name" : "VBIC (immediate)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 i#1 1 1 1 1 1 D#1 0 0 0 imm3#3 Vd#4 cmode#4 0 Q#1 1 1 imm4#4",
     "decoder" : """if cmode<0> == '0' || cmode<3:2> == '11' then SEE "Related encodings";
@@ -5276,7 +5276,7 @@ instructions = [
 } , {
     "name" : "VBIC (immediate)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 i#1 1 D#1 0 0 0 imm3#3 Vd#4 cmode#4 0 Q#1 1 1 imm4#4",
     "decoder" : """if cmode<0> == '0' || cmode<3:2> == '11' then SEE "Related encodings";
@@ -5286,7 +5286,7 @@ instructions = [
 } , {
     "name" : "VBIC (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 0 1 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5294,7 +5294,7 @@ instructions = [
 } , {
     "name" : "VBIC (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 0 1 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5302,7 +5302,7 @@ instructions = [
 } , {
     "name" : "VBIF, VBIT, VBSL",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 op#2 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5314,7 +5314,7 @@ instructions = [
 } , {
     "name" : "VBIF, VBIT, VBSL",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 op#2 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5326,7 +5326,7 @@ instructions = [
 } , {
     "name" : "VCEQ (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 0 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5336,7 +5336,7 @@ instructions = [
 } , {
     "name" : "VCEQ (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 0 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5346,7 +5346,7 @@ instructions = [
 } , {
     "name" : "VCEQ (register)",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 1 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5356,7 +5356,7 @@ instructions = [
 } , {
     "name" : "VCEQ (register)",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 1 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5366,7 +5366,7 @@ instructions = [
 } , {
     "name" : "VCEQ (immediate #0)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 0 1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5377,7 +5377,7 @@ instructions = [
 } , {
     "name" : "VCEQ (immediate #0)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 0 1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5388,7 +5388,7 @@ instructions = [
 } , {
     "name" : "VCGE (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 0 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5399,7 +5399,7 @@ instructions = [
 } , {
     "name" : "VCGE (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 0 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5410,7 +5410,7 @@ instructions = [
 } , {
     "name" : "VCGE (register)",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 1 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5420,7 +5420,7 @@ instructions = [
 } , {
     "name" : "VCGE (register)",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 1 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5430,7 +5430,7 @@ instructions = [
 } , {
     "name" : "VCGE (immediate #0)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 0 0 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5441,7 +5441,7 @@ instructions = [
 } , {
     "name" : "VCGE (immediate #0)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 0 0 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5452,7 +5452,7 @@ instructions = [
 } , {
     "name" : "VCGT (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 0 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5463,7 +5463,7 @@ instructions = [
 } , {
     "name" : "VCGT (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 0 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5474,7 +5474,7 @@ instructions = [
 } , {
     "name" : "VCGT (register)",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 1 sz#1 Vn#4 Vd#4 1 1 1 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5484,7 +5484,7 @@ instructions = [
 } , {
     "name" : "VCGT (register)",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 1 sz#1 Vn#4 Vd#4 1 1 1 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5494,7 +5494,7 @@ instructions = [
 } , {
     "name" : "VCGT (immediate #0)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 0 0 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5505,7 +5505,7 @@ instructions = [
 } , {
     "name" : "VCGT (immediate #0)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 0 0 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5516,7 +5516,7 @@ instructions = [
 } , {
     "name" : "VCLE (immediate #0)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 0 1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5527,7 +5527,7 @@ instructions = [
 } , {
     "name" : "VCLE (immediate #0)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 0 1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5538,7 +5538,7 @@ instructions = [
 } , {
     "name" : "VCLS",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 0 0 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -5548,7 +5548,7 @@ instructions = [
 } , {
     "name" : "VCLS",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 0 0 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -5558,7 +5558,7 @@ instructions = [
 } , {
     "name" : "VCLT (immediate #0)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 1 0 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5569,7 +5569,7 @@ instructions = [
 } , {
     "name" : "VCLT (immediate #0)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 1 0 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -5580,7 +5580,7 @@ instructions = [
 } , {
     "name" : "VCLZ",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 0 0 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -5590,7 +5590,7 @@ instructions = [
 } , {
     "name" : "VCLZ",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 0 0 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -5630,7 +5630,7 @@ instructions = [
 } , {
     "name" : "VCNT",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 0 1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size != '00' then UNDEFINED;
@@ -5640,7 +5640,7 @@ instructions = [
 } , {
     "name" : "VCNT",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 0 1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size != '00' then UNDEFINED;
@@ -5648,9 +5648,9 @@ instructions = [
     esize = 8; elements = 8;
     d = UInt(D:Vd); m = UInt(M:Vm); regs = if Q == '0' then 1 else 2;"""
 } , {
-    "name" : "VCVT (between floating-point and integer, Advanced SIMD)",
+    "name" : "VCVT (between floating-point and integer, AdvancedSIMD)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "111111111 D#1 11 size#2 11 Vd#4 011 op#2 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5663,9 +5663,9 @@ instructions = [
     endif
     d = UInt(D:Vd); m = UInt(M:Vm); regs = if Q == '0' then 1 else 2;"""
 } , {
-    "name" : "VCVT (between floating-point and integer, Advanced SIMD)",
+    "name" : "VCVT (between floating-point and integer, AdvancedSIMD)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "111100111 D#1 11 size#2 11 Vd#4 011 op#2 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5716,9 +5716,9 @@ instructions = [
         d = if dp_operation then UInt(D:Vd) else UInt(Vd:D);
     endif"""
 } , {
-    "name" : "VCVT (between floating-point and fixed-point, Advanced SIMD)",
+    "name" : "VCVT (between floating-point and fixed-point, AdvancedSIMD)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 1 1 1 op#1 0 Q#1 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -5733,9 +5733,9 @@ instructions = [
     esize = 32; frac_bits = 64 - UInt(imm6); elements = 2;
     d = UInt(D:Vd); m = UInt(M:Vm); regs = if Q == '0' then 1 else 2;"""
 } , {
-    "name" : "VCVT (between floating-point and fixed-point, Advanced SIMD)",
+    "name" : "VCVT (between floating-point and fixed-point, AdvancedSIMD)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 1 1 1 op#1 0 Q#1 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -5804,9 +5804,9 @@ instructions = [
     d = if double_to_single then UInt(Vd:D) else UInt(D:Vd);
     m = if double_to_single then UInt(M:Vm) else UInt(Vm:M);"""
 } , {
-    "name" : "VCVT (between half-precision and single-precision, Advanced SIMD)",
+    "name" : "VCVT (between half-precision and single-precision, AdvancedSIMD)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 1 1 op#1 0 0 M#1 0 Vm#4",
     "decoder" : """half_to_single = (op == '1');
@@ -5816,9 +5816,9 @@ instructions = [
     esize = 16; elements = 4;
     m = UInt(M:Vm); d = UInt(D:Vd);"""
 } , {
-    "name" : "VCVT (between half-precision and single-precision, Advanced SIMD)",
+    "name" : "VCVT (between half-precision and single-precision, AdvancedSIMD)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 1 1 op#1 0 0 M#1 0 Vm#4",
     "decoder" : """half_to_single = (op == '1');
@@ -5868,7 +5868,7 @@ instructions = [
 } , {
     "name" : "VDUP (scalar)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 imm4#4 Vd#4 1 1 0 0 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if imm4 IN "x000" then UNDEFINED;
@@ -5882,7 +5882,7 @@ instructions = [
 } , {
     "name" : "VDUP (scalar)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 imm4#4 Vd#4 1 1 0 0 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if imm4 IN "x000" then UNDEFINED;
@@ -5896,7 +5896,7 @@ instructions = [
 } , {
     "name" : "VDUP (ARM core register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 0 1 b#1 Q#1 0 Vd#4 Rt#4 1 0 1 1 D#1 0 e#1 1 0 0 0 0",
     "decoder" : """if Q == '1' && Vd<0> == '1' then UNDEFINED;
@@ -5912,7 +5912,7 @@ instructions = [
 } , {
     "name" : "VDUP (ARM core register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "cond#4 1 1 1 0 1 b#1 Q#1 0 Vd#4 Rt#4 1 0 1 1 D#1 0 e#1 1 0 0 0 0",
     "decoder" : """if Q == '1' && Vd<0> == '1' then UNDEFINED;
@@ -5928,7 +5928,7 @@ instructions = [
 } , {
     "name" : "VEOR",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 0 0 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5936,7 +5936,7 @@ instructions = [
 } , {
     "name" : "VEOR",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 0 0 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5944,7 +5944,7 @@ instructions = [
 } , {
     "name" : "VEXT",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 1 1 Vn#4 Vd#4 imm4#4 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5954,7 +5954,7 @@ instructions = [
 } , {
     "name" : "VEXT",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 1 1 Vn#4 Vd#4 imm4#4 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5964,7 +5964,7 @@ instructions = [
 } , {
     "name" : "VFMA, VFMS",
     "encoding" : "T1",
-    "version" : "Advanced SIMDv2",
+    "version" : "AdvancedSIMDv2",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 0 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -5975,7 +5975,7 @@ instructions = [
 } , {
     "name" : "VFMA, VFMS",
     "encoding" : "A1",
-    "version" : "Advanced SIMDv2",
+    "version" : "AdvancedSIMDv2",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 0 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -6031,7 +6031,7 @@ instructions = [
 } , {
     "name" : "VHADD, VHSUB",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 0 op#1 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -6043,7 +6043,7 @@ instructions = [
 } , {
     "name" : "VHADD, VHSUB",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 0 op#1 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -6055,7 +6055,7 @@ instructions = [
 } , {
     "name" : "VLD1 (multiple single elements)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 0 D#1 1 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """case type of
@@ -6081,7 +6081,7 @@ instructions = [
 } , {
     "name" : "VLD1 (multiple single elements)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 0 D#1 1 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """case type of
@@ -6107,7 +6107,7 @@ instructions = [
 } , {
     "name" : "VLD1 (single element to one lane)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 1 0 Rn#4 Vd#4 size#2 0 0 index_align#4 Rm#4",
     "decoder" : """if size == '11' then SEE VLD1 (single element to all lanes);
@@ -6134,7 +6134,7 @@ instructions = [
 } , {
     "name" : "VLD1 (single element to one lane)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 1 0 Rn#4 Vd#4 size#2 0 0 index_align#4 Rm#4",
     "decoder" : """if size == '11' then SEE VLD1 (single element to all lanes);
@@ -6161,7 +6161,7 @@ instructions = [
 } , {
     "name" : "VLD1 (single element to all lanes)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 1 0 Rn#4 Vd#4 1 1 0 0 size#2 T#1 a#1 Rm#4",
     "decoder" : """if size == '11' || (size == '00' && a == '1') then UNDEFINED;
@@ -6175,7 +6175,7 @@ instructions = [
 } , {
     "name" : "VLD1 (single element to all lanes)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 1 0 Rn#4 Vd#4 1 1 0 0 size#2 T#1 a#1 Rm#4",
     "decoder" : """if size == '11' || (size == '00' && a == '1') then UNDEFINED;
@@ -6189,7 +6189,7 @@ instructions = [
 } , {
     "name" : "VLD2 (multiple 2-element structures)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 0 D#1 1 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -6213,7 +6213,7 @@ instructions = [
 } , {
     "name" : "VLD2 (multiple 2-element structures)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 0 D#1 1 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -6237,7 +6237,7 @@ instructions = [
 } , {
     "name" : "VLD2 (single 2-element structure to one lane)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 1 0 Rn#4 Vd#4 size#2 0 1 index_align#4 Rm#4",
     "decoder" : """if size == '11' then SEE VLD2 (single 2-element structure to all lanes);
@@ -6261,7 +6261,7 @@ instructions = [
 } , {
     "name" : "VLD2 (single 2-element structure to one lane)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 1 0 Rn#4 Vd#4 size#2 0 1 index_align#4 Rm#4",
     "decoder" : """if size == '11' then SEE VLD2 (single 2-element structure to all lanes);
@@ -6285,7 +6285,7 @@ instructions = [
 } , {
     "name" : "VLD2 (single 2-element structure to all lanes)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 1 0 Rn#4 Vd#4 1 1 0 1 size#2 T#1 a#1 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -6299,7 +6299,7 @@ instructions = [
 } , {
     "name" : "VLD2 (single 2-element structure to all lanes)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 1 0 Rn#4 Vd#4 1 1 0 1 size#2 T#1 a#1 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -6313,7 +6313,7 @@ instructions = [
 } , {
     "name" : "VLD3 (multiple 3-element structures)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 0 D#1 1 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' || align<1> == '1' then UNDEFINED;
@@ -6333,7 +6333,7 @@ instructions = [
 } , {
     "name" : "VLD3 (multiple 3-element structures)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 0 D#1 1 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' || align<1> == '1' then UNDEFINED;
@@ -6353,7 +6353,7 @@ instructions = [
 } , {
     "name" : "VLD3 (single 3-element structure to one lane)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 1 0 Rn#4 Vd#4 size#2 1 0 index_align#4 Rm#4",
     "decoder" : """if size == '11' then SEE VLD3 (single 3-element structure to all lanes);
@@ -6374,7 +6374,7 @@ instructions = [
 } , {
     "name" : "VLD3 (single 3-element structure to one lane)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 1 0 Rn#4 Vd#4 size#2 1 0 index_align#4 Rm#4",
     "decoder" : """if size == '11' then SEE VLD3 (single 3-element structure to all lanes);
@@ -6395,7 +6395,7 @@ instructions = [
 } , {
     "name" : "VLD3 (single 3-element structure to all lanes)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 1 0 Rn#4 Vd#4 1 1 1 0 size#2 T#1 a#1 Rm#4",
     "decoder" : """if size == '11' || a == '1' then UNDEFINED;
@@ -6407,7 +6407,7 @@ instructions = [
 } , {
     "name" : "VLD3 (single 3-element structure to all lanes)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 1 0 Rn#4 Vd#4 1 1 1 0 size#2 T#1 a#1 Rm#4",
     "decoder" : """if size == '11' || a == '1' then UNDEFINED;
@@ -6419,7 +6419,7 @@ instructions = [
 } , {
     "name" : "VLD4 (multiple 4-element structures)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 0 D#1 1 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -6439,7 +6439,7 @@ instructions = [
 } , {
     "name" : "VLD4 (multiple 4-element structures)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 0 D#1 1 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -6459,7 +6459,7 @@ instructions = [
 } , {
     "name" : "VLD4 (single 4-element structure to one lane)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 1 0 Rn#4 Vd#4 size#2 1 1 index_align#4 Rm#4",
     "decoder" : """if size == '11' then SEE VLD4 (single 4-element structure to all lanes);
@@ -6483,7 +6483,7 @@ instructions = [
 } , {
     "name" : "VLD4 (single 4-element structure to one lane)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 1 0 Rn#4 Vd#4 size#2 1 1 index_align#4 Rm#4",
     "decoder" : """if size == '11' then SEE VLD4 (single 4-element structure to all lanes);
@@ -6507,7 +6507,7 @@ instructions = [
 } , {
     "name" : "VLD4 (single 4-element structure to all lanes)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 1 0 Rn#4 Vd#4 1 1 1 1 size#2 T#1 a#1 Rm#4",
     "decoder" : """if size == '11' && a == '0' then UNDEFINED;
@@ -6528,7 +6528,7 @@ instructions = [
 } , {
     "name" : "VLD4 (single 4-element structure to all lanes)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 1 0 Rn#4 Vd#4 1 1 1 1 size#2 T#1 a#1 Rm#4",
     "decoder" : """if size == '11' && a == '0' then UNDEFINED;
@@ -6549,7 +6549,7 @@ instructions = [
 } , {
     "name" : "VLDM",
     "encoding" : "T1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VLDM{mode}<c> <Rn>{!}, <list>",
     "pattern" : "1 1 1 0 1 1 0 P#1 U#1 D#1 W#1 1 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """if P == '0' && U == '0' && W == '0' then SEE "Related encodings";
@@ -6564,7 +6564,7 @@ instructions = [
 } , {
     "name" : "VLDM",
     "encoding" : "A1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VLDM{mode}<c> <Rn>{!}, <list>",
     "pattern" : "cond#4 1 1 0 P#1 U#1 D#1 W#1 1 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """if P == '0' && U == '0' && W == '0' then SEE "Related encodings";
@@ -6607,14 +6607,14 @@ instructions = [
 } , {
     "name" : "VLDR",
     "encoding" : "T1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 0 1 U#1 D#1 0 1 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_reg = FALSE; add = (U == '1'); imm32 = ZeroExtend(imm8:'00', 32); d = UInt(D:Vd); n = UInt(Rn);"""
 } , {
     "name" : "VLDR",
     "encoding" : "A1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "cond#4 1 1 0 1 U#1 D#1 0 1 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_reg = FALSE; add = (U == '1'); imm32 = ZeroExtend(imm8:'00', 32); d = UInt(D:Vd); n = UInt(Rn);"""
@@ -6635,7 +6635,7 @@ instructions = [
 } , {
     "name" : "VMAX, VMIN (integer)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 1 1 0 N#1 Q#1 M#1 op#1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -6646,7 +6646,7 @@ instructions = [
 } , {
     "name" : "VMAX, VMIN (integer)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 1 1 0 N#1 Q#1 M#1 op#1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -6657,7 +6657,7 @@ instructions = [
 } , {
     "name" : "VMAX, VMIN (floating-point)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -6667,7 +6667,7 @@ instructions = [
 } , {
     "name" : "VMAX, VMIN (floating-point)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -6677,7 +6677,7 @@ instructions = [
 } , {
     "name" : "VMLA, VMLAL, VMLS, VMLSL (integer)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 op#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -6689,7 +6689,7 @@ instructions = [
 } , {
     "name" : "VMLA, VMLAL, VMLS, VMLSL (integer)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 op#1 0 D#1 size#2 Vn#4 Vd#4 1 0 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -6701,7 +6701,7 @@ instructions = [
 } , {
     "name" : "VMLA, VMLAL, VMLS, VMLSL (integer)",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 0 op#1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -6712,7 +6712,7 @@ instructions = [
 } , {
     "name" : "VMLA, VMLAL, VMLS, VMLSL (integer)",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 1 0 op#1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -6723,7 +6723,7 @@ instructions = [
 } , {
     "name" : "VMLA, VMLS (floating-point)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -6733,7 +6733,7 @@ instructions = [
 } , {
     "name" : "VMLA, VMLS (floating-point)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -6765,7 +6765,7 @@ instructions = [
 } , {
     "name" : "VMLA, VMLAL, VMLS, VMLSL (by scalar)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 Q#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 op#1 0 F#1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -6779,7 +6779,7 @@ instructions = [
 } , {
     "name" : "VMLA, VMLAL, VMLS, VMLSL (by scalar)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 Q#1 1 D#1 size#2 Vn#4 Vd#4 0 op#1 0 F#1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -6793,7 +6793,7 @@ instructions = [
 } , {
     "name" : "VMLA, VMLAL, VMLS, VMLSL (by scalar)",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "V<op>L<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 op#1 1 0 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -6805,7 +6805,7 @@ instructions = [
 } , {
     "name" : "VMLA, VMLAL, VMLS, VMLSL (by scalar)",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "V<op>L<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 0 op#1 1 0 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -6817,7 +6817,7 @@ instructions = [
 } , {
     "name" : "VMOV (immediate)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 i#1 1 1 1 1 1 D#1 0 0 0 imm3#3 Vd#4 cmode#4 0 Q#1 op#1 1 imm4#4",
     "decoder" : """if op == '0' && cmode<0> == '1' && cmode<3:2> != '11' then SEE VORR (immediate);
@@ -6828,7 +6828,7 @@ instructions = [
 } , {
     "name" : "VMOV (immediate)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 i#1 1 D#1 0 0 0 imm3#3 Vd#4 cmode#4 0 Q#1 op#1 1 imm4#4",
     "decoder" : """if op == '0' && cmode<0> == '1' && cmode<3:2> != '11' then SEE VORR (immediate);
@@ -6868,7 +6868,7 @@ instructions = [
 } , {
     "name" : "VMOV (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 1 0 Vm_#4 Vd#4 0 0 0 1 M_#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if !Consistent(M) || !Consistent(Vm) then SEE VORR (register);
@@ -6878,7 +6878,7 @@ instructions = [
 } , {
     "name" : "VMOV (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 1 0 Vm_#4 Vd#4 0 0 0 1 M_#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if !Consistent(M) || !Consistent(Vm) then SEE VORR (register);
@@ -6914,7 +6914,7 @@ instructions = [
 } , {
     "name" : "VMOV (ARM core register to scalar)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMOV<c>.<size> <Dd[x]>, <Rt>",
     "pattern" : "1 1 1 0 1 1 1 0 0 opc1#2 0 Vd#4 Rt#4 1 0 1 1 D#1 opc2#2 1 0 0 0 0",
     "decoder" : """case opc1:opc2 of
@@ -6928,7 +6928,7 @@ instructions = [
 } , {
     "name" : "VMOV (ARM core register to scalar)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMOV<c>.<size> <Dd[x]>, <Rt>",
     "pattern" : "cond#4 1 1 1 0 0 opc1#2 0 Vd#4 Rt#4 1 0 1 1 D#1 opc2#2 1 0 0 0 0",
     "decoder" : """case opc1:opc2 of
@@ -6942,7 +6942,7 @@ instructions = [
 } , {
     "name" : "VMOV (scalar to ARM core register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMOV<c>.<dt> <Rt>, <Dn[x]>",
     "pattern" : "1 1 1 0 1 1 1 0 U#1 opc1#2 1 Vn#4 Rt#4 1 0 1 1 N#1 opc2#2 1 0 0 0 0",
     "decoder" : """case U:opc1:opc2 of
@@ -6957,7 +6957,7 @@ instructions = [
 } , {
     "name" : "VMOV (scalar to ARM core register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMOV<c>.<dt> <Rt>, <Dn[x]>",
     "pattern" : "cond#4 1 1 1 0 U#1 opc1#2 1 Vn#4 Rt#4 1 0 1 1 N#1 opc2#2 1 0 0 0 0",
     "decoder" : """case U:opc1:opc2 of
@@ -7008,7 +7008,7 @@ instructions = [
 } , {
     "name" : "VMOV (between two ARM core registers and a doubleword extension register)",
     "encoding" : "T1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 0 0 0 1 0 op#1 Rt2#4 Rt#4 1 0 1 1 0 0 M#1 1 Vm#4",
     "decoder" : """to_arm_registers = (op == '1'); t = UInt(Rt); t2 = UInt(Rt2); m = UInt(M:Vm);
@@ -7018,7 +7018,7 @@ instructions = [
 } , {
     "name" : "VMOV (between two ARM core registers and a doubleword extension register)",
     "encoding" : "A1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "cond#4 1 1 0 0 0 1 0 op#1 Rt2#4 Rt#4 1 0 1 1 0 0 M#1 1 Vm#4",
     "decoder" : """to_arm_registers = (op == '1'); t = UInt(Rt); t2 = UInt(Rt2); m = UInt(M:Vm);
@@ -7028,7 +7028,7 @@ instructions = [
 } , {
     "name" : "VMOVL",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMOVL<c>.<dt> <Qd>, <Dm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm3#3 0 0 0 Vd#4 1 0 1 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm3 == '000' then SEE "Related encodings";
@@ -7040,7 +7040,7 @@ instructions = [
 } , {
     "name" : "VMOVL",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMOVL<c>.<dt> <Qd>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm3#3 0 0 0 Vd#4 1 0 1 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm3 == '000' then SEE "Related encodings";
@@ -7052,7 +7052,7 @@ instructions = [
 } , {
     "name" : "VMOVN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMOVN<c>.<dt> <Dd>, <Qm>",
     "pattern" : "111111111 D#1 11 size#2 10 Vd#4 001000 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -7062,7 +7062,7 @@ instructions = [
 } , {
     "name" : "VMOVN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMOVN<c>.<dt> <Dd>, <Qm>",
     "pattern" : "111100111 D#1 11 size#2 10 Vd#4 001000 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -7072,7 +7072,7 @@ instructions = [
 } , {
     "name" : "VMRS",
     "encoding" : "T1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VMRS<c> <Rt>, FPSCR",
     "pattern" : "1 1 1 0 1 1 1 0 1 1 1 1 0 0 0 1 Rt#4 1 0 1 0 0 0 0 1 0 0 0 0",
     "decoder" : """t = UInt(Rt);
@@ -7080,7 +7080,7 @@ instructions = [
 } , {
     "name" : "VMRS",
     "encoding" : "A1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VMRS<c> <Rt>, FPSCR",
     "pattern" : "cond#4 1 1 1 0 1 1 1 1 0 0 0 1 Rt#4 1 0 1 0 0 0 0 1 0 0 0 0",
     "decoder" : """t = UInt(Rt);
@@ -7088,7 +7088,7 @@ instructions = [
 } , {
     "name" : "VMSR",
     "encoding" : "T1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VMSR<c> FPSCR, <Rt>",
     "pattern" : "1 1 1 0 1 1 1 0 1 1 1 0 0 0 0 1 Rt#4 1 0 1 0 0 0 0 1 0 0 0 0",
     "decoder" : """t = UInt(Rt);
@@ -7096,7 +7096,7 @@ instructions = [
 } , {
     "name" : "VMSR",
     "encoding" : "A1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VMSR<c> FPSCR, <Rt>",
     "pattern" : "cond#4 1 1 1 0 1 1 1 0 0 0 0 1 Rt#4 1 0 1 0 0 0 0 1 0 0 0 0",
     "decoder" : """t = UInt(Rt);
@@ -7104,7 +7104,7 @@ instructions = [
 } , {
     "name" : "VMUL, VMULL (integer and polynomial)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 op#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if size == '11' || (op == '1' && size != '00') then UNDEFINED;
@@ -7116,7 +7116,7 @@ instructions = [
 } , {
     "name" : "VMUL, VMULL (integer and polynomial)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 op#1 0 D#1 size#2 Vn#4 Vd#4 1 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if size == '11' || (op == '1' && size != '00') then UNDEFINED;
@@ -7128,7 +7128,7 @@ instructions = [
 } , {
     "name" : "VMUL, VMULL (integer and polynomial)",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMULL<c>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 1 op#1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7140,7 +7140,7 @@ instructions = [
 } , {
     "name" : "VMUL, VMULL (integer and polynomial)",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMULL<c>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 1 1 op#1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7152,7 +7152,7 @@ instructions = [
 } , {
     "name" : "VMUL (floating-point)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -7162,7 +7162,7 @@ instructions = [
 } , {
     "name" : "VMUL (floating-point)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -7194,7 +7194,7 @@ instructions = [
 } , {
     "name" : "VMUL, VMULL (by scalar)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 Q#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 0 0 F#1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7208,7 +7208,7 @@ instructions = [
 } , {
     "name" : "VMUL, VMULL (by scalar)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 Q#1 1 D#1 size#2 Vn#4 Vd#4 1 0 0 F#1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7222,7 +7222,7 @@ instructions = [
 } , {
     "name" : "VMUL, VMULL (by scalar)",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMULL<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 0 1 0 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7234,7 +7234,7 @@ instructions = [
 } , {
     "name" : "VMUL, VMULL (by scalar)",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VMULL<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 1 0 1 0 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7246,7 +7246,7 @@ instructions = [
 } , {
     "name" : "VMVN (immediate)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 i#1 1 1 1 1 1 D#1 0 0 0 imm3#3 Vd#4 cmode#4 0 Q#1 1 1 imm4#4",
     "decoder" : """if (cmode<0> == '1' && cmode<3:2> != '11') || cmode<3:1> == '111' then SEE "Related encodings";
@@ -7256,7 +7256,7 @@ instructions = [
 } , {
     "name" : "VMVN (immediate)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 i#1 1 D#1 0 0 0 imm3#3 Vd#4 cmode#4 0 Q#1 1 1 imm4#4",
     "decoder" : """if (cmode<0> == '1' && cmode<3:2> != '11') || cmode<3:1> == '111' then SEE "Related encodings";
@@ -7266,7 +7266,7 @@ instructions = [
 } , {
     "name" : "VMVN (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 0 1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size != '00' then UNDEFINED;
@@ -7275,7 +7275,7 @@ instructions = [
 } , {
     "name" : "VMVN (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 0 1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size != '00' then UNDEFINED;
@@ -7284,7 +7284,7 @@ instructions = [
 } , {
     "name" : "VNEG",
     "encoding" : "T1",
-    "version" : "Advanced SIMD ",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 1 1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -7295,7 +7295,7 @@ instructions = [
 } , {
     "name" : "VNEG",
     "encoding" : "A1",
-    "version" : "Advanced SIMD ",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 1 Vd#4 0 F#1 1 1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (F == '1' && size != '10') then UNDEFINED;
@@ -7372,7 +7372,7 @@ instructions = [
 } , {
     "name" : "VORN (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 1 1 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -7380,7 +7380,7 @@ instructions = [
 } , {
     "name" : "VORN (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 1 1 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -7388,7 +7388,7 @@ instructions = [
 } , {
     "name" : "VORR (immediate)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 i#1 1 1 1 1 1 D#1 0 0 0 imm3#3 Vd#4 cmode#4 0 Q#1 0 1 imm4#4",
     "decoder" : """if cmode<0> == '0' || cmode<3:2> == '11' then SEE VMOV (immediate);
@@ -7398,7 +7398,7 @@ instructions = [
 } , {
     "name" : "VORR (immediate)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 i#1 1 D#1 0 0 0 imm3#3 Vd#4 cmode#4 0 Q#1 0 1 imm4#4",
     "decoder" : """if cmode<0> == '0' || cmode<3:2> == '11' then SEE VMOV (immediate);
@@ -7408,7 +7408,7 @@ instructions = [
 } , {
     "name" : "VORR (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 1 0 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if N == M && Vn == Vm then SEE VMOV (register);
@@ -7417,7 +7417,7 @@ instructions = [
 } , {
     "name" : "VORR (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 1 0 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if N == M && Vn == Vm then SEE VMOV (register);
@@ -7426,7 +7426,7 @@ instructions = [
 } , {
     "name" : "VPADAL",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 1 0 op#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -7437,7 +7437,7 @@ instructions = [
 } , {
     "name" : "VPADAL",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 1 0 op#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -7448,7 +7448,7 @@ instructions = [
 } , {
     "name" : "VPADD (integer)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VPADD<c>.<dt> <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if size == '11' || Q == '1' then UNDEFINED;
@@ -7457,7 +7457,7 @@ instructions = [
 } , {
     "name" : "VPADD (integer)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VPADD<c>.<dt> <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if size == '11' || Q == '1' then UNDEFINED;
@@ -7466,7 +7466,7 @@ instructions = [
 } , {
     "name" : "VPADD (floating-point)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VPADD<c>.F32 <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if sz == '1' || Q == '1' then UNDEFINED;
@@ -7475,7 +7475,7 @@ instructions = [
 } , {
     "name" : "VPADD (floating-point)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VPADD<c>.F32 <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if sz == '1' || Q == '1' then UNDEFINED;
@@ -7484,7 +7484,7 @@ instructions = [
 } , {
     "name" : "VPADDL",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 0 1 0 op#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -7495,7 +7495,7 @@ instructions = [
 } , {
     "name" : "VPADDL",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 0 1 0 op#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -7506,7 +7506,7 @@ instructions = [
 } , {
     "name" : "VPMAX, VPMIN (integer)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VP<op><c>.<dt> <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 1 0 N#1 Q#1 M#1 op#1 Vm#4",
     "decoder" : """if size == '11' || Q == '1' then UNDEFINED;
@@ -7516,7 +7516,7 @@ instructions = [
 } , {
     "name" : "VPMAX, VPMIN (integer)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VP<op><c>.<dt> <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 1 0 1 0 N#1 Q#1 M#1 op#1 Vm#4",
     "decoder" : """if size == '11' || Q == '1' then UNDEFINED;
@@ -7526,7 +7526,7 @@ instructions = [
 } , {
     "name" : "VPMAX, VPMIN (floating-point)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VP<op><c>.F32 <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if sz == '1' || Q == '1' then UNDEFINED;
@@ -7535,7 +7535,7 @@ instructions = [
 } , {
     "name" : "VPMAX, VPMIN (floating-point)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VP<op><c>.F32 <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if sz == '1' || Q == '1' then UNDEFINED;
@@ -7544,7 +7544,7 @@ instructions = [
 } , {
     "name" : "VPOP",
     "encoding" : "T1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VPOP <list>",
     "pattern" : "1 1 1 0 1 1 0 0 1 D#1 1 1 1 1 0 1 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_regs = FALSE; d = UInt(D:Vd); imm32 = ZeroExtend(imm8:'00', 32);
@@ -7553,7 +7553,7 @@ instructions = [
 } , {
     "name" : "VPOP",
     "encoding" : "A1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VPOP <list>",
     "pattern" : "cond#4 1 1 0 0 1 D#1 1 1 1 1 0 1 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_regs = FALSE; d = UInt(D:Vd); imm32 = ZeroExtend(imm8:'00', 32);
@@ -7582,7 +7582,7 @@ instructions = [
 } , {
     "name" : "VPUSH",
     "encoding" : "T1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VPUSH<c> <list>",
     "pattern" : "1 1 1 0 1 1 0 1 0 D#1 1 0 1 1 0 1 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_regs = FALSE; d = UInt(D:Vd); imm32 = ZeroExtend(imm8:'00', 32);
@@ -7591,7 +7591,7 @@ instructions = [
 } , {
     "name" : "VPUSH",
     "encoding" : "A1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VPUSH<c> <list>",
     "pattern" : "cond#4 1 1 0 1 0 D#1 1 0 1 1 0 1 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_regs = FALSE; d = UInt(D:Vd); imm32 = ZeroExtend(imm8:'00', 32);
@@ -7618,7 +7618,7 @@ instructions = [
 } , {
     "name" : "VQABS",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 1 1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -7628,7 +7628,7 @@ instructions = [
 } , {
     "name" : "VQABS",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 1 1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -7638,7 +7638,7 @@ instructions = [
 } , {
     "name" : "VQADD",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 0 0 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -7648,7 +7648,7 @@ instructions = [
 } , {
     "name" : "VQADD",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 0 0 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -7658,7 +7658,7 @@ instructions = [
 } , {
     "name" : "VQDMLAL, VQDMLSL",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQD<op><c>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 0 op#1 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7669,7 +7669,7 @@ instructions = [
 } , {
     "name" : "VQDMLAL, VQDMLSL",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQD<op><c>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 1 0 op#1 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7680,7 +7680,7 @@ instructions = [
 } , {
     "name" : "VQDMLAL, VQDMLSL",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQD<op><c>.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 op#1 1 1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7692,7 +7692,7 @@ instructions = [
 } , {
     "name" : "VQDMLAL, VQDMLSL",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQD<op><c>.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 0 op#1 1 1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7704,7 +7704,7 @@ instructions = [
 } , {
     "name" : "VQDMULH",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -7714,7 +7714,7 @@ instructions = [
 } , {
     "name" : "VQDMULH",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -7724,7 +7724,7 @@ instructions = [
 } , {
     "name" : "VQDMULH",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 Q#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 1 0 0 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7736,7 +7736,7 @@ instructions = [
 } , {
     "name" : "VQDMULH",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 Q#1 1 D#1 size#2 Vn#4 Vd#4 1 1 0 0 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7748,7 +7748,7 @@ instructions = [
 } , {
     "name" : "VQDMULL",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQDMULL<c>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 1 0 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7758,7 +7758,7 @@ instructions = [
 } , {
     "name" : "VQDMULL",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQDMULL<c>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 1 1 0 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7768,7 +7768,7 @@ instructions = [
 } , {
     "name" : "VQDMULL",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQDMULL<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7779,7 +7779,7 @@ instructions = [
 } , {
     "name" : "VQDMULL",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQDMULL<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7790,7 +7790,7 @@ instructions = [
 } , {
     "name" : "VQMOVN, VQMOVUN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQMOV{U}N<c>.<type><size> <Dd>, <Qm>",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 1 0 op#2 M#1 0 Vm#4",
     "decoder" : """if op == '00' then SEE VMOVN;
@@ -7801,7 +7801,7 @@ instructions = [
 } , {
     "name" : "VQMOVN, VQMOVUN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQMOV{U}N<c>.<type><size> <Dd>, <Qm>",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 1 0 op#2 M#1 0 Vm#4",
     "decoder" : """if op == '00' then SEE VMOVN;
@@ -7812,7 +7812,7 @@ instructions = [
 } , {
     "name" : "VQNEG",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 1 1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -7822,7 +7822,7 @@ instructions = [
 } , {
     "name" : "VQNEG",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 1 1 1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -7832,7 +7832,7 @@ instructions = [
 } , {
     "name" : "VQRDMULH",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -7842,7 +7842,7 @@ instructions = [
 } , {
     "name" : "VQRDMULH",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -7852,7 +7852,7 @@ instructions = [
 } , {
     "name" : "VQRDMULH",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 Q#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 1 0 1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7864,7 +7864,7 @@ instructions = [
 } , {
     "name" : "VQRDMULH",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 Q#1 1 D#1 size#2 Vn#4 Vd#4 1 1 0 1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -7876,7 +7876,7 @@ instructions = [
 } , {
     "name" : "VQRSHL",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 1 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1' || Vn<0> == '1') then UNDEFINED;
@@ -7886,7 +7886,7 @@ instructions = [
 } , {
     "name" : "VQRSHL",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 1 0 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1' || Vn<0> == '1') then UNDEFINED;
@@ -7896,7 +7896,7 @@ instructions = [
 } , {
     "name" : "VQRSHRN, VQRSHRUN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQRSHR{U}N<c>.<type><size> <Dd>, <Qm>, #<imm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 1 0 0 op#1 0 1 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -7911,7 +7911,7 @@ instructions = [
 } , {
     "name" : "VQRSHRN, VQRSHRUN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQRSHR{U}N<c>.<type><size> <Dd>, <Qm>, #<imm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 1 0 0 op#1 0 1 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -7926,7 +7926,7 @@ instructions = [
 } , {
     "name" : "VQSHL (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1' || Vn<0> == '1') then UNDEFINED;
@@ -7936,7 +7936,7 @@ instructions = [
 } , {
     "name" : "VQSHL (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1' || Vn<0> == '1') then UNDEFINED;
@@ -7946,7 +7946,7 @@ instructions = [
 } , {
     "name" : "VQSHL, VQSHLU (immediate)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 0 1 1 op#1 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -7963,7 +7963,7 @@ instructions = [
 } , {
     "name" : "VQSHL, VQSHLU (immediate)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 0 1 1 op#1 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -7980,7 +7980,7 @@ instructions = [
 } , {
     "name" : "VQSHRN, VQSHRUN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQSHR{U}N<c>.<type><size> <Dd>, <Qm>, #<imm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 1 0 0 op#1 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -7996,7 +7996,7 @@ instructions = [
 } , {
     "name" : "VQSHRN, VQSHRUN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VQSHR{U}N<c>.<type><size> <Dd>, <Qm>, #<imm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 1 0 0 op#1 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -8012,7 +8012,7 @@ instructions = [
 } , {
     "name" : "VQSUB",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 0 1 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8022,7 +8022,7 @@ instructions = [
 } , {
     "name" : "VQSUB",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 0 1 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8032,7 +8032,7 @@ instructions = [
 } , {
     "name" : "VRADDHN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VRADDHN<c>.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -8042,7 +8042,7 @@ instructions = [
 } , {
     "name" : "VRADDHN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VRADDHN<c>.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -8052,7 +8052,7 @@ instructions = [
 } , {
     "name" : "VRECPE",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 1 Vd#4 0 1 0 F#1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8062,7 +8062,7 @@ instructions = [
 } , {
     "name" : "VRECPE",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 1 Vd#4 0 1 0 F#1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8072,7 +8072,7 @@ instructions = [
 } , {
     "name" : "VRECPS",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8082,7 +8082,7 @@ instructions = [
 } , {
     "name" : "VRECPS",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8092,7 +8092,7 @@ instructions = [
 } , {
     "name" : "VREV16, VREV32, VREV64",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 0 0 op#2 Q#1 M#1 0 Vm#4",
     "decoder" : """if UInt(op)+UInt(size) >= 3 then UNDEFINED;
@@ -8106,7 +8106,7 @@ instructions = [
 } , {
     "name" : "VREV16, VREV32, VREV64",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 0 0 Vd#4 0 0 0 op#2 Q#1 M#1 0 Vm#4",
     "decoder" : """if UInt(op)+UInt(size) >= 3 then UNDEFINED;
@@ -8120,7 +8120,7 @@ instructions = [
 } , {
     "name" : "VRHADD",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8131,7 +8131,7 @@ instructions = [
 } , {
     "name" : "VRHADD",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 0 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8142,7 +8142,7 @@ instructions = [
 } , {
     "name" : "VRSHL",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1' || Vn<0> == '1') then UNDEFINED;
@@ -8152,7 +8152,7 @@ instructions = [
 } , {
     "name" : "VRSHL",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1' || Vn<0> == '1') then UNDEFINED;
@@ -8162,7 +8162,7 @@ instructions = [
 } , {
     "name" : "VRSHR",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 0 0 1 0 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8177,7 +8177,7 @@ instructions = [
 } , {
     "name" : "VRSHR",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 0 0 1 0 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8192,7 +8192,7 @@ instructions = [
 } , {
     "name" : "VRSHRN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VRSHRN<c>.I<size> <Dd>, <Qm>, #<imm>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 imm6#6 Vd#4 1 0 0 0 0 1 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -8206,7 +8206,7 @@ instructions = [
 } , {
     "name" : "VRSHRN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VRSHRN<c>.I<size> <Dd>, <Qm>, #<imm>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 imm6#6 Vd#4 1 0 0 0 0 1 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -8220,7 +8220,7 @@ instructions = [
 } , {
     "name" : "VRSQRTE",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 1 Vd#4 0 1 0 F#1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8230,7 +8230,7 @@ instructions = [
 } , {
     "name" : "VRSQRTE",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 1 Vd#4 0 1 0 F#1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8240,7 +8240,7 @@ instructions = [
 } , {
     "name" : "VRSQRTS",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 1 sz#1 Vn#4 Vd#4 1 1 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8250,7 +8250,7 @@ instructions = [
 } , {
     "name" : "VRSQRTS",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 1 sz#1 Vn#4 Vd#4 1 1 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -8260,7 +8260,7 @@ instructions = [
 } , {
     "name" : "VRSRA",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 0 0 1 1 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8275,7 +8275,7 @@ instructions = [
 } , {
     "name" : "VRSRA",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 0 0 1 1 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8290,7 +8290,7 @@ instructions = [
 } , {
     "name" : "VRSUBHN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VRSUBHN<c>.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -8300,7 +8300,7 @@ instructions = [
 } , {
     "name" : "VRSUBHN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VRSUBHN<c>.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -8310,7 +8310,7 @@ instructions = [
 } , {
     "name" : "VSHL (immediate)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 imm6#6 Vd#4 0 1 0 1 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if L:imm6 IN "0000xxx" then SEE "Related encodings";
@@ -8325,7 +8325,7 @@ instructions = [
 } , {
     "name" : "VSHL (immediate)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 imm6#6 Vd#4 0 1 0 1 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if L:imm6 IN "0000xxx" then SEE "Related encodings";
@@ -8340,7 +8340,7 @@ instructions = [
 } , {
     "name" : "VSHL (register)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1' || Vn<0> == '1') then UNDEFINED;
@@ -8350,7 +8350,7 @@ instructions = [
 } , {
     "name" : "VSHL (register)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vm<0> == '1' || Vn<0> == '1') then UNDEFINED;
@@ -8360,7 +8360,7 @@ instructions = [
 } , {
     "name" : "VSHLL",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VSHLL<c>.<type><size> <Qd>, <Dm>, #<imm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 1 0 1 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -8375,7 +8375,7 @@ instructions = [
 } , {
     "name" : "VSHLL",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VSHLL<c>.<type><size> <Qd>, <Dm>, #<imm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 1 0 1 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -8390,7 +8390,7 @@ instructions = [
 } , {
     "name" : "VSHLL",
     "encoding" : "T2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VSHLL<c>.<type><size> <Qd>, <Dm>, #<imm>",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 1 1 0 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' || Vd<0> == '1' then UNDEFINED;
@@ -8400,7 +8400,7 @@ instructions = [
 } , {
     "name" : "VSHLL",
     "encoding" : "A2",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VSHLL<c>.<type><size> <Qd>, <Dm>, #<imm>",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 1 1 0 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' || Vd<0> == '1' then UNDEFINED;
@@ -8410,7 +8410,7 @@ instructions = [
 } , {
     "name" : "VSHR",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 0 0 0 0 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8425,7 +8425,7 @@ instructions = [
 } , {
     "name" : "VSHR",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 0 0 0 0 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8440,7 +8440,7 @@ instructions = [
 } , {
     "name" : "VSHRN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VSHRN<c>.I<size> <Dd>, <Qm>, #<imm>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 imm6#6 Vd#4 1 0 0 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -8454,7 +8454,7 @@ instructions = [
 } , {
     "name" : "VSHRN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VSHRN<c>.I<size> <Dd>, <Qm>, #<imm>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 imm6#6 Vd#4 1 0 0 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
@@ -8468,7 +8468,7 @@ instructions = [
 } , {
     "name" : "VSLI",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 imm6#6 Vd#4 0 1 0 1 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8483,7 +8483,7 @@ instructions = [
 } , {
     "name" : "VSLI",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 imm6#6 Vd#4 0 1 0 1 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8518,7 +8518,7 @@ instructions = [
 } , {
     "name" : "VSRA",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 0 0 0 1 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8533,7 +8533,7 @@ instructions = [
 } , {
     "name" : "VSRA",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 0 0 0 1 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8548,7 +8548,7 @@ instructions = [
 } , {
     "name" : "VSRI",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 imm6#6 Vd#4 0 1 0 0 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8563,7 +8563,7 @@ instructions = [
 } , {
     "name" : "VSRI",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 imm6#6 Vd#4 0 1 0 0 L#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if (L:imm6) IN "0000xxx" then SEE "Related encodings";
@@ -8578,7 +8578,7 @@ instructions = [
 } , {
     "name" : "VST1 (multiple single elements)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 0 D#1 0 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """case type of
@@ -8604,7 +8604,7 @@ instructions = [
 } , {
     "name" : "VST1 (multiple single elements)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 0 D#1 0 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """case type of
@@ -8630,7 +8630,7 @@ instructions = [
 } , {
     "name" : "VST1 (single element from one lane)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 0 0 Rn#4 Vd#4 size#2 0 0 index_align#4 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8654,7 +8654,7 @@ instructions = [
 } , {
     "name" : "VST1 (single element from one lane)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 0 0 Rn#4 Vd#4 size#2 0 0 index_align#4 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8678,7 +8678,7 @@ instructions = [
 } , {
     "name" : "VST2 (multiple 2-element structures)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 0 D#1 0 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8702,7 +8702,7 @@ instructions = [
 } , {
     "name" : "VST2 (multiple 2-element structures)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 0 D#1 0 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8726,7 +8726,7 @@ instructions = [
 } , {
     "name" : "VST2 (single 2-element structure from one lane)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 0 0 Rn#4 Vd#4 size#2 0 1 index_align#4 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8750,7 +8750,7 @@ instructions = [
 } , {
     "name" : "VST2 (single 2-element structure from one lane)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 0 0 Rn#4 Vd#4 size#2 0 1 index_align#4 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8774,7 +8774,7 @@ instructions = [
 } , {
     "name" : "VST3 (multiple 3-element structures)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 0 D#1 0 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' || align<1> == '1' then UNDEFINED;
@@ -8794,7 +8794,7 @@ instructions = [
 } , {
     "name" : "VST3 (multiple 3-element structures)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 0 D#1 0 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' || align<1> == '1' then UNDEFINED;
@@ -8814,7 +8814,7 @@ instructions = [
 } , {
     "name" : "VST3 (single 3-element structure from one lane)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 0 0 Rn#4 Vd#4 size#2 1 0 index_align#4 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8837,7 +8837,7 @@ instructions = [
 } , {
     "name" : "VST3 (single 3-element structure from one lane)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 0 0 Rn#4 Vd#4 size#2 1 0 index_align#4 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8860,7 +8860,7 @@ instructions = [
 } , {
     "name" : "VST4 (multiple 4-element structures)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 0 D#1 0 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8880,7 +8880,7 @@ instructions = [
 } , {
     "name" : "VST4 (multiple 4-element structures)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 0 D#1 0 0 Rn#4 Vd#4 type#4 size#2 align#2 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8900,7 +8900,7 @@ instructions = [
 } , {
     "name" : "VST4 (single 4-element structure from one lane)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 0 0 1 1 D#1 0 0 Rn#4 Vd#4 size#2 1 1 index_align#4 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8924,7 +8924,7 @@ instructions = [
 } , {
     "name" : "VST4 (single 4-element structure from one lane)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 1 0 0 1 D#1 0 0 Rn#4 Vd#4 size#2 1 1 index_align#4 Rm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -8948,7 +8948,7 @@ instructions = [
 } , {
     "name" : "VSTM",
     "encoding" : "T1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VSTM{mode}<c> <Rn>{!}, <list>",
     "pattern" : "1 1 1 0 1 1 0 P#1 U#1 D#1 W#1 0 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """if P == '0' && U == '0' && W == '0' then SEE "Related encodings";
@@ -8963,7 +8963,7 @@ instructions = [
 } , {
     "name" : "VSTM",
     "encoding" : "A1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VSTM{mode}<c> <Rn>{!}, <list>",
     "pattern" : "cond#4 1 1 0 P#1 U#1 D#1 W#1 0 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """if P == '0' && U == '0' && W == '0' then SEE "Related encodings";
@@ -9006,7 +9006,7 @@ instructions = [
 } , {
     "name" : "VSTR",
     "encoding" : "T1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VSTR<c> <Dd>, [<Rn>{, #+/-<imm>}]",
     "pattern" : "1 1 1 0 1 1 0 1 U#1 D#1 0 0 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_reg = FALSE; add = (U == '1'); imm32 = ZeroExtend(imm8:'00', 32);
@@ -9015,7 +9015,7 @@ instructions = [
 } , {
     "name" : "VSTR",
     "encoding" : "A1",
-    "version" : "VFPv2, VFPv3, VFPv4, Advanced SIMD",
+    "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
     "format" : "VSTR<c> <Dd>, [<Rn>{, #+/-<imm>}]",
     "pattern" : "cond#4 1 1 0 1 U#1 D#1 0 0 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_reg = FALSE; add = (U == '1'); imm32 = ZeroExtend(imm8:'00', 32);
@@ -9042,7 +9042,7 @@ instructions = [
 } , {
     "name" : "VSUB (integer)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 0 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -9051,7 +9051,7 @@ instructions = [
 } , {
     "name" : "VSUB (integer)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 0 0 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -9060,7 +9060,7 @@ instructions = [
 } , {
     "name" : "VSUB (floating-point)",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 1 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -9070,7 +9070,7 @@ instructions = [
 } , {
     "name" : "VSUB (floating-point)",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 1 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -9102,7 +9102,7 @@ instructions = [
 } , {
     "name" : "VSUBHN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VSUBHN<c>.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -9112,7 +9112,7 @@ instructions = [
 } , {
     "name" : "VSUBHN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "VSUBHN<c>.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 0 1 1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -9122,7 +9122,7 @@ instructions = [
 } , {
     "name" : "VSUBL, VSUBW",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 0 1 op#1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -9133,7 +9133,7 @@ instructions = [
 } , {
     "name" : "VSUBL, VSUBW",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 0 0 1 op#1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
@@ -9144,7 +9144,7 @@ instructions = [
 } , {
     "name" : "VSWP",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 0 0 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size != '00' then UNDEFINED;
@@ -9153,7 +9153,7 @@ instructions = [
 } , {
     "name" : "VSWP",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 0 0 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size != '00' then UNDEFINED;
@@ -9162,7 +9162,7 @@ instructions = [
 } , {
     "name" : "VTBL, VTBX",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "V<op><c>.8 <Dd>, <list>, <Dm>",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 Vn#4 Vd#4 1 0 len#2 N#1 op#1 M#1 0 Vm#4",
     "decoder" : """is_vtbl = (op == '0'); length = UInt(len)+1;
@@ -9171,7 +9171,7 @@ instructions = [
 } , {
     "name" : "VTBL, VTBX",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "V<op><c>.8 <Dd>, <list>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 Vn#4 Vd#4 1 0 len#2 N#1 op#1 M#1 0 Vm#4",
     "decoder" : """is_vtbl = (op == '0'); length = UInt(len)+1;
@@ -9180,7 +9180,7 @@ instructions = [
 } , {
     "name" : "VTRN",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 0 0 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -9190,7 +9190,7 @@ instructions = [
 } , {
     "name" : "VTRN",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 0 0 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
@@ -9200,7 +9200,7 @@ instructions = [
 } , {
     "name" : "VTST",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 0 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -9210,7 +9210,7 @@ instructions = [
 } , {
     "name" : "VTST",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 0 0 1 0 0 D#1 size#2 Vn#4 Vd#4 1 0 0 0 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
@@ -9220,7 +9220,7 @@ instructions = [
 } , {
     "name" : "VUZP",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 0 1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (Q == '0' && size == '10') then UNDEFINED;
@@ -9230,7 +9230,7 @@ instructions = [
 } , {
     "name" : "VUZP",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 0 1 0 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (Q == '0' && size == '10') then UNDEFINED;
@@ -9240,7 +9240,7 @@ instructions = [
 } , {
     "name" : "VZIP",
     "encoding" : "T1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 0 1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (Q == '0' && size == '10') then UNDEFINED;
@@ -9250,7 +9250,7 @@ instructions = [
 } , {
     "name" : "VZIP",
     "encoding" : "A1",
-    "version" : "Advanced SIMD",
+    "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 0 1 1 Q#1 M#1 0 Vm#4",
     "decoder" : """if size == '11' || (Q == '0' && size == '10') then UNDEFINED;
