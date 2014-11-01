@@ -5,6 +5,9 @@ pseudocode.
 import string
 
 from pyparsing import *
+from pyasn1.codec.der import decoder
+
+debug = False
 
 def verbose(name, e):
     print "name=%s type=%s, str=%s, repr=%r" % (name, type(e).__name__, str(e), repr(e))
@@ -888,24 +891,6 @@ class CPPTranslatorVisitor(TranslatorVisitor):
 
             # Handle: (a, b) = SomeFunction(arguments)
             elif type(node.left_expr) is List and type(node.right_expr) is ProcedureCall:
-                # It is safe to assume the types to be (uint32_t, uint32_t)
-                # (-, shift_n) = DecodeImmShift('00', imm3:imm2);
-                # (-, shift_n) = DecodeImmShift('00', imm5);
-                # (-, shift_n) = DecodeImmShift('01', imm3:imm2);
-                # (-, shift_n) = DecodeImmShift('01', imm5);
-                # (-, shift_n) = DecodeImmShift('10', imm3:imm2);
-                # (-, shift_n) = DecodeImmShift('10', imm5);
-                # (-, shift_n) = DecodeImmShift('11', imm3:imm2);
-                # (-, shift_n) = DecodeImmShift('11', imm5);
-                # (imm32, carry) = ARMExpandImm_C(imm12, APSR.C);
-                # (imm32, carry) = ThumbExpandImm_C(i:imm3:imm8, APSR.C);
-                # (shift_t, shift_n) = DecodeImmShift(sh:'0', imm3:imm2);
-                # (shift_t, shift_n) = DecodeImmShift(sh:'0', imm5);
-                # (shift_t, shift_n) = DecodeImmShift(tb:'0', imm3:imm2);
-                # (shift_t, shift_n) = DecodeImmShift(tb:'0', imm5);
-                # (shift_t, shift_n) = DecodeImmShift(type, imm3:imm2);
-                # (shift_t, shift_n) = DecodeImmShift(type, imm5);
-
                 # Accept the unused nodes so we can have master race type checking.
                 self.accept(node.left_expr)
                 right_expr = self.accept(node.right_expr)
@@ -1011,11 +996,19 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         elif str(node.name) in ["NOT"]:
             # Inherit the type of the argument.
             assert len(node.arguments) == 1
-            self.set_type(node, self.get_type(node.arguments[0]))
+            arg_type = self.get_type(node.arguments[0])
+            self.set_type(node, arg_type)
+
+            return "NOT(%s, %s)" % (", ".join(arguments), arg_type[1])
 
         elif str(node.name) == "Consistent":
             # We replace Consistent(Rm) with (Rm == Rm_).
             return "(%s == %s_)" % (node.arguments[0], node.arguments[0])
+
+        elif str(node.name) == "SignExtend":
+            # Sign extend in c++ needs the bitsize of the bit string.
+            arg_bit_len = self.get_type(node.arguments[0])[1]
+            return "SignExtend(%s, %s)" % (arguments[0], arg_bit_len)
 
         return "%s(%s)" % (node.name, ", ".join(arguments))
 
@@ -1093,7 +1086,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             return "get_bits(%s, %s, %s)" % (node.identifier, hi_lim, lo_lim)
 
         else:
-            print "// DEBUG: assuming type of expression to be 32 bits"
+            print "// DEBUG: assuming type of expression '%s' to be 32 bits" % (str(node))
             self.set_type(node, ("int", 32))
             return "get_bits(%s, %s, %s)" % (node.identifier, hi_lim, lo_lim)
 
@@ -1469,26 +1462,8 @@ statement <<= Group(((undefined_statement ^ unpredictable_statement ^ see_statem
 # Define a basic program.
 program = statement_list
 
-
 def test_specific():
     tests = []
-
-    # PASS
-    # tests.append("""if var == 1 then a();""")
-    # tests.append("""if var == 1 then a(); b(); c(); d();""")
-    # tests.append("""if var == 1 then a();\nb();""")
-    # tests.append("""if var == 1 then a(); b();\nc();\nd();""")
-    # tests.append("""case var_name of\nwhen 1 a(); b();\nwhen 2 c(); d();\nendcase""")
-
-    p = """case type of
-when '0010'
-    regs = 4;
-otherwise
-    SEE "Related encodings";
-endcase"""
-
-    tests.append(p)
-
     for p in tests:
         print "# Testing:"
         print "--------------------------------"
@@ -1500,288 +1475,6 @@ endcase"""
         print
 
     return True
-
-
-def test_graph():
-    p = "imm32 = 1 + b + c(3, 4 * 5);"
-    ret = program.parseString(p, parseAll=True)
-    visitor = GrapVisitor()
-
-    for ast in ret:
-        visitor.accept(ast[0])
-
-    visitor.save("example.png")
-
-def get_input_vars(input):
-    input_vars = []
-
-    for var in input.split():
-        if not "#" in var:
-            continue
-
-        name, size = var.split("#")
-        size = int(size)
-
-        input_vars.append((name, size))
-
-    return input_vars
-
-def __validate_bit_patterns__(bit_patterns):
-    cnt = 0
-    for bit_pattern in bit_patterns:
-        if not "#" in bit_pattern:
-            cnt += len(bit_pattern)
-        else:
-            cnt += int(bit_pattern.split("#")[1])
-
-    return cnt == 32 or cnt == 16
-
-
-def __translate_bit_patterns__(bit_patterns):
-    # Make sure the input patterns are valid.
-    if not __validate_bit_patterns__(bit_patterns):
-        raise RuntimeError("Invalid bit patters: %r" % bit_patterns)
-
-    ret = []
-
-    i = 31
-    for bit_pattern in bit_patterns:
-        # print "Decoding bit pattern: %r" % bit_pattern
-
-        # Skip regular bits.
-        if not "#" in bit_pattern:
-            # print "  Skipping bits from [%d-%d]" % (i, i - len(bit_pattern) + 1)
-            i -= len(bit_pattern)
-
-        else:
-            name, size = bit_pattern.split("#")
-            size = int(size)
-
-            # print "  Extracting bits into %s from [%d-%d]" % (name, i, i - size + 1)
-            if size == 1:
-                ret.append("int %5s = get_bit(opcode, %2d);" % (name, i))
-            else:
-                ret.append("int %5s = get_bits(opcode, %2d, %2d);" % (name, i, i - size + 1))
-
-            i -= size
-
-    return ret
-
-def instruction_to_name(instruction):
-    # (
-    t = instruction["name"].replace(" ", "_").replace("(", "_").replace(")", "_").replace("-", "_").replace(",", "_").replace("/", "_").replace("#", "_")
-    return t + "_" + instruction["encoding"].lower()
-
-def test_transcoder():
-    from ARMv7DecodingSpec import instructions
-
-    pre = """
-#include <iostream>
-#include <tuple>
-
-unsigned UInt(unsigned val) {
-  return val;
-}
-
-unsigned get_bits(unsigned a, unsigned b, unsigned c) {
-  return 0;
-}
-
-unsigned get_bit(unsigned a, unsigned b) {
-  return 0;
-}
-
-unsigned ThumbExpandImm(unsigned a) {
-  return 0;
-}
-
-unsigned ARMExpandImm(unsigned a) {
-  return 0;
-}
-
-bool InITBlock() {
-  return true;
-}
-
-bool LastInITBlock() {
-  return true;
-}
-
-typedef unsigned uint32_t;
-
-struct Instruction {
-};
-
-struct UnpredictableInstruction : public Instruction {
-};
-
-struct UndefinedInstruction : public Instruction {
-};
-
-struct SeeInstruction : public Instruction {
-  SeeInstruction(const char *);
-};
-
-int Concatenate(int a, int b, int c) {
-  return 0;
-}
-
-std::tuple<unsigned, unsigned> DecodeImmShift(unsigned a, unsigned b) {
-  return std::tuple<unsigned, unsigned>(a, b);
-}
-
-std::tuple<unsigned, unsigned> ARMExpandImm_C(unsigned a, unsigned b) {
-  return std::tuple<unsigned, unsigned>(a, b);
-}
-
-std::tuple<unsigned, unsigned> ThumbExpandImm_C(unsigned a, unsigned b) {
-  return std::tuple<unsigned, unsigned>(a, b);
-}
-
-unsigned DecodeRegShift(unsigned a) {
-    return 0;
-}
-
-unsigned ZeroExtend(unsigned a, unsigned b) {
-  return 0;
-}
-
-unsigned SRType_LSL = 0;
-
-struct status {
-    unsigned C;
-    unsigned LEN;
-    unsigned STRIDE;
-};
-
-status APSR, FPSCR;
-
-unsigned SignExtend(unsigned a, unsigned b) {
-    return a;
-}
-
-unsigned AdvSIMDExpandImm(unsigned a, unsigned b, unsigned c) {
-    return a;
-}
-
-unsigned NOT(unsigned a) {
-    return a;
-}
-
-unsigned NOP() {
-    return 0;
-}
-
-unsigned Consistent(unsigned a) {
-    return a;
-}
-
-
-unsigned VBitOps_VBIT = 0;
-unsigned VBitOps_VBIF = 0;
-unsigned VBitOps_VBSL = 0;
-unsigned InstrSet_ThumbEE = 0;
-unsigned InstrSet_ARM = 0;
-unsigned InstrSet_Thumb = 0;
-unsigned VCGEtype_unsigned = 0;
-unsigned VCGEtype_signed = 0;
-unsigned VCGTtype_fp = 0;
-unsigned VCGTtype_signed = 0;
-unsigned VCGEtype_fp = 0;
-unsigned VCGTtype_unsigned = 0;
-unsigned VFPNegMul_VNMLA = 0;
-unsigned VFPNegMul_VNMLS = 0;
-unsigned VFPNegMul_VNMUL = 0;
-
-
-unsigned CurrentInstrSet() {
-    return 0;
-}
-
-unsigned ArchVersion() {
-    return 0;
-}
-
-unsigned BitCount(unsigned a) {
-    return 0;
-}
-
-unsigned Zeros(unsigned c) {
-    return 0;
-}
-
-unsigned VFPExpandImm(unsigned a, unsigned b) {
-    return 0;
-}
-
-#define likely(x)      __builtin_expect(!!(x), 1)
-#define unlikely(x)    __builtin_expect(!!(x), 0)
-"""
-    print pre
-
-
-    """
-    unsigned shift_t;
-    unsigned shift_n;
-    std::tie(shift_t, shift_n) = DecodeImmShift(type, Concatenate(imm3, imm2, 2));
-
-    esto esta mal!!!!!!
-    if d IN {13,15} || n IN {13,15} || m IN {13,15} then UNPREDICTABLE
-
-    if (((((d == 13) || (d == 15)) || ((n == 13) || (n == 15))) || ((m == 13) || (m == 15)))) {
-        return UnpredictableInstruction();
-    }
-    """
-
-    i = 0
-    limit = 0
-    for instruction in instructions:
-        if i < limit:
-            i += 1
-            continue
-
-        input_vars = get_input_vars(instruction["pattern"])
-        decoder = instruction["decoder"]
-
-        print "// Translating: %d -> %s %s %s" % (i, instruction["name"], instruction["encoding"], instruction["pattern"])
-        print "// Pseudocode:"
-
-        for line in decoder.split("\n"):
-            for line2 in line.split(";"):
-                if not len(line2):
-                    continue
-                print "// " + line2.strip()
-
-        print "// "
-        print "// Translated code:"
-        print "// " + ("-" * 80)
-
-        print "Instruction decode_%s(uint32_t opcode) {" % instruction_to_name(instruction)
-        ret = __translate_bit_patterns__(instruction["pattern"].split())
-        for r in ret:
-            print "    %s" % r
-
-        ret = program.parseString(decoder, parseAll=True)
-        visitor = CPPTranslatorVisitor(input_vars)
-
-        body = ""
-        for ast in ret:
-            l = visitor.accept(ast[0])
-            body += indent(l)
-            if type(ast[0]) == ProcedureCall:
-                body = body[:-1] + ";\n"
-
-        #print "    // Local variables:"
-        for var in visitor.define_me:
-            print "    int %s = 0;" % var
-
-
-        print body
-        print "    Instruction ins;"
-        print "    return ins;"
-        print "}"
-
-        i += 1
 
 def test_all():
     from ARMv7DecodingSpec import instructions
@@ -1805,15 +1498,11 @@ def test_all():
 
 
 def main():
-    test_transcoder()
+    if not test_specific():
+        print "Failed individual test cases."
 
-    if False:
-        if not test_specific():
-            print "Failed individual test cases."
-
-    if False:
-        if not test_all():
-            print "Failed test of specification."
+    if not test_all():
+        print "Failed test of specification."
 
     return 0
 
