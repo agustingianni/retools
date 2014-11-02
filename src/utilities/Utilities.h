@@ -59,11 +59,11 @@ static inline uint64_t MaskUpToBit(uint64_t bit) {
 	return (1ull << (bit + 1ull)) - 1ull;
 }
 
-static unsigned Zeros(unsigned c) {
+static unsigned Zeros(unsigned) {
     return 0;
 }
 
-static inline unsigned ZeroExtend(unsigned a, unsigned b) {
+static inline unsigned ZeroExtend(unsigned a, unsigned) {
 	return a;
 }
 

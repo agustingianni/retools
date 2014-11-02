@@ -107,9 +107,13 @@ decoder_header_cpp = \
 #include <cstdint>
 
 #include "ARMDisassembler.h"
+#include "ARMUtilities.h"
 #include "utilities/Utilities.h"
 
 using namespace Disassembler;
+
+apsr_t APSR;
+fpscr_t FPSCR;
 '''
 
 def get_input_vars(input):
@@ -186,7 +190,7 @@ def create_decoders(filename):
 
         fd.write("\nnamespace ARMv7Decoder {\n")
         for instruction in instructions:
-            fd.write("    Instruction %s(uint32_t opcode, ARMEncoding encoding);\n" % instruction_to_name(instruction))
+            fd.write("    ARMInstruction %s(uint32_t opcode, ARMEncoding encoding);\n" % instruction_to_name(instruction))
     
         fd.write("};\n")
 
@@ -211,8 +215,10 @@ def create_decoders(filename):
                             continue
                         fd.write("    // " + line2.strip() + "\n")
     
-            logging.info("Processing instruction %d of %d" % (i, len(instructions)))
-            fd.write("    Instruction %s(uint32_t opcode, ARMEncoding encoding) {\n" % instruction_to_name(instruction))        
+            if i % 50 == 0:
+                logging.info("Processing instruction %d of %d" % (i, len(instructions)))
+                
+            fd.write("    ARMInstruction %s(uint32_t opcode, ARMEncoding encoding) {\n" % instruction_to_name(instruction))        
             ret = __translate_bit_patterns__(instruction["pattern"].split())
             for r in ret:
                 fd.write("        %s\n" % r)
@@ -234,12 +240,16 @@ def create_decoders(filename):
             fd.write("\n")
             fd.write(body)
             
-            fd.write("        Instruction ins;\n")
+            fd.write("        ARMInstruction ins = ARMInstruction::create();\n")        
+            for var in visitor.define_me:
+                fd.write("        ins.%s = %s;\n" % (var, var))
+            fd.write("\n")
+            
             fd.write("        return ins;\n")
             fd.write("    }\n\n")
             
-            if i == 10:
-                break
+            #if i == 100:
+            #    break
                         
         fd.write("};\n")
     
@@ -255,6 +265,8 @@ def main():
     parser.add_argument("--debug", default=False)
     
     args = parser.parse_args()
+
+    logging.info("Generating decoding tables and routines ...")
 
     DEBUG = args.debug    
     gen_dir = os.path.abspath(args.gendir)

@@ -388,7 +388,7 @@ class Visitor(object):
         return r
 
 
-#from pydot import Dot, Node, Edge
+from pydot import Dot, Node, Edge
 import uuid
 
 
@@ -1462,6 +1462,13 @@ statement <<= Group(((undefined_statement ^ unpredictable_statement ^ see_statem
 # Define a basic program.
 program = statement_list
 
+def test_graph():
+    p = "if d == 13 || (d == 15 && S == '0') then UNPREDICTABLE;"
+    ret = program.parseString(p, parseAll=True)
+    visitor = GrapVisitor() 
+    visitor.accept(ret[0][0])
+    visitor.save()
+
 def test_specific():
     tests = []
     for p in tests:
@@ -1498,6 +1505,9 @@ def test_all():
 
 
 def main():
+    test_graph()
+    return 0
+
     if not test_specific():
         print "Failed individual test cases."
 
