@@ -6,6 +6,8 @@ import string
 
 from pyparsing import *
 from pyasn1.codec.der import decoder
+from string import letters
+from collections import namedtuple
 
 debug = False
 
@@ -1462,13 +1464,144 @@ statement <<= Group(((undefined_statement ^ unpredictable_statement ^ see_statem
 # Define a basic program.
 program = statement_list
 
-def test_graph():
-    p = "if d == 13 || (d == 15 && S == '0') then UNPREDICTABLE;"
-    ret = program.parseString(p, parseAll=True)
-    visitor = GrapVisitor() 
-    visitor.accept(ret[0][0])
-    visitor.save()
+class OptionalToken(object):
+    def __init__(self, name):
+        self.name = name
 
+    def __str__(self):
+        return "{%s}" % "".join(map(lambda x: str(x), self.name))
+    
+    def __repr__(self):
+        return "Optional(name=%r)" % self.name
+
+class MandatoryToken(object):
+    def __init__(self, name, sign="", pound=""):
+        self.name = name
+        self.sign = sign
+        self.pound = pound
+
+    def __str__(self):
+        return "%s%s<%s>" % (self.pound, self.sign, "".join(map(lambda x: str(x), self.name)))
+    
+    def __repr__(self):
+        return "Mandatory('pound=%s sign=%s value=<%s>')" % (self.pound, self.sign, "".join(map(lambda x: str(x), self.name)))
+
+def InstructionFormatParser():
+    class OpcodeName(object):
+        def __init__(self, name):
+            self.name = name
+    
+        def __str__(self):
+            return "%s" % "".join(map(lambda x: str(x), self.name))
+
+        def __repr__(self):
+            return "OpcodeName(name=%r)" % self.name
+
+    class OpcodeArguments(object):
+        def __init__(self, name):
+            self.name = name
+    
+        def __str__(self):
+            return "%s" % "".join(map(lambda x: str(x), self.name))
+
+        def __repr__(self):
+            return "OpcodeArguments(name=%r)" % self.name
+
+    def decode_op_mandatory(s, locs, toks):
+        #verbose("decode_op_mandatory", toks.asList())
+        toks = toks.asList()
+        
+        if len(toks) == 3:            
+            assert toks[0] == "<" and toks[-1] == ">"
+            return MandatoryToken(toks[1])
+        
+        if len(toks) == 4:
+            assert toks[1] == "<" and toks[-1] == ">"
+            
+            if toks[0] == "#":
+                return MandatoryToken(toks[2], pound=toks[0])
+            
+            return MandatoryToken(toks[2], sign=toks[0])
+        
+        if len(toks) == 5:            
+            assert toks[2] == "<" and toks[-1] == ">"
+            return MandatoryToken(toks[3], sign=toks[1], pound=toks[0])
+        
+    def decode_op_optional(s, locs, toks):
+        #verbose("decode_op_optional", toks.asList())
+        toks = toks.asList()
+        assert toks[0] == "{" and toks[-1] == "}"
+        
+        return OptionalToken(toks[1:-1])
+    
+    def decode_opcode_name(s, locs, toks):
+        #verbose("decode_opcode", toks.asList())
+        toks = toks.asList()
+        return OpcodeName(toks)
+    
+    def decode_opcode_args(s, locs, toks):
+        #verbose("decode_opcode", toks.asList())
+        toks = toks.asList()
+        return OpcodeArguments(toks)
+    
+    # We care about whitespaces to match the specification format.
+    ParserElement.setDefaultWhitespaceChars("")
+        
+    # We do allow whitespaces.
+    valid_chars = oneOf(list(alphanums + "[]_!., "))
+    string_token = Combine(OneOrMore(valid_chars))
+    
+    # Do not allow whitespaces.
+    name = Combine(OneOrMore(oneOf(list(alphanums + "."))))
+    
+    # Parse a mandatory token:
+    # mandatory_token ::= (#)? (+/-)? (-)? <[a-zA-Z]+>
+    # There are no white spaces or any other qualifier.
+    op_mandatory = Optional("#") + (Optional("+/-") ^ Optional("-")) + "<" + string_token + ">"
+    op_mandatory.setParseAction(decode_op_mandatory)
+    
+    # Parse an optional token -> {??{??{??}}}
+    op_optional = Forward()
+    t = "{" + Optional(string_token) + Optional(op_mandatory) + Optional(op_optional) + "}"
+    op_optional <<= t
+    op_optional.setParseAction(decode_op_optional)
+    
+    # Parse de opcode name.
+    opcode_name = name + ZeroOrMore(op_optional | op_mandatory | name)
+    opcode_name.setParseAction(decode_opcode_name)
+    
+    # Parse the opcode arguments.
+    opcode_args = Literal(" ") + OneOrMore(op_optional | op_mandatory | string_token)
+    opcode_args.setParseAction(decode_opcode_args)
+    
+    ins_format = opcode_name + Optional(opcode_args)
+
+    return ins_format
+    
+
+def test_string():
+    from ARMv7DecodingSpec import instructions
+    
+    # Get the instruction format parser.
+    parser = InstructionFormatParser()
+    
+    for ins in instructions:
+        if "CUSTOM" == ins["format"].split()[0] or ":" in ins["format"]:
+            continue
+        
+        if "dt" in ins["format"]:
+            print ins["format"]
+        
+        continue
+        
+        results = parser.parseString(ins["format"], parseAll=True).asList()
+
+        print "# op_args:", ins["format"]
+        for a in results:
+            print "  ", repr(a)
+            
+        print
+                    
 def test_specific():
     tests = []
     for p in tests:
@@ -1505,7 +1638,7 @@ def test_all():
 
 
 def main():
-    test_graph()
+    test_string()
     return 0
 
     if not test_specific():
