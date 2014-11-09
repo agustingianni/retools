@@ -528,7 +528,9 @@ namespace Disassembler {
 
 	class SeeInstruction: public ARMInstruction {
 		public:
-			SeeInstruction(const char *);
+			SeeInstruction(const char *) {
+				// TODO: Implement.
+			}
 	};
 
 	class ARMDisassembler: public AbstractDisassembler {
