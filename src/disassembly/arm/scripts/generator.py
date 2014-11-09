@@ -58,7 +58,6 @@ decoder_header_h = \
 
 #include "disassembly/arm/ARMDisassembler.h"
 
-using namespace Disassembler;
 
 '''
 
@@ -81,7 +80,7 @@ bool ARMv7Decoder::LastInITBlock() {
     return CurrentInstrSet() == InstrSet_Thumb && m_it_session.LastInITBlock();
 }
 
-InstrSet ARMv7Decoder::CurrentInstrSet() {
+ARMMode ARMv7Decoder::CurrentInstrSet() {
     return m_opcode_mode;
 }
 
@@ -179,34 +178,34 @@ def create_decoders(filename):
 
         fd.write("class ARMv7Decoder {\n")
         fd.write("    public:\n")
-        fd.write("        static ARMv7Decoder create(InstrSet mode, ARMVariants variant);\n")
-        fd.write("        ARMInstruction decode(uint32_t opcode);\n\n")
+        fd.write("        static ARMv7Decoder create(Disassembler::ARMMode mode, Disassembler::ARMVariants variant);\n")
+        fd.write("        Disassembler::ARMInstruction decode(uint32_t opcode);\n\n")
 
         fd.write("    private:\n")
-        fd.write("        ARMVariants ArchVersion();\n")
+        fd.write("        Disassembler::ARMVariants ArchVersion();\n")
         fd.write("        bool InITBlock();\n")
         fd.write("        bool LastInITBlock();\n")
-        fd.write("        InstrSet CurrentInstrSet();\n\n")
+        fd.write("        Disassembler::ARMMode CurrentInstrSet();\n\n")
         fd.write("        // Locals:\n")
-        fd.write("        ITSession m_it_session;\n")
-        fd.write("        InstrSet m_opcode_mode;\n")
-        fd.write("        ARMVariants m_arm_isa;\n")
-        fd.write("        apsr_t APSR;\n")
-        fd.write("        fpscr_t FPSCR;\n\n")
+        fd.write("        Disassembler::ITSession m_it_session;\n")
+        fd.write("        Disassembler::ARMMode m_opcode_mode;\n")
+        fd.write("        Disassembler::ARMVariants m_arm_isa;\n")
+        fd.write("        Disassembler::apsr_t APSR;\n")
+        fd.write("        Disassembler::fpscr_t FPSCR;\n\n")
                 
         fd.write("        typedef struct ARMOpcode {\n")
         fd.write("                uint32_t mask;\n")
         fd.write("                uint32_t value;\n")
         fd.write("                uint32_t variants;\n")
         fd.write("                uint32_t encoding;\n")
-        fd.write("                Disassembler::ARMInstruction (ARMv7Decoder::*decoder)(uint32_t, ARMEncoding);\n")
+        fd.write("                Disassembler::ARMInstruction (ARMv7Decoder::*decoder)(uint32_t, Disassembler::ARMEncoding);\n")
         fd.write("                const char *name;\n")
         fd.write("        } ARMOpcode;\n\n")
         fd.write("        ARMOpcode *decode_arm(uint32_t opcode);\n")
         fd.write("        ARMOpcode *decode_thumb(uint32_t opcode);\n\n")
 
         for instruction in instructions:
-            fd.write("        ARMInstruction %s(uint32_t opcode, ARMEncoding encoding);\n" % instruction_decoder_name(instruction))
+            fd.write("        Disassembler::ARMInstruction %s(uint32_t opcode, Disassembler::ARMEncoding encoding);\n" % instruction_decoder_name(instruction))
 
         fd.write("};\n")
 
