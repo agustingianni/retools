@@ -11,9 +11,6 @@
 #include "disassembly/generic/AbstractDisassembler.h"
 #include "disassembly/generic/Instruction.h"
 
-// XXX: I think it may be better if we do not reference generated things.
-#include "disassembly/arm/gen/ARMv7Decoder.h"
-
 #include <vector>
 #include <deque>
 #include <functional>
@@ -399,7 +396,12 @@ namespace Disassembler {
 				return m_to_string(this);
 			}
 
-			ARMv7InstructionId id;
+			unsigned id;
+			unsigned U;
+			unsigned P;
+			unsigned op;
+			unsigned imm3;
+			unsigned imm6;
 
 			bool UnalignedAllowed;
 			bool add;
