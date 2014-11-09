@@ -19,7 +19,7 @@ instructions = [
     "name" : "ADC Register",
     "encoding" : "T1",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
+    "format" : "ADCS <Rdn>, <Rm>:ADC<c> <Rdn>, <Rm>",
     "pattern" : "0100000101 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock();
     (shift_t, shift_n) = (SRType_LSL, 0);"""
@@ -54,14 +54,14 @@ instructions = [
     "name" : "ADD (immediate, Thumb)",
     "encoding" : "T1",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
+    "format" : "ADDS <Rd>, <Rn>, #<imm3>:ADD<c> <Rd>, <Rn>, #<imm3>",
     "pattern" : "0001110 imm3#3 Rn#3 Rd#3",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); setflags = !InITBlock(); imm32 = ZeroExtend(imm3, 32);"""
 } , {
     "name" : "ADD (immediate, Thumb)",
     "encoding" : "T2",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
+    "format" : "ADDS <Rdn>, #<imm8>:ADD<c> <Rdn>, #<imm8>",
     "pattern" : "00110 Rdn#3 imm8#8",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); setflags = !InITBlock(); imm32 = ZeroExtend(imm8, 32);"""
 } , {
@@ -98,7 +98,7 @@ instructions = [
     "name" : "ADD (register, Thumb)",
     "encoding" : "T1",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
+    "format" : "ADDS <Rd>, <Rn>, <Rm>:ADD<c> <Rd>, <Rn>, <Rm>",
     "pattern" : "0001100 Rm#3 Rn#3 Rd#3",
     "decoder" : """d = UInt(Rd); n = UInt(Rn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
 } , {
@@ -277,7 +277,7 @@ instructions = [
     "name" : "AND (register)",
     "encoding" : "T1",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
+    "format" : "ANDS <Rdn>, <Rm>:AND<c> <Rdn>, <Rm>",
     "pattern" : "0100000000 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
 } , {
@@ -310,7 +310,7 @@ instructions = [
     "name" : "ASR (immediate)",
     "encoding" : "T1",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
+    "format" : "ASRS <Rd>, <Rm>, #<imm>:ASR<c> <Rd>, <Rm>, #<imm>",
     "pattern" : "00010 imm5#5 Rm#3 Rd#3",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); setflags = !InITBlock(); (-, shift_n) = DecodeImmShift('10', imm5);"""
 } , {
@@ -334,7 +334,7 @@ instructions = [
     "name" : "ASR (register)",
     "encoding" : "T1",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
+    "format" : "ASRS <Rdn>, <Rm>:ASR<c> <Rdn>, <Rm>",
     "pattern" : "0100000100 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock();"""
 } , {
@@ -450,7 +450,7 @@ instructions = [
     "name" : "BIC (register)",
     "encoding" : "T1",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
+    "format" : "BICS <Rdn>, <Rm>:BIC<c> <Rdn>, <Rm>",
     "pattern" : "0100001110 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
 } , {
@@ -819,7 +819,7 @@ instructions = [
     "name" : "EOR (register)",
     "encoding" : "T1",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
+    "format" : "EORS <Rdn>, <Rm>:EOR<c> <Rdn>, <Rm>",
     "pattern" : "0100000001 Rm#3 Rdn#3",
     "decoder" : """d = UInt(Rdn); n = UInt(Rdn); m = UInt(Rm); setflags = !InITBlock(); (shift_t, shift_n) = (SRType_LSL, 0);"""
 } , {
@@ -866,7 +866,7 @@ instructions = [
     "name" : "IT",
     "encoding" : "T1",
     "version" : "ARMv6T2, ARMv7",
-    "format" : "IT{<x>{<y>{<z>}}} <firstcond>",
+    "format" : "CUSTOM",
     "pattern" : "10111111 firstcond#4 mask#4",
     "decoder" : """if mask == '0000' then SEE "Related encodings";
     if firstcond == '1111' || (firstcond == '1110' && BitCount(mask) != 1) then UNPREDICTABLE;
@@ -1879,7 +1879,7 @@ instructions = [
     "name" : "MCRR, MCRR2",
     "encoding" : "T2",
     "version" : "ARMv6T2, ARMv7",
-    "format" : "MCRR2<c> <coproc>, <opc1>, <Rt>, <Rt2>, <CRm>MCRR2<c> <coproc>, <opc1>, <Rt>, <Rt2>, <CRm>",
+    "format" : "MCRR2<c> <coproc>, <opc1>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "111011000100 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
     "decoder" : """if coproc IN "101x" then UNDEFINED;
     t = UInt(Rt); t2 = UInt(Rt2); cp = UInt(coproc);
@@ -2057,7 +2057,7 @@ instructions = [
     "name" : "MRRC, MRRC2",
     "encoding" : "T1",
     "version" : "ARMv6T2, ARMv7",
-    "format" : "MRRC<c> <coproc>, <opc>, <Rt>, <Rt2>, <CRm>",
+    "format" : "MRRC<c> <coproc>, <opc1>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "111011000101 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
     "decoder" : """if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     t = UInt(Rt); t2 = UInt(Rt2); cp = UInt(coproc);
@@ -2067,7 +2067,7 @@ instructions = [
     "name" : "MRRC, MRRC2",
     "encoding" : "A1",
     "version" : "ARMv5TEAll, ARMv6All, ARMv7",
-    "format" : "MRRC<c> <coproc>, <opc>, <Rt>, <Rt2>, <CRm>",
+    "format" : "MRRC<c> <coproc>, <opc1>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "cond#4 11000101 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
     "decoder" : """if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     t = UInt(Rt); t2 = UInt(Rt2); cp = UInt(coproc);
@@ -2077,7 +2077,7 @@ instructions = [
     "name" : "MRRC, MRRC2",
     "encoding" : "T2",
     "version" : "ARMv6T2, ARMv7",
-    "format" : "MRRC2<c> <coproc>, <opc>, <Rt>, <Rt2>, <CRm>",
+    "format" : "MRRC2<c> <coproc>, <opc1>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "111111000101 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
     "decoder" : """if coproc IN "101x" then UNDEFINED;
     t = UInt(Rt); t2 = UInt(Rt2); cp = UInt(coproc);
@@ -2087,7 +2087,7 @@ instructions = [
     "name" : "MRRC, MRRC2",
     "encoding" : "A2",
     "version" : "ARMv6All, ARMv7",
-    "format" : "MRRC2<c> <coproc>, <opc>, <Rt>, <Rt2>, <CRm>",
+    "format" : "MRRC2<c> <coproc>, <opc1>, <Rt>, <Rt2>, <CRm>",
     "pattern" : "111111000101 Rt2#4 Rt#4 coproc#4 opc1#4 CRm#4",
     "decoder" : """if coproc IN "101x" then UNDEFINED;
     t = UInt(Rt); t2 = UInt(Rt2); cp = UInt(coproc);
@@ -5005,7 +5005,7 @@ instructions = [
     "name" : "VABA, VABAL",
     "encoding" : "T2",
     "version" : "AdvancedSIMD",
-    "format" : "CUSTOM",
+    "format" : "VABAL<c>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 0 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vd<0> == '1' then UNDEFINED;
@@ -5016,7 +5016,7 @@ instructions = [
     "name" : "VABA, VABAL",
     "encoding" : "A2",
     "version" : "AdvancedSIMD",
-    "format" : "CUSTOM",
+    "format" : "VABAL<c>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 0 1 0 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vd<0> == '1' then UNDEFINED;
@@ -5049,7 +5049,7 @@ instructions = [
     "name" : "VABD, VABDL (integer)",
     "encoding" : "T2",
     "version" : "AdvancedSIMD",
-    "format" : "CUSTOM",
+    "format" : "VABDL<c>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vd<0> == '1' then UNDEFINED;
@@ -5060,7 +5060,7 @@ instructions = [
     "name" : "VABD, VABDL (integer)",
     "encoding" : "A2",
     "version" : "AdvancedSIMD",
-    "format" : "CUSTOM",
+    "format" : "VABDL<c>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vd<0> == '1' then UNDEFINED;
@@ -6794,7 +6794,7 @@ instructions = [
     "name" : "VMLA, VMLAL, VMLS, VMLSL (by scalar)",
     "encoding" : "T2",
     "version" : "AdvancedSIMD",
-    "format" : "V<op>L<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
+    "format" : "CUSTOM",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 op#1 1 0 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -6806,7 +6806,7 @@ instructions = [
     "name" : "VMLA, VMLAL, VMLS, VMLSL (by scalar)",
     "encoding" : "A2",
     "version" : "AdvancedSIMD",
-    "format" : "V<op>L<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
+    "format" : "CUSTOM",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 0 op#1 1 0 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -7349,7 +7349,7 @@ instructions = [
     "name" : "VNMLA, VNMLS, VNMUL",
     "encoding" : "T2",
     "version" : "VFPv2, VFPv3, VFPv4",
-    "format" : "",
+    "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 0 0 D#1 1 0 Vn#4 Vd#4 1 0 1 sz#1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if FPSCR.LEN != '000' || FPSCR.STRIDE != '00' then SEE "VFP vectors";
     type = VFPNegMul_VNMUL;
@@ -7361,7 +7361,7 @@ instructions = [
     "name" : "VNMLA, VNMLS, VNMUL",
     "encoding" : "A2",
     "version" : "VFPv2, VFPv3, VFPv4",
-    "format" : "",
+    "format" : "CUSTOM",
     "pattern" : "cond#4 1 1 1 0 0 D#1 1 0 Vn#4 Vd#4 1 0 1 sz#1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if FPSCR.LEN != '000' || FPSCR.STRIDE != '00' then SEE "VFP vectors";
     type = VFPNegMul_VNMUL;
