@@ -11,10 +11,14 @@
 #include "disassembly/generic/AbstractDisassembler.h"
 #include "disassembly/generic/Instruction.h"
 
+// XXX: I think it may be better if we do not reference generated things.
+#include "disassembly/arm/gen/ARMv7Decoder.h"
+
 #include <vector>
 #include <deque>
 #include <functional>
 #include <cassert>
+#include <string>
 
 namespace Disassembler {
 	typedef struct fpscr {
@@ -98,44 +102,138 @@ namespace Disassembler {
 		d18, d19, d20, d21, d22, d23, d24, d25,
 		d26, d27, d28, d29, d30, d31,
 
-		R_REGCNT,
-		R_INVLD = -1,
-		R_BASE = r0,
-		CR_BASE = cr0,
-		FP_BASE = d0,
-
-		// Alternative names for general purpose registers.
-		FP = r11,
-		IP = r12,
-		SP = r13,
-		LR = r14,
-		PC = r15,
-
-		s0 = d0,
-		s1, s2, s3, s4, s5, s6, s7, s8, s9,
-		s10, s11, s12, s13, s14, s15, s16,
-		s17, s18, s19, s20, s21, s22, s23,
-		s24, s25, s26, s27, s28, s29, s30,
-		s31,
+		s0, s1, s2, s3, s4, s5, s6, s7, s8,
+		s9, s10, s11, s12, s13, s14, s15,
+		s16, s17, s18, s19, s20, s21, s22,
+		s23, s24, s25, s26, s27, s28, s29,
+		s30, s31,
 
 		// Advanced SIMD quad-word registers (128bits).
-		q0 = d0,
-		q1 = d2,
-		q2 = d4,
-		q3 = d6,
-		q4 = d8,
-		q5 = d10,
-		q6 = d12,
-		q7 = d14,
-		q8 = d16,
-		q9 = d18,
-		q10 = d20,
-		q11 = d22,
-		q12 = d24,
-		q13 = d26,
-		q14 = d28,
-		q15 = d30,
+		q0, q1, q2, q3, q4, q5, q6, q7, q8,
+		q9, q10, q11, q12, q13, q14, q15,
 	} reg_t;
+
+	static const char *ARMRegisterToString(reg_t reg) {
+		switch (reg) {
+			default: return "INVALID_REGISTER";
+			case r0: return "r0";
+			case r1: return "r1";
+			case r2: return "r2";
+			case r3: return "r3";
+			case r4: return "r4";
+			case r5: return "r5";
+			case r6: return "r6";
+			case r7: return "r7";
+			case r8: return "r8";
+			case r9: return "r9";
+			case r10: return "r10";
+			case r11: return "r11";
+			case r12: return "r12";
+			case r13: return "r13";
+			case r14: return "r14";
+			case r15: return "r15";
+
+			case cr0: return "cr0";
+			case cr1: return "cr1";
+			case cr2: return "cr2";
+			case cr3: return "cr3";
+			case cr4: return "cr4";
+			case cr5: return "cr5";
+			case cr6: return "cr6";
+			case cr7: return "cr7";
+			case cr8: return "cr8";
+			case cr9: return "cr9";
+			case cr10: return "cr10";
+			case cr11: return "cr11";
+			case cr12: return "cr12";
+			case cr13: return "cr13";
+			case cr14: return "cr14";
+			case cr15: return "cr15";
+
+			case d0: return "d0";
+			case d1: return "d1";
+			case d2: return "d2";
+			case d3: return "d3";
+			case d4: return "d4";
+			case d5: return "d5";
+			case d6: return "d6";
+			case d7: return "d7";
+			case d8: return "d8";
+			case d9: return "d9";
+			case d10: return "d10";
+			case d11: return "d11";
+			case d12: return "d12";
+			case d13: return "d13";
+			case d14: return "d14";
+			case d15: return "d15";
+			case d16: return "d16";
+			case d17: return "d17";
+			case d18: return "d18";
+			case d19: return "d19";
+			case d20: return "d20";
+			case d21: return "d21";
+			case d22: return "d22";
+			case d23: return "d23";
+			case d24: return "d24";
+			case d25: return "d25";
+			case d26: return "d26";
+			case d27: return "d27";
+			case d28: return "d28";
+			case d29: return "d29";
+			case d30: return "d30";
+			case d31: return "d31";
+
+			case s0: return "s0";
+			case s1: return "s1";
+			case s2: return "s2";
+			case s3: return "s3";
+			case s4: return "s4";
+			case s5: return "s5";
+			case s6: return "s6";
+			case s7: return "s7";
+			case s8: return "s8";
+			case s9: return "s9";
+			case s10: return "s10";
+			case s11: return "s11";
+			case s12: return "s12";
+			case s13: return "s13";
+			case s14: return "s14";
+			case s15: return "s15";
+			case s16: return "s16";
+			case s17: return "s17";
+			case s18: return "s18";
+			case s19: return "s19";
+			case s20: return "s20";
+			case s21: return "s21";
+			case s22: return "s22";
+			case s23: return "s23";
+			case s24: return "s24";
+			case s25: return "s25";
+			case s26: return "s26";
+			case s27: return "s27";
+			case s28: return "s28";
+			case s29: return "s29";
+			case s30: return "s30";
+			case s31: return "s31";
+
+			case q0: return "q0";
+			case q1: return "q1";
+			case q2: return "q2";
+			case q3: return "q3";
+			case q4: return "q4";
+			case q5: return "q5";
+			case q6: return "q6";
+			case q7: return "q7";
+			case q8: return "q8";
+			case q9: return "q9";
+			case q10: return "q10";
+			case q11: return "q11";
+			case q12: return "q12";
+			case q13: return "q13";
+			case q14: return "q14";
+			case q15: return "q15";
+		}
+	}
 
 	typedef enum cond_t {
 		COND_EQ = 0,
@@ -162,7 +260,7 @@ namespace Disassembler {
 		COND_BASE = COND_EQ,
 	} cond_t;
 
-	static inline const char *ARMCondCodeToString(cond_t CC) {
+	static const char *ARMCondCodeToString(cond_t CC) {
 		switch (CC) {
 			default:
 				assert(0 && "Unknown condition code");
@@ -284,19 +382,6 @@ namespace Disassembler {
 		eSize16, eSize32
 	} ARMInstrSize;
 
-	typedef struct ARMOpcode {
-			uint32_t mask;
-			uint32_t value;
-			uint32_t version;
-			uint32_t encoding;
-			std::function<Instruction(uint32_t, ARMEncoding)> decoder;
-			const char *name;
-	} ARMOpcode;
-
-	typedef enum ARMMode {
-		eModeInvalid = -1, eModeARM, eModeThumb
-	} ARMMode;
-
 	class ARMInstruction {
 		public:
 			ARMInstruction() {
@@ -307,6 +392,14 @@ namespace Disassembler {
 				memset(reinterpret_cast<void *>(&ins), 0, sizeof(ARMInstruction));
 				return ins;
 			}
+
+			std::function<std::string(ARMInstruction *)> m_to_string;
+
+			std::string toString() {
+				return m_to_string(this);
+			}
+
+			ARMv7InstructionId id;
 
 			bool UnalignedAllowed;
 			bool add;
@@ -357,6 +450,7 @@ namespace Disassembler {
 			bool write_g;
 			bool write_nzcvq;
 
+			unsigned B;
 			uint16_t ebytes;
 			uint16_t elements;
 			uint16_t esize;
@@ -385,6 +479,14 @@ namespace Disassembler {
 			uint8_t rotation;
 			uint8_t saturate_to;
 			uint8_t shift_amount;
+
+			unsigned coproc;
+			unsigned opc1;
+			unsigned CRd;
+			unsigned CRn;
+			unsigned CRm;
+			unsigned opc2;
+			unsigned option;
 
 			unsigned I1;
 			unsigned I2;
@@ -434,25 +536,25 @@ namespace Disassembler {
 			virtual std::deque<Instruction> disassemble(std::vector<uint8_t> buffer);
 	};
 
-	unsigned InITBlock() {
-		// TODO: Implement.
-		return 0;
-	}
+	class ITSession {
+	    public:
+	        ITSession() :
+	                ITCounter(0), ITState(0) {
+	        }
 
-	unsigned LastInITBlock() {
-		// TODO: Implement.
-		return 0;
-	}
+	        ~ITSession() {
+	        }
 
-	unsigned ArchVersion() {
-		// TODO: Implement.
-		return 0;
-	}
+	        bool InitIT(uint32_t bits7_0);
+	        void ITAdvance();
+	        bool InITBlock();
+	        bool LastInITBlock();
+	        uint32_t GetCond();
 
-	unsigned CurrentInstrSet() {
-		// TODO: Implement.
-		return 0;
-	}
+	    private:
+	        uint32_t ITCounter;
+	        uint32_t ITState;
+	};
 } /* namespace Disassembler */
 
 #endif /* ARMDISASSEMBLER_H_ */
