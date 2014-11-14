@@ -31,6 +31,17 @@ def instruction_id_name(instruction):
     name = name.replace("__", "_").lower()
     return name if name[-1] != "_" else name[:-1]
     
+def get_size(input):
+    s = 0
+    for e in input.split():
+        if not "#" in e:
+            s += len(e)
+
+        else:
+            s += int(e.split("#")[1])
+            
+    return "eSize32" if s == 32 else "eSize16"
+
 def get_value(input):
     r = "0b"
     for e in input.split():
@@ -58,7 +69,6 @@ decoder_header_h = \
 
 #include "disassembly/arm/ARMDisassembler.h"
 
-
 '''
 
 decoder_header_cpp = \
@@ -67,29 +77,28 @@ decoder_header_cpp = \
 
 #include "disassembly/arm/ARMDisassembler.h"
 #include "disassembly/arm/ARMUtilities.h"
-#include "disassembly/arm/gen/ARMv7Decoder.h"
+#include "disassembly/arm/gen/ARMDecodingTable.h"
+#include "disassembly/arm/gen/ARMtoString.h"
+#include "disassembly/arm/gen/ARMtoStringCustom.h"
 #include "utilities/Utilities.h"
 
 using namespace Disassembler;
 
-bool ARMv7Decoder::InITBlock() {
+bool ARMDecoder::InITBlock() {
     return CurrentInstrSet() == InstrSet_Thumb && m_it_session.InITBlock();
 }
 
-bool ARMv7Decoder::LastInITBlock() {
+bool ARMDecoder::LastInITBlock() {
     return CurrentInstrSet() == InstrSet_Thumb && m_it_session.LastInITBlock();
 }
 
-ARMMode ARMv7Decoder::CurrentInstrSet() {
+ARMMode ARMDecoder::CurrentInstrSet() {
     return m_opcode_mode;
 }
 
-ARMVariants ARMv7Decoder::ArchVersion() {
+ARMVariants ARMDecoder::ArchVersion() {
     return m_arm_isa;
 }
-
-// apsr_t APSR;
-// fpscr_t FPSCR;
 
 '''
 
@@ -151,71 +160,86 @@ def __translate_bit_patterns__(bit_patterns):
 def indent(lines):
     t = ""
     for l in lines.split("\n"):
-        t += "        %s\n" % l
+        t += "    %s\n" % l
 
     return t
 
-def create_decoders(filename):
+def create_decoders(decoder_name_h, decoder_name_cpp):
     """
-    Create the ARMv7Decoder.h and ARMv7Decoder.cpp.
+    Create the ARMDecoder.h and ARMDecoder.cpp.
     """
     import ARMv7Parser
 
-    # Create the name of the header.
-    header_name = os.path.splitext(filename)[0] + ".h"
-
     # Create the header file with all the declarations.
-    with open(header_name, "w") as fd:
+    with open(decoder_name_h, "w") as fd:
         fd.write(decoder_header_h)
 
         # Generate the instruction id enum.
-        fd.write("typedef enum ARMv7InstructionId {\n")
+        fd.write("typedef enum ARMInstructionId {\n")
         
         for instruction_id in sorted(set(map(instruction_id_name, instructions))):
             fd.write("    %s,\n" % instruction_id)
         
-        fd.write("} ARMv7InstructionId;\n\n")
-
-        fd.write("class ARMv7Decoder {\n")
+        fd.write("} ARMInstructionId;\n")
+        fd.write("\n")
+        fd.write("class ARMDecoder;\n")
+        fd.write("typedef struct ARMOpcode {\n")
+        fd.write("        uint32_t mask;\n")
+        fd.write("        uint32_t value;\n")
+        fd.write("        uint32_t variants;\n")
+        fd.write("        Disassembler::ARMInstrSize ins_size;\n")
+        fd.write("        Disassembler::ARMEncoding encoding;\n")
+        fd.write("        Disassembler::ARMInstruction (ARMDecoder::*decoder)(uint32_t, Disassembler::ARMInstrSize ins_size, Disassembler::ARMEncoding);\n")
+        fd.write("        const char *name;\n")
+        fd.write("} ARMOpcode;\n")
+        fd.write("\n")
+        fd.write("extern ARMOpcode arm_opcodes[];\n")
+        fd.write("extern ARMOpcode thumb_opcodes[];\n")
+        fd.write("extern const size_t n_arm_opcodes;\n")
+        fd.write("extern const size_t n_thumb_opcodes;\n")
+        fd.write("\n")
+        fd.write("class ARMDecoder {\n")
         fd.write("    public:\n")
-        fd.write("        static ARMv7Decoder create(Disassembler::ARMMode mode, Disassembler::ARMVariants variant);\n")
-        fd.write("        Disassembler::ARMInstruction decode(uint32_t opcode);\n\n")
-
+        fd.write("        ARMDecoder(Disassembler::ARMVariants variant) :\n")
+        fd.write("                m_opcode_mode(Disassembler::ARMMode_Invalid), m_arm_isa(variant) {\n")
+        fd.write("        }\n")
+        fd.write("\n")
+        fd.write("        Disassembler::ARMInstruction decode(uint32_t op_code, Disassembler::ARMMode mode) {\n")
+        fd.write("            ARMOpcode *opcode = (mode == Disassembler::ARMMode_ARM) ? decode_arm(op_code) : decode_thumb(op_code);\n")
+        fd.write("            m_opcode_mode = mode;\n");
+        fd.write("            return (this->*opcode->decoder)(op_code, opcode->ins_size, opcode->encoding);\n")
+        fd.write("        }\n")
+        fd.write("\n")
         fd.write("    private:\n")
-        fd.write("        Disassembler::ARMVariants ArchVersion();\n")
         fd.write("        bool InITBlock();\n")
         fd.write("        bool LastInITBlock();\n")
-        fd.write("        Disassembler::ARMMode CurrentInstrSet();\n\n")
-        fd.write("        // Locals:\n")
+        fd.write("        Disassembler::ARMMode CurrentInstrSet();\n")
+        fd.write("        Disassembler::ARMVariants ArchVersion();\n")
+        fd.write("\n")
+        fd.write("        // Fields:\n")
         fd.write("        Disassembler::ITSession m_it_session;\n")
         fd.write("        Disassembler::ARMMode m_opcode_mode;\n")
         fd.write("        Disassembler::ARMVariants m_arm_isa;\n")
         fd.write("        Disassembler::apsr_t APSR;\n")
-        fd.write("        Disassembler::fpscr_t FPSCR;\n\n")
-                
-        fd.write("        typedef struct ARMOpcode {\n")
-        fd.write("                uint32_t mask;\n")
-        fd.write("                uint32_t value;\n")
-        fd.write("                uint32_t variants;\n")
-        fd.write("                uint32_t encoding;\n")
-        fd.write("                Disassembler::ARMInstruction (ARMv7Decoder::*decoder)(uint32_t, Disassembler::ARMEncoding);\n")
-        fd.write("                const char *name;\n")
-        fd.write("        } ARMOpcode;\n\n")
+        fd.write("        Disassembler::fpscr_t FPSCR;\n")
+        fd.write("\n")
         fd.write("        ARMOpcode *decode_arm(uint32_t opcode);\n")
-        fd.write("        ARMOpcode *decode_thumb(uint32_t opcode);\n\n")
+        fd.write("        ARMOpcode *decode_thumb(uint32_t opcode);\n")
+        fd.write("\n")
+        fd.write("    public:\n")
 
         for instruction in instructions:
-            fd.write("        Disassembler::ARMInstruction %s(uint32_t opcode, Disassembler::ARMEncoding encoding);\n" % instruction_decoder_name(instruction))
-
+            fd.write("        Disassembler::ARMInstruction %s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, Disassembler::ARMEncoding encoding);\n" % instruction_decoder_name(instruction))
+        
+        fd.write("        Disassembler::ARMInstruction decode_unknown(uint32_t opcode, Disassembler::ARMInstrSize ins_size, Disassembler::ARMEncoding encoding);\n")
         fd.write("};\n")
 
     # Create the implementation file.
-    with open(filename, "w") as fd:
+    with open(decoder_name_cpp, "w") as fd:
         fd.write(decoder_header_cpp)
 
-        fd.write("ARMv7Decoder::ARMOpcode *ARMv7Decoder::decode_arm(uint32_t opcode) {\n")
-        fd.write("    // Format: (mask, value, version, encoding, decoder_function)\n")
-        fd.write("    static ARMOpcode arm_opcodes[] = {\n")
+        fd.write("// Format: (mask, value, version, encoding, decoder_function, name)\n")
+        fd.write("ARMOpcode arm_opcodes[] = {\n")
         for instruction in instructions:
             if instruction["encoding"][0] == "T":
                 continue
@@ -225,19 +249,24 @@ def create_decoders(filename):
             mask = get_mask(instruction["pattern"])
             version = " | ".join(instruction["version"].split(", "))
             decoder = instruction_decoder_name(instruction)
-            fd.write("        { 0x%.8x, 0x%.8x, %s, %s, &ARMv7Decoder::%s },\n" % (mask, value, version, encoding, decoder))
-
-        fd.write("    };\n\n")
-        fd.write("    static const size_t n_arm_opcodes = sizeof(arm_opcodes) / sizeof(arm_opcodes[0]);\n")
+            size = get_size(instruction["pattern"])
+            name = instruction["name"]
+            fd.write("    { 0x%.8x, 0x%.8x, %s, %s, %s, &ARMDecoder::%s, \"%s\"},\n" % (mask, value, version, size, encoding, decoder, name))
+            
+        fd.write("    {0x00000000, 0x00000000, ARMvAll, eSize32, eEncodingA1, &ARMDecoder::decode_unknown, \"UNKNOWN\"}\n")
+            
+        fd.write("};\n")
+        fd.write("\n")
+        fd.write("const size_t n_arm_opcodes = sizeof(arm_opcodes) / sizeof(arm_opcodes[0]);\n")
+        fd.write("ARMOpcode *ARMDecoder::decode_arm(uint32_t opcode) {\n")
         fd.write("    for (size_t i = 0; i < n_arm_opcodes; ++i) {\n")
         fd.write("        if ((arm_opcodes[i].mask & opcode) == arm_opcodes[i].value && (arm_opcodes[i].variants & m_arm_isa) != 0)\n")
         fd.write("            return &arm_opcodes[i];\n")
         fd.write("    }\n\n")
         fd.write("    return NULL;\n")
-        fd.write("}\n\n")
-
-        fd.write("ARMv7Decoder::ARMOpcode *ARMv7Decoder::decode_thumb(uint32_t opcode) {\n")
-        fd.write("\n    static ARMOpcode thumb_opcodes[] = {\n")
+        fd.write("}\n")
+        fd.write("\n")
+        fd.write("ARMOpcode thumb_opcodes[] = {\n")
         for instruction in instructions:
             if instruction["encoding"][0] == "A":
                 continue
@@ -247,10 +276,21 @@ def create_decoders(filename):
             mask = get_mask(instruction["pattern"])
             version = " | ".join(instruction["version"].split(", "))
             decoder = instruction_decoder_name(instruction)
-            fd.write("        { 0x%.8x, 0x%.8x, %s, %s, &ARMv7Decoder::%s },\n" % (mask, value, version, encoding, decoder))
+            size = get_size(instruction["pattern"])
+            name = instruction["name"]
+            fd.write("    { 0x%.8x, 0x%.8x, %s, %s, %s, &ARMDecoder::%s, \"%s\"},\n" % (mask, value, version, size, encoding, decoder, name))
 
-        fd.write("    };\n\n")
-        fd.write("    static const size_t n_thumb_opcodes = sizeof(thumb_opcodes) / sizeof(thumb_opcodes[0]);\n")
+        fd.write("    {0x00000000, 0x00000000, ARMvAll, eSize32, eEncodingA1, &ARMDecoder::decode_unknown, \"UNKNOWN\"}\n")
+        fd.write("};\n")
+        fd.write("\n")
+        
+        fd.write("ARMInstruction ARMDecoder::decode_unknown(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n")
+        fd.write("    return UnknownInstruction();\n")
+        fd.write("}\n")
+        fd.write("\n")
+        
+        fd.write("const size_t n_thumb_opcodes = sizeof(thumb_opcodes) / sizeof(thumb_opcodes[0]);\n")
+        fd.write("ARMOpcode *ARMDecoder::decode_thumb(uint32_t opcode) {\n")
         fd.write("    for (size_t i = 0; i < n_thumb_opcodes; ++i) {\n")
         fd.write("        if ((thumb_opcodes[i].mask & opcode) == thumb_opcodes[i].value && (thumb_opcodes[i].variants & m_arm_isa) != 0)\n")
         fd.write("            return &thumb_opcodes[i];\n")
@@ -261,8 +301,6 @@ def create_decoders(filename):
         i = -1
         for instruction in instructions:
             i += 1
-
-            #if i == 20: break
 
             input_vars = get_input_vars(instruction["pattern"])
             decoder = instruction["decoder"]
@@ -279,7 +317,7 @@ def create_decoders(filename):
             if i % 50 == 0:
                 logging.info("Processing instruction %.4d of %.4d" % (i, len(instructions)))
 
-            fd.write("ARMInstruction ARMv7Decoder::%s(uint32_t opcode, ARMEncoding encoding) {\n" % instruction_decoder_name(instruction))
+            fd.write("ARMInstruction ARMDecoder::%s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n" % instruction_decoder_name(instruction))
             ret = __translate_bit_patterns__(instruction["pattern"].split())
             for r in ret:
                 fd.write("    %s\n" % r)
@@ -303,7 +341,9 @@ def create_decoders(filename):
 
             # All the variables defined in the body end up in the instruction.
             fd.write("    ARMInstruction ins = ARMInstruction::create();\n")
+            fd.write("    ins.ins_size = ins_size;\n")
             fd.write("    ins.id = %s;\n" % instruction_id_name(instruction))
+            fd.write("    ins.m_to_string = %s_to_string;\n" % instruction_decoder_name(instruction))
             for var in visitor.define_me:
                 fd.write("    ins.%s = %s;\n" % (var, var))
 
@@ -327,48 +367,48 @@ to_string_cpp = \
 #include <cstdio>
 
 #include "disassembly/arm/ARMDisassembler.h"
-#include "disassembly/arm/gen/ARMv7Decoder.h"
+#include "disassembly/arm/gen/ARMDecodingTable.h"
 #include "utilities/Utilities.h"
 
 using namespace Disassembler;
 
-const char *S_str(const ARMInstruction *ins) {
+std::string S_str(const ARMInstruction *ins) {
     return ins->setflags ? "S" : "";
 }
 
-const char *c_str(const ARMInstruction *ins) {
+std::string c_str(const ARMInstruction *ins) {
     return ins->cond != COND_AL ? ARMCondCodeToString((cond_t) ins->cond) : "";
 }
 
-const char *B_str(const ARMInstruction *ins) {
+std::string B_str(const ARMInstruction *ins) {
     return ins->B ? "B" : "";
 }
 
-const char *N_str(const ARMInstruction *ins) {
+std::string N_str(const ARMInstruction *ins) {
     return ins->nonzero ? "N" : "";
 }
 
-const char *W_str(const ARMInstruction *ins) {
+std::string W_str(const ARMInstruction *ins) {
     return ins->is_pldw ? "W" : "";
 }
 
-const char *x_str(const ARMInstruction *ins) {
+std::string x_str(const ARMInstruction *ins) {
     return ins->n_high ? "T" : "B";
 }
 
-const char *y_str(const ARMInstruction *ins) {
+std::string y_str(const ARMInstruction *ins) {
     return ins->m_high ? "T" : "B";
 }
 
-const char *X_str(const ARMInstruction *ins) {
+std::string X_str(const ARMInstruction *ins) {
     return ins->m_swap ? "X" : "";
 }
 
-const char *R_str(const ARMInstruction *ins) {
+std::string R_str(const ARMInstruction *ins) {
     return ins->round ? "R" : "";
 }
 
-const char *mode_str(const ARMInstruction *ins) {
+std::string mode_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vldm: // VLDM
         case vstm: // VSTM
@@ -386,7 +426,7 @@ const char *mode_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-const char *op_str(const ARMInstruction *ins) {
+std::string op_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vpmax_vpmin_floating_point: // VPMAX, VPMIN (floating-point)
         case vpmax_vpmin_integer: // VPMAX, VPMIN (integer)
@@ -403,7 +443,7 @@ const char *op_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-const char *dt_str(const ARMInstruction *ins) {
+std::string dt_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vaba_vabal: // VABA, VABAL
         case vabd_vabdl_integer: // VABD, VABDL (integer)
@@ -551,7 +591,7 @@ const char *dt_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-const char *U_str(const ARMInstruction *ins) {
+std::string U_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vqmovn_vqmovun: // VQMOVN, VQMOVUN
             return ins->op == 1 ? "U" : "";
@@ -565,7 +605,7 @@ const char *U_str(const ARMInstruction *ins) {
 
     return "INVALID";
 }
-const char *size_str(const ARMInstruction *ins) {
+std::string size_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vmov_arm_core_register_to_scalar: // VMOV (ARM core register to scalar)
             if (get_bit(ins->opc1, 1) == 1)
@@ -611,7 +651,7 @@ const char *size_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-const char *type_str(const ARMInstruction *ins) {
+std::string type_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vqmovn_vqmovun: // VQMOVN, VQMOVUN
             if (ins->op == 1 || ins->op == 2)
@@ -653,7 +693,7 @@ const char *type_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-const char *regular_reg_str(unsigned reg) {
+std::string regular_reg_str(unsigned reg) {
     switch (reg) {
         case 0:
             return "r0";
@@ -682,11 +722,11 @@ const char *regular_reg_str(unsigned reg) {
         case 12:
             return "r12";
         case 13:
-            return "r13";
+            return "sp";
         case 14:
-            return "r14";
+            return "lr";
         case 15:
-            return "r15";
+            return "pc";
         default:
             break;
     }
@@ -694,7 +734,7 @@ const char *regular_reg_str(unsigned reg) {
     return "INVALID";
 }
 
-const char *coproc_str(unsigned coproc) {
+std::string coproc_str(unsigned coproc) {
     switch (coproc) {
         case 0:
             return "p0";
@@ -735,7 +775,7 @@ const char *coproc_str(unsigned coproc) {
     return "INVALID";
 }
 
-const char *shift_type_str(unsigned shift) {
+std::string shift_type_str(unsigned shift) {
     switch (shift) {
         case 0:
             return "LSL";
@@ -754,40 +794,40 @@ const char *shift_type_str(unsigned shift) {
     return "INVALID";
 }
 
-const char *coproc_reg_str(unsigned coproc) {
+std::string coproc_reg_str(unsigned coproc) {
     switch (coproc) {
         case 0:
-            return "cr0";
+            return "c0";
         case 1:
-            return "cr1";
+            return "c1";
         case 2:
-            return "cr2";
+            return "c2";
         case 3:
-            return "cr3";
+            return "c3";
         case 4:
-            return "cr4";
+            return "c4";
         case 5:
-            return "cr5";
+            return "c5";
         case 6:
-            return "cr6";
+            return "c6";
         case 7:
-            return "cr7";
+            return "c7";
         case 8:
-            return "cr8";
+            return "c8";
         case 9:
-            return "cr9";
+            return "c9";
         case 10:
-            return "cr10";
+            return "c10";
         case 11:
-            return "cr11";
+            return "c11";
         case 12:
-            return "cr12";
+            return "c12";
         case 13:
-            return "cr13";
+            return "c13";
         case 14:
-            return "cr14";
+            return "c14";
         case 15:
-            return "cr15";
+            return "c15";
         default:
             break;
     }
@@ -795,7 +835,7 @@ const char *coproc_reg_str(unsigned coproc) {
     return "INVALID";
 }
 
-const char *quad_reg_str(unsigned coproc) {
+std::string quad_reg_str(unsigned coproc) {
     switch (coproc) {
         case 0:
             return "q0";
@@ -836,7 +876,7 @@ const char *quad_reg_str(unsigned coproc) {
     return "INVALID";
 }
 
-const char *double_reg_str(unsigned coproc) {
+std::string double_reg_str(unsigned coproc) {
     switch (coproc) {
         case 0:
             return "d0";
@@ -909,7 +949,7 @@ const char *double_reg_str(unsigned coproc) {
     return "INVALID";
 }
 
-const char *simple_reg_str(unsigned coproc) {
+std::string simple_reg_str(unsigned coproc) {
     switch (coproc) {
         case 0:
             return "s0";
@@ -982,10 +1022,10 @@ const char *simple_reg_str(unsigned coproc) {
     return "INVALID";
 }
 
-const char *option_str(const ARMInstruction *ins) {
+std::string option_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case dbg:
-            return std::to_string(ins->option).c_str();
+            return integer_to_string(ins->option);
         case dmb:
         case dsb:
             if (ins->option == 15)
@@ -1008,6 +1048,7 @@ const char *option_str(const ARMInstruction *ins) {
         case isb:
             if (ins->option == 15)
                 return "SY";
+            break;
         default:
             break;
     }
@@ -1015,42 +1056,46 @@ const char *option_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-const char *endian_specifier_str(unsigned endian) {
+std::string endian_specifier_str(unsigned endian) {
     return endian ? "BE" : "LE";
 }
 
-const char *spec_reg_str() {
+std::string spec_reg_str() {
     return "APSR";
 }
 
-const char *registers_str(unsigned registers) {
+std::string registers_str(unsigned registers) {
     std::string regs;
-
+    bool f = false;
     for (unsigned i = 0; i < 32; i++) {
-        regs += i ? ", " : "";
-
-        if (get_bit(registers, i))
+        if (get_bit(registers, i)) {
+            regs += i && f ? ", " : "";
+            f = true;
             regs += std::string(regular_reg_str(i));
+        }
     }
 
-    return regs.c_str();
+    return "{" + regs + "}";
 }
 
-const char *shift_str(unsigned shift_t, unsigned shift_n) {
-    std::string shift = std::string(shift_type_str(shift_t)) + " " + std::to_string(shift_n);
-    return shift.c_str();
+std::string shift_str(unsigned shift_t, unsigned shift_n) {
+    if (shift_t == Disassembler::SRType_RRX && shift_n == 1)
+        return std::string(shift_type_str(shift_t));
+        
+    std::string shift = std::string(shift_type_str(shift_t)) + " #" + integer_to_string(shift_n);
+    return shift;
 }
 
-const char *rotation_str(unsigned rotation) {
+std::string rotation_str(unsigned rotation) {
     switch(rotation) {
         case 0:
             return "";
         case 8:
-            return "8";
+            return "ROR #8";
         case 16:
-            return "16";
+            return "ROR #16";
         case 24:
-            return "24";
+            return "ROR #24";
     }
     
     return "INVALID";
@@ -1063,70 +1108,72 @@ to_string_h = '''// Warning! autogenerated file, do what you want.
 #include "disassembly/arm/ARMDisassembler.h"
 
 '''
-def create_to_string(filename):
+def create_to_string(to_string_name_h, to_string_name_cpp):
     import ARMv7Parser
     parser = ARMv7Parser.InstructionFormatParser()
-
-    header_name = os.path.splitext(filename)[0] + ".h"
-
     names = set()
 
     reg2string = {}
-    reg2string["Ra"] = "regular_reg_str(ins->a)"
-    reg2string["Rd"] = "regular_reg_str(ins->d)"
-    reg2string["RdHi"] = "regular_reg_str(ins->dHi)"
-    reg2string["RdLo"] = "regular_reg_str(ins->dLo)"
-    reg2string["Rdm"] = "regular_reg_str(ins->d)"
-    reg2string["Rdn"] = "regular_reg_str(ins->d)"
-    reg2string["Rm"] = "regular_reg_str(ins->m)"
-    reg2string["Rn"] = "regular_reg_str(ins->n)"
-    reg2string["Rs"] = "regular_reg_str(ins->s)"
-    reg2string["Rt"] = "regular_reg_str(ins->t)"
-    reg2string["Rt2"] = "regular_reg_str(ins->t2)"
+    reg2string["Ra"] = "regular_reg_str(ins->a).c_str()"
+    reg2string["Rd"] = "regular_reg_str(ins->d).c_str()"
+    reg2string["RdHi"] = "regular_reg_str(ins->dHi).c_str()"
+    reg2string["RdLo"] = "regular_reg_str(ins->dLo).c_str()"
+    reg2string["Rdm"] = "regular_reg_str(ins->d).c_str()"
+    reg2string["Rdn"] = "regular_reg_str(ins->d).c_str()"
+    reg2string["Rm"] = "regular_reg_str(ins->m).c_str()"
+    reg2string["Rn"] = "regular_reg_str(ins->n).c_str()"
+    reg2string["Rs"] = "regular_reg_str(ins->s).c_str()"
+    reg2string["Rt"] = "regular_reg_str(ins->t).c_str()"
+    reg2string["Rt2"] = "regular_reg_str(ins->t2).c_str()"
     
     # TODO: Review these. I think we are doing it wrong here.
-    reg2string["imm"] = "std::to_string(ins->imm32).c_str()"
-    reg2string["imm2"] = "std::to_string(ins->imm32).c_str()"
-    reg2string["imm4"] = "std::to_string(ins->imm32).c_str()"
-    reg2string["imm5"] = "std::to_string(ins->imm32).c_str()"
-    reg2string["imm8"] = "std::to_string(ins->imm32).c_str()"
-    reg2string["imm12"] = "std::to_string(ins->imm32).c_str()"
-    reg2string["imm16"] = "std::to_string(ins->imm32).c_str()"
-    reg2string["imm24"] = "std::to_string(ins->imm32).c_str()"
-    reg2string["const"] = "std::to_string(ins->imm32).c_str()"
-    reg2string["label"] = "std::to_string(ins->imm32).c_str()"
+    reg2string["imm"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["imm2"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["imm3"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["imm4"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["imm5"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["imm8"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["imm12"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["imm16"] = "integer_to_string(ins->imm16).c_str()"
+    reg2string["imm24"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["imm32"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["shift_n"] = "integer_to_string(ins->shift_n).c_str()"
+    reg2string["saturate_to"] = "integer_to_string(ins->saturate_to).c_str()"
+    reg2string["const"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["label"] = "integer_to_string(ins->imm32 + ((ins->ins_size == eSize16) ? 4 : 8)).c_str()"
     
-    reg2string["lsb"] = "std::to_string(ins->lsbit).c_str()"
-    reg2string["width"] = "std::to_string(32 - ins->lsbit).c_str()"
+    reg2string["lsb"] = "integer_to_string(ins->lsbit).c_str()"
+    reg2string["width"] = "integer_to_string(ins->msbit - ins->lsbit + 1).c_str()"
+    reg2string["widthminus1"] = "integer_to_string(ins->widthminus1 + 1).c_str()"
     
-    reg2string["type"] = "shift_type_str(ins->type)"
-    reg2string["coproc"] = "coproc_str(ins->coproc)"
-    reg2string["opc1"] = "std::to_string(ins->opc1).c_str()"
-    reg2string["opc2"] = "std::to_string(ins->opc2).c_str()"
+    reg2string["type"] = "shift_type_str(ins->shift_t).c_str()"
+    reg2string["coproc"] = "coproc_str(ins->coproc).c_str()"
+    reg2string["opc1"] = "integer_to_string(ins->opc1).c_str()"
+    reg2string["opc2"] = "integer_to_string(ins->opc2).c_str()"
     
-    reg2string["CRd"] = "coproc_reg_str(ins->CRd)"
-    reg2string["CRn"] = "coproc_reg_str(ins->CRn)"
-    reg2string["CRm"] = "coproc_reg_str(ins->CRm)"
+    reg2string["CRd"] = "coproc_reg_str(ins->CRd).c_str()"
+    reg2string["CRn"] = "coproc_reg_str(ins->CRn).c_str()"
+    reg2string["CRm"] = "coproc_reg_str(ins->CRm).c_str()"
     
-    reg2string["option"] = "option_str(ins)"
-    reg2string["registers"] = "registers_str(ins->registers)"
-    reg2string["spec_reg"] = "spec_reg_str()"
-    reg2string["endian_specifier"] = "endian_specifier_str(ins->set_bigend)"
+    reg2string["option"] = "option_str(ins).c_str()"
+    reg2string["registers"] = "registers_str(ins->registers).c_str()"
+    reg2string["spec_reg"] = "spec_reg_str().c_str()"
+    reg2string["endian_specifier"] = "endian_specifier_str(ins->set_bigend).c_str()"
 
-    reg2string["Qd"] = "quad_reg_str(ins->d)"
-    reg2string["Qn"] = "quad_reg_str(ins->n)"
-    reg2string["Qm"] = "quad_reg_str(ins->m)"
+    reg2string["Qd"] = "quad_reg_str(ins->d).c_str()"
+    reg2string["Qn"] = "quad_reg_str(ins->n).c_str()"
+    reg2string["Qm"] = "quad_reg_str(ins->m).c_str()"
 
-    reg2string["Dd"] = "double_reg_str(ins->d)"
-    reg2string["Dn"] = "double_reg_str(ins->n)"
-    reg2string["Dm"] = "double_reg_str(ins->m)"
+    reg2string["Dd"] = "double_reg_str(ins->d).c_str()"
+    reg2string["Dn"] = "double_reg_str(ins->n).c_str()"
+    reg2string["Dm"] = "double_reg_str(ins->m).c_str()"
     
-    reg2string["Sd"] = "simple_reg_str(ins->d)"
-    reg2string["Sn"] = "simple_reg_str(ins->n)"
-    reg2string["Sm"] = "simple_reg_str(ins->m)"
+    reg2string["Sd"] = "simple_reg_str(ins->d).c_str()"
+    reg2string["Sn"] = "simple_reg_str(ins->n).c_str()"
+    reg2string["Sm"] = "simple_reg_str(ins->m).c_str()"
     
-    reg2string["shift"] = "shift_str(ins->shift_t, ins->shift_n)"
-    reg2string["rotation"] = "rotation_str(ins->rotation)"
+    reg2string["shift"] = "shift_str(ins->shift_t, ins->shift_n).c_str()"
+    reg2string["rotation"] = "rotation_str(ins->rotation).c_str()"
     
     # TODO: Implement these:
     reg2string["list"] = "\"TODO_LIST\""
@@ -1135,17 +1182,23 @@ def create_to_string(filename):
     reg2string["Dm[x]"] = "\"TODO_LIST\""
 
     # Create the implementation file.
-    with open(filename, "w") as fd:
+    with open(to_string_name_cpp, "w") as fd:
         fd.write(to_string_cpp)
 
         s = set()
 
         for instruction in instructions:
-            if "CUSTOM" == instruction["format"].split()[0] or ":" in instruction["format"]:
+            # Skip the custom ones as they are handled in 'create_to_string_custom'.
+            if "CUSTOM" == instruction["format"]:
                 continue
+            
+            # TODO: Handle the case when an instruction is inside an IT block. 
+            format = instruction["format"]
+            if ":" in format:
+                format = format.split(":")[0]
 
             # Parse the toString format.
-            r = parser.parseString(instruction["format"])
+            r = parser.parseString(format)
             
             # We divide the instruction in two pices, the name and the arguments.
             op_name = r[0]
@@ -1156,7 +1209,7 @@ def create_to_string(filename):
             # Write the header with the common structures.
             fd.write("std::string %s_to_string(const ARMInstruction *ins) {\n" % instruction_decoder_name(instruction))
             fd.write("    char op_name[64], op_args[64];\n")
-            fd.write("    // DEBUG: %s\n" % instruction["format"])
+            fd.write("    // DEBUG: %s\n" % format)
             fd.write("    int ret = snprintf(op_name, sizeof(op_name),\n")
             fd.write("            \"%s%s\"" % (op_name.name[0], "%s" * (len(op_name.name) - 1)))
 
@@ -1169,14 +1222,14 @@ def create_to_string(filename):
             for i, val in enumerate(op_name.name[1:]):
                 if type(val) is ARMv7Parser.OptionalToken:
                     assert len(val.name) == 1
-                    fd.write("            %s_str(ins)" % str(val.name[0]))
+                    fd.write("            %s_str(ins).c_str()" % str(val.name[0]))
                     
                     # Whenever we change the ARMv7DecodingSpec.py we need to re-enble this and fix stuff.
                     # if not str(val) in ["<c>", "{S}"]:
                     #    print val, "case %s:" % instruction_id_name(instruction), "//", instruction["name"]
 
                 elif type(val) is ARMv7Parser.MandatoryToken:
-                    fd.write("            %s_str(ins)" % str(val.name))
+                    fd.write("            %s_str(ins).c_str()" % str(val.name))
                     
                     # Whenever we change the ARMv7DecodingSpec.py we need to re-enble this and fix stuff.
                     # if not str(val) in ["<c>", "{S}"]:
@@ -1262,59 +1315,152 @@ def create_to_string(filename):
             fd.write("}\n\n")
 
     # Create the header file.
-    with open(header_name, "w") as fd:
+    with open(to_string_name_h, "w") as fd:
         fd.write(to_string_h)
 
         for instruction in instructions:
-            if "CUSTOM" == instruction["format"].split()[0] or ":" in instruction["format"]:
+            if "CUSTOM" == instruction["format"].split()[0]:
                 continue
 
-            fd.write("std::string %s_to_string(const ARMInstruction *ins);\n" % instruction_decoder_name(instruction))
+            fd.write("std::string %s_to_string(const Disassembler::ARMInstruction *ins);\n" % instruction_decoder_name(instruction))
 
     return True
 
+to_string_custom_h = '''// Warning! autogenerated file, do what you want.
+#include <string>
+#include "disassembly/arm/ARMDisassembler.h"
+
+'''
+
+to_string_custom_cpp = '''// Warning! autogenerated file, do what you want.
+#include <string>
+#include <cstdlib>
+#include <cstdio>
+
+#include "disassembly/arm/ARMDisassembler.h"
+#include "disassembly/arm/gen/ARMDecodingTable.h"
+#include "utilities/Utilities.h"
+
+using namespace Disassembler;
+
+'''
+def create_to_string_custom(to_string_custom_name_h, to_string_custom_name_cpp):
+    # Create the header file.
+    with open(to_string_custom_name_h, "w") as fd:
+        fd.write(to_string_custom_h)
+
+        for instruction in filter(lambda x: x["format"] == "CUSTOM", instructions):
+            fd.write("std::string %s_to_string(const Disassembler::ARMInstruction *ins);\n" % instruction_decoder_name(instruction))
+
+    # Create the implementation file.
+    with open(to_string_custom_name_cpp, "w") as fd:
+        fd.write(to_string_custom_cpp)
+
+        s = set()
+
+        for instruction in filter(lambda x: x["format"] == "CUSTOM", instructions):
+            fd.write("// Instruction: %s\n// Encoding: %s\n" % (instruction["name"], instruction["encoding"]))
+            fd.write("std::string %s_to_string(const Disassembler::ARMInstruction *ins) {\n" % instruction_decoder_name(instruction))
+            fd.write("    char buffer[64];\n")
+            fd.write("    int ret = snprintf(buffer, sizeof(buffer), \"TODO_%s_%s\");\n" % (instruction_id_name(instruction), instruction["encoding"]))            
+            fd.write("    assert(ret >= 0);\n")
+            fd.write("\n")
+            fd.write("    return std::string(buffer);\n")
+            fd.write("}\n")
+            fd.write("\n")
+            
+    return True
+
+def backup_file(path):
+    import time
+    import shutil
+    backup_name = "%s_%s.bak" % (path, time.strftime("%Y%m%d"))
+    shutil.copyfile(path, backup_name)
+    return backup_name
 
 def main():
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description='Generator.')
     parser.add_argument("--gendir", default="../gen", help="Directory where the generated files will be placed.")
-    parser.add_argument("--table_name", default="ARMv7DecodingTable.cpp", help="File name of the decoding table.")
-    parser.add_argument("--decoder_name", default="ARMv7Decoder.cpp", help="File name of the decoder.")
-    parser.add_argument("--to_string_name", default="ARMv7toString.cpp", help="File name of the toString implementation.")
-    parser.add_argument("--debug", default=False)
+    parser.add_argument("--gen_custom_to_str", action='store_true', help="Generate ARMtoStringCustom[.h|.cpp] stubs")
+    parser.add_argument("--gen_to_str", action='store_true', help="Generate ARMtoString[.h|.cpp] stubs")
+    parser.add_argument("--gen_decoder", action='store_true', help="Generate ARMDecodingTable[.h|.cpp]")
+    parser.add_argument("--debug", action='store_true', help="Enable debugging information, just for developers.")
 
     args = parser.parse_args()
 
-    logging.info("Generating decoding tables and routines ...")
-
     DEBUG = args.debug
-    gen_dir = os.path.abspath(args.gendir)
-    decoder_name = os.path.join(gen_dir, args.decoder_name)
-    to_string_name = os.path.join(gen_dir, args.to_string_name)
+    gen_custom_to_string = args.gen_custom_to_str
+    gen_to_string = args.gen_to_str
+    gen_decoder = args.gen_decoder
+    
+    if not any([gen_custom_to_string, gen_to_string, gen_decoder]):
+        logging.warn("Nothing to generate, please choose one option")
+        parser.print_help()
+        return
 
+    # Filenames and path's.
+    gen_dir = os.path.abspath(args.gendir)
+    decoder_name_h = os.path.join(gen_dir, "ARMDecodingTable.h")
+    decoder_name_cpp = os.path.join(gen_dir, "ARMDecodingTable.cpp")
+    to_string_name_h = os.path.join(gen_dir, "ARMtoString.h")
+    to_string_name_cpp = os.path.join(gen_dir, "ARMtoString.cpp")
+    to_string_custom_name_h = os.path.join(gen_dir, "ARMtoStringCustom.h")
+    to_string_custom_name_cpp = os.path.join(gen_dir, "ARMtoStringCustom.cpp")
+    
     if not os.path.exists(gen_dir):
         logging.info("Directory '%s' does not exist, creating it ..." % gen_dir)
         os.makedirs(gen_dir)
 
     logging.info("Placing all the generated files in '%s'." % gen_dir)
 
-    if os.path.exists(decoder_name):
-        os.remove(decoder_name)
+    # We've chosen to regenerate the custom to_string placeholders.
+    if gen_custom_to_string:
+        if os.path.exists(to_string_custom_name_h):
+            backup_name = backup_file(to_string_custom_name_h)
+            logging.info("File (%s) exists, I'll backup it to %s." % (to_string_custom_name_h, backup_name))
+            os.remove(to_string_custom_name_h)
+        
+        if os.path.exists(to_string_custom_name_cpp):
+            backup_name = backup_file(to_string_custom_name_cpp)
+            logging.info("File (%s) exists, I'll backup it to %s." % (to_string_custom_name_cpp, backup_name))
+            os.remove(to_string_custom_name_cpp)
+            
+        logging.info("Creating ARMtoStringCustom.h at '%s'." % to_string_custom_name_h)
+        logging.info("Creating ARMtoStringCustom.cpp at '%s'." % to_string_custom_name_cpp)
+        if not create_to_string_custom(to_string_custom_name_h, to_string_custom_name_cpp):
+            logging.error("Could not create custom to_string stubs.")
+            return False
+            
+        
+    # We've chosen to regenerate the decoders.
+    if gen_decoder:
+        if os.path.exists(decoder_name_h):
+            os.remove(decoder_name_h)
+    
+        if os.path.exists(decoder_name_cpp):
+            os.remove(decoder_name_cpp)
 
-    if os.path.exists(to_string_name):
-        os.remove(to_string_name)
+        logging.info("Creating decoders at '%s'." % decoder_name_h)
+        logging.info("Creating decoders at '%s'." % decoder_name_cpp)
+        if not create_decoders(decoder_name_h, decoder_name_cpp):
+            logging.error("Could not create the decoders.")
+            return False
 
-    logging.info("Creating decoder at        '%s'." % decoder_name)
-    logging.info("Creating toString at       '%s'." % to_string_name)
+    # Regenerate the to_string methods.
+    if gen_to_string:        
+        if os.path.exists(to_string_name_h):
+            os.remove(to_string_name_h)
 
-    if not create_decoders(decoder_name):
-        logging.error("Could not create the decoders.")
-        return False
-
-    if not create_to_string(to_string_name):
-        logging.error("Could not create to_string stubs.")
-        return False
+        if os.path.exists(to_string_name_cpp):
+            os.remove(to_string_name_cpp)
+    
+        logging.info("Creating to_string at '%s'." % to_string_name_h)
+        logging.info("Creating to_string at '%s'." % to_string_name_cpp)
+        if not create_to_string(to_string_name_h, to_string_name_cpp):
+            logging.error("Could not create to_string stubs.")
+            return False    
 
     logging.info("Finished creating autogenerated stubs.")
     return True

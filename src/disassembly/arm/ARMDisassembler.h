@@ -8,14 +8,14 @@
 #ifndef ARMDISASSEMBLER_H_
 #define ARMDISASSEMBLER_H_
 
-#include "disassembly/generic/AbstractDisassembler.h"
-#include "disassembly/generic/Instruction.h"
-
 #include <vector>
 #include <deque>
 #include <functional>
 #include <cassert>
 #include <string>
+#include <iostream>
+
+class ARMDecoder;
 
 namespace Disassembler {
 	typedef struct fpscr {
@@ -76,9 +76,17 @@ namespace Disassembler {
 		VBitOps_VBIF, VBitOps_VBIT, VBitOps_VBSL
 	} VBitOps;
 
-	typedef enum InstrSet {
-		InstrSet_ARM, InstrSet_Thumb, InstrSet_Jazelle, InstrSet_ThumbEE
-	} InstrSet;
+	typedef enum ARMMode {
+		ARMMode_ARM,
+		ARMMode_Thumb,
+		ARMMode_Jazelle,
+		ARMMode_ThumbEE,
+		ARMMode_Invalid,
+		InstrSet_ARM = ARMMode_ARM,
+		InstrSet_Thumb = ARMMode_Thumb,
+		InstrSet_Jazelle = ARMMode_Jazelle,
+		InstrSet_ThumbEE = ARMMode_ThumbEE
+	} ARMMode;
 
 	typedef enum shift_t {
 		SRType_LSL, SRType_LSR, SRType_ASR, SRType_ROR, SRType_RRX, SRType_Invalid
@@ -252,15 +260,10 @@ namespace Disassembler {
 		COND_HS = COND_CS,
 		COND_LO = COND_CC,
 		COND_UNCOND = 15,
-
-		COND_CONDCNT,
-		COND_BASE = COND_EQ,
 	} cond_t;
 
 	static const char *ARMCondCodeToString(cond_t CC) {
 		switch (CC) {
-			default:
-				assert(0 && "Unknown condition code");
 			case COND_EQ:
 				return "eq";
 			case COND_NE:
@@ -291,7 +294,15 @@ namespace Disassembler {
 				return "le";
 			case COND_AL:
 				return "al";
+			case COND_UNCOND:
+				return "UNCOND";
+			default:
+				std::cerr << "Unknown condition code:" << (unsigned) CC << std::endl;
+				assert(0 && "Unknown condition code");
+				break;
 		}
+
+		return "INVALID";
 	}
 
 	typedef enum option_t {
@@ -381,20 +392,22 @@ namespace Disassembler {
 
 	class ARMInstruction {
 		public:
-			ARMInstruction() {
-			}
-
 			static ARMInstruction create() {
 				ARMInstruction ins;
 				memset(reinterpret_cast<void *>(&ins), 0, sizeof(ARMInstruction));
 				return ins;
 			}
 
+			~ARMInstruction() {
+			}
+
 			std::function<std::string(ARMInstruction *)> m_to_string;
 
-			std::string toString() {
-				return m_to_string(this);
+			virtual std::string toString() {
+				return m_to_string ? m_to_string(this) : "to_string_missing";
 			}
+
+			ARMInstrSize ins_size;
 
 			unsigned id;
 			unsigned U;
@@ -460,6 +473,7 @@ namespace Disassembler {
 			uint16_t frac_bits;
 			uint16_t groupsize;
 			uint16_t groupsize_minus_one;
+			uint16_t imm5;
 			uint16_t imm16;
 			uint16_t registers;
 			uint32_t imm32;
@@ -528,16 +542,31 @@ namespace Disassembler {
 
 	class SeeInstruction: public ARMInstruction {
 		public:
-			SeeInstruction(const char *) {
-				// TODO: Implement.
+			SeeInstruction(const char *message) : m_see_message(message) {
+			}
+
+			virtual std::string toString() {
+				return m_see_message;
+			}
+
+		private:
+			std::string m_see_message;
+	};
+
+	class UnknownInstruction: public ARMInstruction {
+			virtual std::string toString() {
+				return "UNKNOWN";
 			}
 	};
 
-	class ARMDisassembler: public AbstractDisassembler {
+	class ARMDisassembler {
 		public:
-			ARMDisassembler();
-			virtual ~ARMDisassembler();
-			virtual std::deque<Instruction> disassemble(std::vector<uint8_t> buffer);
+			ARMDisassembler(ARMVariants variant = ARMv7);
+			ARMInstruction disassemble(uint32_t opcode, ARMMode mode = ARMMode_ARM);
+
+		private:
+			ARMVariants m_variant;
+			ARMDecoder *m_decoder;
 	};
 
 	class ITSession {

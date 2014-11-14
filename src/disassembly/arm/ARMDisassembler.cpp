@@ -9,6 +9,8 @@
 #include "ARMUtilities.h"
 #include "utilities/Utilities.h"
 
+#include "disassembly/arm/gen/ARMDecodingTable.h"
+
 #include <functional>
 #include <iostream>
 
@@ -16,14 +18,13 @@ using namespace std;
 using namespace Disassembler;
 
 namespace Disassembler {
-	ARMDisassembler::ARMDisassembler() {
+	ARMDisassembler::ARMDisassembler(ARMVariants variant) :
+			m_variant(variant) {
+		m_decoder = new ARMDecoder(m_variant);
 	}
 
-	ARMDisassembler::~ARMDisassembler() {
-	}
-
-	deque<Instruction> ARMDisassembler::disassemble(vector<uint8_t> buffer) {
-		return deque<Instruction>();
+	ARMInstruction ARMDisassembler::disassemble(uint32_t op_code, ARMMode mode) {
+		return m_decoder->decode(op_code, mode);
 	}
 
 	static uint32_t CountITSize(uint32_t ITMask) {
