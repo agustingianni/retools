@@ -9,9 +9,42 @@
 #define UTILITIES_H_
 
 #include <cassert>
+#include <sstream>
+#include <string>
+#include <iostream>
+#include <stdio.h>
 
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
+
+static inline std::string exec_get_output(std::string cmd) {
+	FILE* pipe = popen(cmd.c_str(), "r");
+	if (!pipe)
+		return "ERROR";
+
+	char buffer[128];
+	std::string result = "";
+
+	while (!feof(pipe)) {
+		if (fgets(buffer, 128, pipe) != NULL)
+			result += buffer;
+	}
+
+	pclose(pipe);
+	return result;
+}
+
+static inline std::string integer_to_string(unsigned val, bool hexa = true) {
+	std::stringstream ss;
+	if (hexa && val >= 10) {
+		ss << std::hex << "0x";
+	} else {
+		ss << std::dec;
+	}
+
+	ss << val;
+	return ss.str();
+}
 
 static inline uint32_t NOT(uint32_t val, uint32_t bits) {
 	return (~val) & ((1 << bits) - 1);
@@ -62,7 +95,7 @@ static inline uint64_t MaskUpToBit(uint64_t bit) {
 }
 
 static unsigned Zeros(unsigned) {
-    return 0;
+	return 0;
 }
 
 static inline unsigned ZeroExtend(unsigned a, unsigned) {
