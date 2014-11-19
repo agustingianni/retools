@@ -30,7 +30,7 @@ def instruction_id_name(instruction):
     name = re.sub('[\s\(\)\-\,\/\#]', '_', instruction["name"])
     name = name.replace("__", "_").lower()
     return name if name[-1] != "_" else name[:-1]
-    
+
 def get_size(input):
     s = 0
     for e in input.split():
@@ -39,7 +39,7 @@ def get_size(input):
 
         else:
             s += int(e.split("#")[1])
-            
+
     return "eSize32" if s == 32 else "eSize16"
 
 def get_value(input):
@@ -94,6 +94,10 @@ bool ARMDecoder::LastInITBlock() {
 
 ARMMode ARMDecoder::CurrentInstrSet() {
     return m_opcode_mode;
+}
+
+bool ARMDecoder::CurrentModeIsHyp() {
+    return m_hyp_mode;
 }
 
 ARMVariants ARMDecoder::ArchVersion() {
@@ -176,10 +180,10 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
 
         # Generate the instruction id enum.
         fd.write("typedef enum ARMInstructionId {\n")
-        
+
         for instruction_id in sorted(set(map(instruction_id_name, instructions))):
             fd.write("    %s,\n" % instruction_id)
-        
+
         fd.write("} ARMInstructionId;\n")
         fd.write("\n")
         fd.write("class ARMDecoder;\n")
@@ -211,12 +215,15 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
         fd.write("        }\n")
         fd.write("\n")
         fd.write("    private:\n")
+        fd.write("        bool IsZero(unsigned i) { return i == 0; };\n")
         fd.write("        bool InITBlock();\n")
         fd.write("        bool LastInITBlock();\n")
+        fd.write("        bool CurrentModeIsHyp();\n")
         fd.write("        Disassembler::ARMMode CurrentInstrSet();\n")
         fd.write("        Disassembler::ARMVariants ArchVersion();\n")
         fd.write("\n")
         fd.write("        // Fields:\n")
+        fd.write("        bool m_hyp_mode;\n")
         fd.write("        Disassembler::ITSession m_it_session;\n")
         fd.write("        Disassembler::ARMMode m_opcode_mode;\n")
         fd.write("        Disassembler::ARMVariants m_arm_isa;\n")
@@ -230,7 +237,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
 
         for instruction in instructions:
             fd.write("        Disassembler::ARMInstruction %s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, Disassembler::ARMEncoding encoding);\n" % instruction_decoder_name(instruction))
-        
+
         fd.write("        Disassembler::ARMInstruction decode_unknown(uint32_t opcode, Disassembler::ARMInstrSize ins_size, Disassembler::ARMEncoding encoding);\n")
         fd.write("};\n")
 
@@ -252,9 +259,9 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
             size = get_size(instruction["pattern"])
             name = instruction["name"]
             fd.write("    { 0x%.8x, 0x%.8x, %s, %s, %s, &ARMDecoder::%s, \"%s\"},\n" % (mask, value, version, size, encoding, decoder, name))
-            
+
         fd.write("    {0x00000000, 0x00000000, ARMvAll, eSize32, eEncodingA1, &ARMDecoder::decode_unknown, \"UNKNOWN\"}\n")
-            
+
         fd.write("};\n")
         fd.write("\n")
         fd.write("const size_t n_arm_opcodes = sizeof(arm_opcodes) / sizeof(arm_opcodes[0]);\n")
@@ -283,12 +290,12 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
         fd.write("    {0x00000000, 0x00000000, ARMvAll, eSize32, eEncodingA1, &ARMDecoder::decode_unknown, \"UNKNOWN\"}\n")
         fd.write("};\n")
         fd.write("\n")
-        
+
         fd.write("ARMInstruction ARMDecoder::decode_unknown(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n")
         fd.write("    return UnknownInstruction();\n")
         fd.write("}\n")
         fd.write("\n")
-        
+
         fd.write("const size_t n_thumb_opcodes = sizeof(thumb_opcodes) / sizeof(thumb_opcodes[0]);\n")
         fd.write("ARMOpcode *ARMDecoder::decode_thumb(uint32_t opcode) {\n")
         fd.write("    for (size_t i = 0; i < n_thumb_opcodes; ++i) {\n")
@@ -317,13 +324,14 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
             if i % 50 == 0:
                 logging.info("Processing instruction %.4d of %.4d" % (i, len(instructions)))
 
-            fd.write("ARMInstruction ARMDecoder::%s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n" % instruction_decoder_name(instruction))
+            decoder_name = instruction_decoder_name(instruction)
+            fd.write("ARMInstruction ARMDecoder::%s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n" % decoder_name)
             ret = __translate_bit_patterns__(instruction["pattern"].split())
             for r in ret:
                 fd.write("    %s\n" % r)
 
             ret = ARMv7Parser.program.parseString(decoder, parseAll=True)
-            visitor = ARMv7Parser.CPPTranslatorVisitor(input_vars)
+            visitor = ARMv7Parser.CPPTranslatorVisitor(input_vars, decoder_name, instruction)
 
             body = ""
             for ast in ret:
@@ -348,7 +356,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
                 fd.write("    ins.%s = %s;\n" % (var, var))
 
             # Here we hard code some variables that are not defined in the body but need to go into the instruction.
-            hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "B", "P", "U", "op", "imm3", "imm6"]
+            hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "D", "W", "B", "P", "U", "op", "imm3", "imm6"]
             for var in input_vars:
                 if var[0] in hard:
                     fd.write("    ins.%s = %s;\n" % (var[0], var[0]))
@@ -371,6 +379,22 @@ to_string_cpp = \
 #include "utilities/Utilities.h"
 
 using namespace Disassembler;
+
+std::string effect_str(const ARMInstruction *ins) {
+    return ins->enable ? "IE" : "ID";
+}
+
+std::string amode_str(const ARMInstruction *ins) {
+    if (ins->P == 0 && ins->U == 0) return "DA";
+    else if (ins->P == 1 && ins->U == 0) return "DB";
+    else if (ins->P == 0 && ins->U == 1) return "IA";
+    else if (ins->P == 1 && ins->U == 1) return "IB";
+    return "INVALID";
+}
+
+std::string IA_str(const ARMInstruction *ins) {
+    return "IA";
+}
 
 std::string S_str(const ARMInstruction *ins) {
     return ins->setflags ? "S" : "";
@@ -1049,6 +1073,9 @@ std::string option_str(const ARMInstruction *ins) {
             if (ins->option == 15)
                 return "SY";
             break;
+        case ldc_ldc2_immediate:
+        case ldc_ldc2_literal:
+            return "{" + std::to_string(ins->imm32) + "}";
         default:
             break;
     }
@@ -1081,7 +1108,7 @@ std::string registers_str(unsigned registers) {
 std::string shift_str(unsigned shift_t, unsigned shift_n) {
     if (shift_t == Disassembler::SRType_RRX && shift_n == 1)
         return std::string(shift_type_str(shift_t));
-        
+
     std::string shift = std::string(shift_type_str(shift_t)) + " #" + integer_to_string(shift_n);
     return shift;
 }
@@ -1097,7 +1124,7 @@ std::string rotation_str(unsigned rotation) {
         case 24:
             return "ROR #24";
     }
-    
+
     return "INVALID";
 }
 
@@ -1106,6 +1133,35 @@ std::string rotation_str(unsigned rotation) {
 to_string_h = '''// Warning! autogenerated file, do what you want.
 #include <string>
 #include "disassembly/arm/ARMDisassembler.h"
+
+std::string S_str(const Disassembler::ARMInstruction *ins);
+std::string c_str(const Disassembler::ARMInstruction *ins);
+std::string B_str(const Disassembler::ARMInstruction *ins);
+std::string N_str(const Disassembler::ARMInstruction *ins);
+std::string W_str(const Disassembler::ARMInstruction *ins);
+std::string x_str(const Disassembler::ARMInstruction *ins);
+std::string y_str(const Disassembler::ARMInstruction *ins);
+std::string X_str(const Disassembler::ARMInstruction *ins);
+std::string R_str(const Disassembler::ARMInstruction *ins);
+std::string mode_str(const Disassembler::ARMInstruction *ins);
+std::string op_str(const Disassembler::ARMInstruction *ins);
+std::string dt_str(const Disassembler::ARMInstruction *ins);
+std::string U_str(const Disassembler::ARMInstruction *ins);
+std::string size_str(const Disassembler::ARMInstruction *ins);
+std::string type_str(const Disassembler::ARMInstruction *ins);
+std::string regular_reg_str(unsigned reg);
+std::string coproc_str(unsigned coproc);
+std::string shift_type_str(unsigned shift);
+std::string coproc_reg_str(unsigned coproc);
+std::string quad_reg_str(unsigned coproc);
+std::string double_reg_str(unsigned coproc);
+std::string simple_reg_str(unsigned coproc);
+std::string option_str(const Disassembler::ARMInstruction *ins);
+std::string endian_specifier_str(unsigned endian);
+std::string spec_reg_str();
+std::string registers_str(unsigned registers);
+std::string shift_str(unsigned shift_t, unsigned shift_n);
+std::string rotation_str(unsigned rotation);
 
 '''
 def create_to_string(to_string_name_h, to_string_name_cpp):
@@ -1125,7 +1181,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
     reg2string["Rs"] = "regular_reg_str(ins->s).c_str()"
     reg2string["Rt"] = "regular_reg_str(ins->t).c_str()"
     reg2string["Rt2"] = "regular_reg_str(ins->t2).c_str()"
-    
+
     # TODO: Review these. I think we are doing it wrong here.
     reg2string["imm"] = "integer_to_string(ins->imm32).c_str()"
     reg2string["imm2"] = "integer_to_string(ins->imm32).c_str()"
@@ -1141,20 +1197,20 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
     reg2string["saturate_to"] = "integer_to_string(ins->saturate_to).c_str()"
     reg2string["const"] = "integer_to_string(ins->imm32).c_str()"
     reg2string["label"] = "integer_to_string(ins->imm32 + ((ins->ins_size == eSize16) ? 4 : 8)).c_str()"
-    
+
     reg2string["lsb"] = "integer_to_string(ins->lsbit).c_str()"
     reg2string["width"] = "integer_to_string(ins->msbit - ins->lsbit + 1).c_str()"
     reg2string["widthminus1"] = "integer_to_string(ins->widthminus1 + 1).c_str()"
-    
+
     reg2string["type"] = "shift_type_str(ins->shift_t).c_str()"
     reg2string["coproc"] = "coproc_str(ins->coproc).c_str()"
     reg2string["opc1"] = "integer_to_string(ins->opc1).c_str()"
     reg2string["opc2"] = "integer_to_string(ins->opc2).c_str()"
-    
+
     reg2string["CRd"] = "coproc_reg_str(ins->CRd).c_str()"
     reg2string["CRn"] = "coproc_reg_str(ins->CRn).c_str()"
     reg2string["CRm"] = "coproc_reg_str(ins->CRm).c_str()"
-    
+
     reg2string["option"] = "option_str(ins).c_str()"
     reg2string["registers"] = "registers_str(ins->registers).c_str()"
     reg2string["spec_reg"] = "spec_reg_str().c_str()"
@@ -1167,19 +1223,24 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
     reg2string["Dd"] = "double_reg_str(ins->d).c_str()"
     reg2string["Dn"] = "double_reg_str(ins->n).c_str()"
     reg2string["Dm"] = "double_reg_str(ins->m).c_str()"
-    
+
     reg2string["Sd"] = "simple_reg_str(ins->d).c_str()"
     reg2string["Sn"] = "simple_reg_str(ins->n).c_str()"
     reg2string["Sm"] = "simple_reg_str(ins->m).c_str()"
-    
+
     reg2string["shift"] = "shift_str(ins->shift_t, ins->shift_n).c_str()"
     reg2string["rotation"] = "rotation_str(ins->rotation).c_str()"
-    
+
     # TODO: Implement these:
     reg2string["list"] = "\"TODO_LIST\""
-    reg2string["Dd[x]"] = "\"TODO_LIST\""
-    reg2string["Dn[x]"] = "\"TODO_LIST\""
-    reg2string["Dm[x]"] = "\"TODO_LIST\""
+    reg2string["Dd[x]"] = "\"TODO_Dd[x]\""
+    reg2string["Dn[x]"] = "\"TODO_Dn[x]\""
+    reg2string["Dm[x]"] = "\"TODO_Dm[x]\""
+    reg2string["iflags"] = "\"TODO_iflags\""
+    reg2string["mode"] = "\"TODO_mode\""
+    reg2string["registers_with_pc"] = "\"TODO_registers_with_pc\""
+    reg2string["registers_without_pc"] = "\"TODO_registers_without_pc\""
+    reg2string["banked_reg"] = "\"TODO_banked_reg\""
 
     # Create the implementation file.
     with open(to_string_name_cpp, "w") as fd:
@@ -1191,15 +1252,15 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
             # Skip the custom ones as they are handled in 'create_to_string_custom'.
             if "CUSTOM" == instruction["format"]:
                 continue
-            
-            # TODO: Handle the case when an instruction is inside an IT block. 
+
+            # TODO: Handle the case when an instruction is inside an IT block.
             format = instruction["format"]
             if ":" in format:
                 format = format.split(":")[0]
 
             # Parse the toString format.
             r = parser.parseString(format)
-            
+
             # We divide the instruction in two pices, the name and the arguments.
             op_name = r[0]
             op_args = ARMv7Parser.MandatoryToken("")
@@ -1223,14 +1284,14 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                 if type(val) is ARMv7Parser.OptionalToken:
                     assert len(val.name) == 1
                     fd.write("            %s_str(ins).c_str()" % str(val.name[0]))
-                    
+
                     # Whenever we change the ARMv7DecodingSpec.py we need to re-enble this and fix stuff.
                     # if not str(val) in ["<c>", "{S}"]:
                     #    print val, "case %s:" % instruction_id_name(instruction), "//", instruction["name"]
 
                 elif type(val) is ARMv7Parser.MandatoryToken:
                     fd.write("            %s_str(ins).c_str()" % str(val.name))
-                    
+
                     # Whenever we change the ARMv7DecodingSpec.py we need to re-enble this and fix stuff.
                     # if not str(val) in ["<c>", "{S}"]:
                     #    print val, "case %s:" % instruction_id_name(instruction), "//", instruction["name"]
@@ -1252,7 +1313,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                 fd.write("}\n\n")
                 continue
 
-            fd.write("    ret = snprintf(op_args, sizeof(op_args),\n")                
+            fd.write("    ret = snprintf(op_args, sizeof(op_args),\n")
 
             format_string = ""
             vars = []
@@ -1260,18 +1321,18 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                 if type(val) is ARMv7Parser.MandatoryToken:
                     if val.pound:
                         format_string += val.pound
-                                        
+
                     # Add the format string for the sign if needed.
                     if val.sign == "+/-":
                         format_string += "%s"
                         vars.append("ins->add ? \"\" : \"-\"")
-                        
+
                     else:
                         format_string += val.sign
-                              
-                    format_string += "%s"  
+
+                    format_string += "%s"
                     vars.append(reg2string[val.name])
-                    
+
                 elif type(val) is ARMv7Parser.OptionalToken:
                     for optional in val.name:
                         # If the token is the write back optional emit the corresponding code.
@@ -1280,35 +1341,35 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                             if optional == "!":
                                 format_string += "%s"
                                 vars.append("ins->wback ? \"!\" : \"\"")
-                            
+
                             else:
-                                format_string += optional                            
+                                format_string += optional
                         else:
                             if optional.pound == "#":
                                 format_string += "#"
-                                
+
                             if optional.sign == "-":
                                 format_string += "-"
-                            
+
                             elif optional.sign == "+/-":
                                 format_string += "%s"
                                 vars.append("ins->add ? \"\" : \"-\"")
-                            
+
                             format_string += "%s"
                             vars.append(reg2string[optional.name])
-                                                
+
                 else:
                     format_string += val
-                                
+
             fd.write("            \"%s\",\n" % format_string)
-            
+
             for i, var in enumerate(vars):
                 fd.write("            %s" % var)
                 if i < len(vars) - 1:
                     fd.write(",")
-                    
+
                 fd.write("\n")
-            
+
             fd.write("    );\n\n")
             fd.write("    assert(ret >= 0);\n")
             fd.write("    return std::string(op_name) + std::string(op_args);\n")
@@ -1339,6 +1400,8 @@ to_string_custom_cpp = '''// Warning! autogenerated file, do what you want.
 
 #include "disassembly/arm/ARMDisassembler.h"
 #include "disassembly/arm/gen/ARMDecodingTable.h"
+#include "disassembly/arm/gen/ARMtoString.h"
+#include "disassembly/arm/gen/ARMtoStringCustom.h"
 #include "utilities/Utilities.h"
 
 using namespace Disassembler;
@@ -1362,13 +1425,13 @@ def create_to_string_custom(to_string_custom_name_h, to_string_custom_name_cpp):
             fd.write("// Instruction: %s\n// Encoding: %s\n" % (instruction["name"], instruction["encoding"]))
             fd.write("std::string %s_to_string(const Disassembler::ARMInstruction *ins) {\n" % instruction_decoder_name(instruction))
             fd.write("    char buffer[64];\n")
-            fd.write("    int ret = snprintf(buffer, sizeof(buffer), \"TODO_%s_%s\");\n" % (instruction_id_name(instruction), instruction["encoding"]))            
+            fd.write("    int ret = snprintf(buffer, sizeof(buffer), \"TODO_%s_%s\");\n" % (instruction_id_name(instruction), instruction["encoding"]))
             fd.write("    assert(ret >= 0);\n")
             fd.write("\n")
             fd.write("    return std::string(buffer);\n")
             fd.write("}\n")
             fd.write("\n")
-            
+
     return True
 
 def backup_file(path):
@@ -1394,7 +1457,7 @@ def main():
     gen_custom_to_string = args.gen_custom_to_str
     gen_to_string = args.gen_to_str
     gen_decoder = args.gen_decoder
-    
+
     if not any([gen_custom_to_string, gen_to_string, gen_decoder]):
         logging.warn("Nothing to generate, please choose one option")
         parser.print_help()
@@ -1408,7 +1471,7 @@ def main():
     to_string_name_cpp = os.path.join(gen_dir, "ARMtoString.cpp")
     to_string_custom_name_h = os.path.join(gen_dir, "ARMtoStringCustom.h")
     to_string_custom_name_cpp = os.path.join(gen_dir, "ARMtoStringCustom.cpp")
-    
+
     if not os.path.exists(gen_dir):
         logging.info("Directory '%s' does not exist, creating it ..." % gen_dir)
         os.makedirs(gen_dir)
@@ -1421,24 +1484,24 @@ def main():
             backup_name = backup_file(to_string_custom_name_h)
             logging.info("File (%s) exists, I'll backup it to %s." % (to_string_custom_name_h, backup_name))
             os.remove(to_string_custom_name_h)
-        
+
         if os.path.exists(to_string_custom_name_cpp):
             backup_name = backup_file(to_string_custom_name_cpp)
             logging.info("File (%s) exists, I'll backup it to %s." % (to_string_custom_name_cpp, backup_name))
             os.remove(to_string_custom_name_cpp)
-            
+
         logging.info("Creating ARMtoStringCustom.h at '%s'." % to_string_custom_name_h)
         logging.info("Creating ARMtoStringCustom.cpp at '%s'." % to_string_custom_name_cpp)
         if not create_to_string_custom(to_string_custom_name_h, to_string_custom_name_cpp):
             logging.error("Could not create custom to_string stubs.")
             return False
-            
-        
+
+
     # We've chosen to regenerate the decoders.
     if gen_decoder:
         if os.path.exists(decoder_name_h):
             os.remove(decoder_name_h)
-    
+
         if os.path.exists(decoder_name_cpp):
             os.remove(decoder_name_cpp)
 
@@ -1449,18 +1512,18 @@ def main():
             return False
 
     # Regenerate the to_string methods.
-    if gen_to_string:        
+    if gen_to_string:
         if os.path.exists(to_string_name_h):
             os.remove(to_string_name_h)
 
         if os.path.exists(to_string_name_cpp):
             os.remove(to_string_name_cpp)
-    
+
         logging.info("Creating to_string at '%s'." % to_string_name_h)
         logging.info("Creating to_string at '%s'." % to_string_name_cpp)
         if not create_to_string(to_string_name_h, to_string_name_cpp):
             logging.error("Could not create to_string stubs.")
-            return False    
+            return False
 
     logging.info("Finished creating autogenerated stubs.")
     return True

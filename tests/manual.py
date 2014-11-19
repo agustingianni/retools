@@ -17,10 +17,10 @@ ANDROID_TOOLCHAIN_PATH = "/Users/anon/android-toolchain/bin/"
 COMPILER = os.path.join(ANDROID_TOOLCHAIN_PATH, "arm-linux-androideabi-gcc")
 DISASSEMBLER = os.path.join(ANDROID_TOOLCHAIN_PATH, "arm-linux-androideabi-objdump")
 
-def to_inline_asm(opcode):
+def to_inline_asm(opcode, mode):
     bytes = ", ".join(map(lambda x: "0x%.2x" % ord(x), list(struct.pack("<L", opcode))))
     bytes = ".byte %s" % bytes
-    return '__asm__ ("%s");' % bytes
+    return '__asm__ ("%s\\n%s");' % (".arm" if mode == "ARM" else ".thumb", bytes)
 
 def compile(file_name, compiler_flags=""):
     name, extension = os.path.splitext(file_name)
@@ -30,12 +30,12 @@ def compile(file_name, compiler_flags=""):
 
     return name
 
-def disassemble(op_code):
+def disassemble(op_code, mode):
     file_name = "/tmp/test.c"
     with open(file_name, "w") as f:
-        f.write(to_inline_asm(op_code))
+        f.write(to_inline_asm(op_code, mode))
 
-    out_name = compile("/tmp/test.c")
+    out_name = compile("/tmp/test.c", mode)
 
     ret = subprocess.check_output([DISASSEMBLER, "-d", out_name])
 
@@ -53,15 +53,19 @@ def normalize(input_str):
     for match in re.findall(pattern, input_str):
         try:
             out = out.replace(match, "#0x%x" % int(match[1:]))
-        
+
         except ValueError:
             out = out.replace(match, "#0x%x" % int(match[1:], 16))
-                
+
     return out
 
 try:
     op_code = int(sys.argv[1]) if not "0x" in sys.argv[1] else int(sys.argv[1], 16)
-    print normalize(disassemble(op_code))
+    mode = sys.argv[2]
+    # op_code = 0xf145558a
+    # mode = "THUMB"
+
+    print normalize(disassemble(op_code, mode))
 
 except KeyboardInterrupt:
     print "interrupted"

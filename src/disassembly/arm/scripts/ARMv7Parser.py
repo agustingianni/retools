@@ -3,6 +3,7 @@ Python parser for the ARM Architecture Reference Manual (ARMv7-A and ARMv7-R edi
 pseudocode.
 """
 import string
+import re
 
 from pyparsing import *
 from pyasn1.codec.der import decoder
@@ -10,6 +11,52 @@ from string import letters
 from collections import namedtuple
 
 debug = False
+
+from ARMv7DecodingSpec import instructions
+from generator import get_mask, get_value, get_size
+
+def get_decoder_from_see(orig_instruction, see_msg):
+    found = False
+    i = 0
+    matches = filter(lambda x: see_msg in x["name"], instructions)
+    if len(matches) == 0:
+        return ""
+
+    orig_value = get_value(orig_instruction["pattern"])
+
+    print "LOOKING:", see_msg
+    print "ORIG:", orig_instruction["name"], orig_instruction["encoding"], "n=", i, hex(orig_value)
+
+    for cur_instruction in matches:
+        # Test that the encoding is compatible.
+        if cur_instruction["encoding"][0] != orig_instruction["encoding"][0]:
+            continue
+
+        # Test that the size is compatible.
+        if get_size(cur_instruction["pattern"]) != get_size(orig_instruction["pattern"]):
+            continue
+
+        # Get the current mask and value and test if they match.
+        cur_mask = get_mask(cur_instruction["pattern"])
+        cur_value = get_value(cur_instruction["pattern"])
+
+        # print "AAAA:", cur_instruction["name"], cur_instruction["encoding"], hex(orig_value & cur_mask), hex(cur_value), hex(cur_mask)
+        if (orig_value & cur_mask) == cur_value or cur_instruction["encoding"] == orig_instruction["encoding"]:
+            print "FOUN:", cur_instruction["name"], cur_instruction["encoding"], "n=", i, hex(orig_value), hex(cur_value)
+            found = True
+            i += 1
+        else:
+            print "NNNN:", cur_instruction["name"], cur_instruction["encoding"], "n=", i, hex(orig_value), hex(cur_value)
+
+    if not found:
+        print "NOTF:", see_msg
+
+    print
+
+def decoder_name_from_see_statement(see, encoding):
+    name = re.sub('[\s\(\)\-\,\/\#]', '_', see)
+    name = "decode_" + name + "_" + encoding
+    return name.replace("__", "_").lower()
 
 def verbose(name, e):
     print "name=%s type=%s, str=%s, repr=%r" % (name, type(e).__name__, str(e), repr(e))
@@ -720,11 +767,15 @@ class CPPTranslatorVisitor(TranslatorVisitor):
     will spit compilable C++ code.
     """
 
-    def __init__(self, input_vars):
+    def __init__(self, input_vars, decoder_name, instruction):
+        self.instruction = instruction
+        self.decoder_name = decoder_name
         self.input_vars = input_vars
         self.var_bit_length = {}
         self.symbol_table = set()
         self.define_me = set()
+        
+        self.seen_see = set()
 
         self.node_types = {}
 
@@ -1144,6 +1195,28 @@ class CPPTranslatorVisitor(TranslatorVisitor):
 
     def accept_See(self, node):
         self.set_type(node, ("unknown", None))
+
+        print "ACCEPT_SEE:", str(node), self.instruction["name"], self.instruction["encoding"]            
+        return "return SeeInstruction(\"%s\");" % str(node.msg)
+
+        # Handle each case of the see statement.
+        if str(node.msg).startswith("encoding"):
+            # Emit code to decode the instruction with a different encoding.
+            _, encoding = str(node.msg).split()
+            new_decoder_name = "%s%s" % (self.decoder_name[:-2], encoding.lower())
+            return "return %s(opcode, ins_size, eEncoding%s);" % (new_decoder_name, encoding)
+
+        elif str(node.msg) == "CMN (immediate)":
+            # CMN has only eEncodingT1 and eEncodingA1.
+            encoding = "A1" if self.instruction["encoding"][0] == "A" else "T1"
+            decoder_name = decoder_name_from_see_statement(str(node.msg), encoding)
+            return "return %s(opcode, ins_size, eEncoding%s); // %s" % (decoder_name, encoding, str(node.msg))
+
+        else:
+            get_decoder_from_see(self.instruction, str(node.msg))
+            # decoder_name = decoder_name_from_see_statement(str(node.msg), self.instruction["encoding"].lower())
+            # return "return %s(opcode, ins_size, eEncoding%s); // %s" % (decoder_name, self.instruction["encoding"], str(node.msg))
+
         return "return SeeInstruction(\"%s\");" % str(node.msg)
 
     def accept_ImplementationDefined(self, node):

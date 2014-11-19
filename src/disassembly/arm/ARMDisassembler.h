@@ -349,6 +349,7 @@ namespace Disassembler {
 		ARMv7All = ARMv7 | ARMv7S | ARMv7S | ARMv7R, // ARMv7*
 
 		ARMv8 = 1 << 12,
+		ARMSecurityExtension = 1 << 13,
 		ARMvAll = 0xffffffff,
 
 		ARMV4T_ABOVE = (ARMv4T | ARMv5T | ARMv5TE | ARMv5TEJ | ARMv6 | ARMv6K | ARMv6T2 | ARMv7 | ARMv7S | ARMv8),
@@ -398,7 +399,7 @@ namespace Disassembler {
 				return ins;
 			}
 
-			~ARMInstruction() {
+			virtual ~ARMInstruction() {
 			}
 
 			std::function<std::string(ARMInstruction *)> m_to_string;
@@ -409,9 +410,24 @@ namespace Disassembler {
 
 			ARMInstrSize ins_size;
 
+			unsigned read_spsr;
+			unsigned write_spsr;
+			unsigned changemode;
+			unsigned enable;
+			unsigned disable;
+			unsigned affectI;
+			unsigned affectA;
+			unsigned affectF;
+			unsigned SYSm;
+
+			unsigned increment;
+			unsigned wordhigher;
+
 			unsigned id;
 			unsigned U;
 			unsigned P;
+			unsigned D;
+			unsigned W;
 			unsigned op;
 			unsigned imm3;
 			unsigned imm6;
@@ -535,9 +551,15 @@ namespace Disassembler {
 	};
 
 	class UnpredictableInstruction: public ARMInstruction {
+			virtual std::string toString() {
+				return "UnpredictableInstruction";
+			}
 	};
 
 	class UndefinedInstruction: public ARMInstruction {
+			virtual std::string toString() {
+				return "UndefinedInstruction";
+			}
 	};
 
 	class SeeInstruction: public ARMInstruction {
