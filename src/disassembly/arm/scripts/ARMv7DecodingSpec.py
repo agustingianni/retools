@@ -9392,7 +9392,7 @@ imm16 = imm4:imm12;"""
     "version" : "ARMv7VE",
     "format" : "HVC #<imm16>",
     "pattern" : "cond#4 00010100 imm12#12 0111 imm4#4",
-    "decoder" : """if cond != 1110 then UNPREDICTABLE;
+    "decoder" : """if cond != '1110' then UNPREDICTABLE;
 imm16 = imm12:imm4;"""
 } , {
     "name" : "LDM (exception return)",

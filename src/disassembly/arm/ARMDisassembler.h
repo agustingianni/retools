@@ -346,19 +346,11 @@ namespace Disassembler {
 		ARMv7S = 1 << 9,
 		ARMv7VE = 1 << 10,
 		ARMv7R = 1 << 11,
-		ARMv7All = ARMv7 | ARMv7S | ARMv7S | ARMv7R, // ARMv7*
+		ARMv7All = ARMv7 | ARMv7S | ARMv7S | ARMv7VE | ARMv7R, // ARMv7*
 
 		ARMv8 = 1 << 12,
 		ARMSecurityExtension = 1 << 13,
 		ARMvAll = 0xffffffff,
-
-		ARMV4T_ABOVE = (ARMv4T | ARMv5T | ARMv5TE | ARMv5TEJ | ARMv6 | ARMv6K | ARMv6T2 | ARMv7 | ARMv7S | ARMv8),
-		ARMV5_ABOVE = (ARMv5T | ARMv5TE | ARMv5TEJ | ARMv6 | ARMv6K | ARMv6T2 | ARMv7 | ARMv7S | ARMv8),
-		ARMV5TE_ABOVE = (ARMv5TE | ARMv5TEJ | ARMv6 | ARMv6K | ARMv6T2 | ARMv7 | ARMv7S | ARMv8),
-		ARMV5J_ABOVE = (ARMv5TEJ | ARMv6 | ARMv6K | ARMv6T2 | ARMv7 | ARMv7S | ARMv8),
-		ARMV6_ABOVE = (ARMv6 | ARMv6K | ARMv6T2 | ARMv7 | ARMv7S | ARMv8),
-		ARMV6T2_ABOVE = (ARMv6T2 | ARMv7 | ARMv7S | ARMv8),
-		ARMV7_ABOVE = (ARMv7 | ARMv7S | ARMv8),
 	} ARMVariants;
 
 	typedef enum ARMVFPVersion {
@@ -393,9 +385,9 @@ namespace Disassembler {
 
 	class ARMInstruction {
 		public:
-			static ARMInstruction create() {
-				ARMInstruction ins;
-				memset(reinterpret_cast<void *>(&ins), 0, sizeof(ARMInstruction));
+			static std::shared_ptr<ARMInstruction> create() {
+				std::shared_ptr<ARMInstruction> ins;
+				// memset(reinterpret_cast<void *>(&ins), 0, sizeof(ARMInstruction));
 				return ins;
 			}
 
@@ -409,6 +401,8 @@ namespace Disassembler {
 			}
 
 			ARMInstrSize ins_size;
+
+			bool m_skip;
 
 			unsigned read_spsr;
 			unsigned write_spsr;
@@ -551,13 +545,15 @@ namespace Disassembler {
 	};
 
 	class UnpredictableInstruction: public ARMInstruction {
-			virtual std::string toString() {
+		public:
+			std::string toString() override {
 				return "UnpredictableInstruction";
 			}
 	};
 
 	class UndefinedInstruction: public ARMInstruction {
-			virtual std::string toString() {
+		public:
+			std::string toString() override {
 				return "UndefinedInstruction";
 			}
 	};
@@ -565,9 +561,10 @@ namespace Disassembler {
 	class SeeInstruction: public ARMInstruction {
 		public:
 			SeeInstruction(const char *message) : m_see_message(message) {
+				m_skip = true;
 			}
 
-			virtual std::string toString() {
+			std::string toString() override {
 				return m_see_message;
 			}
 
@@ -576,7 +573,8 @@ namespace Disassembler {
 	};
 
 	class UnknownInstruction: public ARMInstruction {
-			virtual std::string toString() {
+		public:
+			std::string toString() override {
 				return "UNKNOWN";
 			}
 	};
@@ -584,7 +582,7 @@ namespace Disassembler {
 	class ARMDisassembler {
 		public:
 			ARMDisassembler(ARMVariants variant = ARMv7);
-			ARMInstruction disassemble(uint32_t opcode, ARMMode mode = ARMMode_ARM);
+			std::shared_ptr<ARMInstruction> disassemble(uint32_t opcode, ARMMode mode = ARMMode_ARM);
 
 		private:
 			ARMVariants m_variant;

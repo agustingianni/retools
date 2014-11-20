@@ -2,6 +2,7 @@
 #include <random>
 #include <limits>
 #include <cassert>
+#include <memory>
 
 #include "utilities/Utilities.h"
 #include "disassembly/arm/ARMDisassembler.h"
@@ -71,7 +72,7 @@ template<class T> T get_random_int() {
 	return uniform_dist(rd);
 }
 
-uint32_t get_masked_random_arm(uint32_t mask, uint32_t value, uint32_t size=32) {
+uint32_t get_masked_random_arm(uint32_t mask, uint32_t value, uint32_t size = 32) {
 	uint32_t r = get_random_int<uint32_t>();
 
 	for (uint32_t i = 0; i < size; ++i) {
@@ -141,14 +142,17 @@ string darm_disassemble(uint32_t opcode, unsigned mode) {
 }
 
 string retools_disassemble(uint32_t opcode, unsigned mode) {
-	ARMDisassembler dis(ARMv7);
-	ARMInstruction ins = dis.disassemble(opcode, mode == 0 ? ARMMode_ARM : ARMMode_Thumb);
-	return ins.toString();
+	ARMDisassembler dis(ARMv7VE);
+	shared_ptr<ARMInstruction> ins = dis.disassemble(opcode, mode == 0 ? ARMMode_ARM : ARMMode_Thumb);
+	return ins->toString();
 }
 
-// extern ARMv7Decoder::ARMOpcode ARMv7Decoder::arm_opcodes;
 unsigned test_arm(unsigned n = 100, unsigned start = 0, unsigned finish = n_arm_opcodes, bool show = false) {
 	ARMDisassembler dis;
+
+	if (start == finish) {
+		finish = n_arm_opcodes;
+	}
 
 	for (unsigned i = start; i < finish; ++i) {
 		if (i == 9)
@@ -198,29 +202,20 @@ unsigned test_arm(unsigned n = 100, unsigned start = 0, unsigned finish = n_arm_
 				todo++;
 				printf("reto: 0x%.8x = %40s\n", op_code, retools.c_str());
 				printf("caps: 0x%.8x = %40s\n", op_code, capstone.c_str());
-				printf("darm: 0x%.8x = %40s\n", op_code, darm.c_str());
-				printf("objd: 0x%.8x = %40s\n\n", op_code, objdump.c_str());
-			}
-
-			if (retools == "to_string_missing") {
+			} else if (retools == "to_string_missing") {
 				to_string_missing++;
-				continue;
-			}
-
-			if (capstone == "invalid") {
+				printf("reto: 0x%.8x = %40s\n", op_code, retools.c_str());
+				printf("caps: 0x%.8x = %40s\n", op_code, capstone.c_str());
+			} else if (capstone == "invalid") {
 				invalid++;
-				continue;
-			}
-
-			// Avoid bfi r2, r6, (invalid: 21:14)
-			if (objdump.find("invalid")) {
+			} else if (objdump.find("invalid")) {
+				// Avoid bfi r2, r6, (invalid: 21:14)
 				invalid++;
-				continue;
+			} else {
+				fail++;
 			}
 
-			fail++;
-
-			if (show) {
+			if (show && false) {
 				printf("reto: 0x%.8x = %40s\n", op_code, retools.c_str());
 				printf("caps: 0x%.8x = %40s\n", op_code, capstone.c_str());
 				printf("darm: 0x%.8x = %40s\n", op_code, darm.c_str());
@@ -229,8 +224,8 @@ unsigned test_arm(unsigned n = 100, unsigned start = 0, unsigned finish = n_arm_
 		}
 
 		printf("marginal: %6.2f%% ok: %6.2f%% todo: %4d match: %4d fail: %4d invalid: %4d to_string: %4d name: %50s enc: %4d n: %d\n",
-				(match + invalid) * 100.0 / total, match * 100.0 / total, todo, match, fail, invalid, to_string_missing, arm_opcodes[i].name,
-				arm_opcodes[i].encoding, i);
+				(match + invalid) * 100.0 / total, match * 100.0 / total, todo, match, fail, invalid, to_string_missing,
+				arm_opcodes[i].name, arm_opcodes[i].encoding, i);
 	}
 
 	return 0;
@@ -284,9 +279,10 @@ unsigned test_thumb(unsigned n = 100, unsigned start = 0, unsigned finish = n_th
 			}
 		}
 
-		printf("marginal: %6.2f%% ok: %6.2f%% match: %4d fail: %4d invalid: %4d to_string_missing: %4d name: %50s encoding: %4d n: %d\n",
-				(match + invalid) * 100.0 / total, match * 100.0 / total, match, fail, invalid, to_string_missing, arm_opcodes[i].name,
-				arm_opcodes[i].encoding, i);
+		printf(
+				"marginal: %6.2f%% ok: %6.2f%% match: %4d fail: %4d invalid: %4d to_string_missing: %4d name: %50s encoding: %4d n: %d\n",
+				(match + invalid) * 100.0 / total, match * 100.0 / total, match, fail, invalid, to_string_missing,
+				arm_opcodes[i].name, arm_opcodes[i].encoding, i);
 	}
 
 	return 0;

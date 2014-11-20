@@ -774,7 +774,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         self.var_bit_length = {}
         self.symbol_table = set()
         self.define_me = set()
-        
+
         self.seen_see = set()
 
         self.node_types = {}
@@ -1187,45 +1187,23 @@ class CPPTranslatorVisitor(TranslatorVisitor):
 
     def accept_Undefined(self, node):
         self.set_type(node, ("unknown", None))
-        return "return UndefinedInstruction();"
+        return "return shared_ptr<ARMInstruction>(new UndefinedInstruction());"
 
     def accept_Unpredictable(self, node):
         self.set_type(node, ("unknown", None))
-        return "return UnpredictableInstruction();"
+        return "return shared_ptr<ARMInstruction>(new UnpredictableInstruction());"
 
     def accept_See(self, node):
         self.set_type(node, ("unknown", None))
-
-        print "ACCEPT_SEE:", str(node), self.instruction["name"], self.instruction["encoding"]            
-        return "return SeeInstruction(\"%s\");" % str(node.msg)
-
-        # Handle each case of the see statement.
-        if str(node.msg).startswith("encoding"):
-            # Emit code to decode the instruction with a different encoding.
-            _, encoding = str(node.msg).split()
-            new_decoder_name = "%s%s" % (self.decoder_name[:-2], encoding.lower())
-            return "return %s(opcode, ins_size, eEncoding%s);" % (new_decoder_name, encoding)
-
-        elif str(node.msg) == "CMN (immediate)":
-            # CMN has only eEncodingT1 and eEncodingA1.
-            encoding = "A1" if self.instruction["encoding"][0] == "A" else "T1"
-            decoder_name = decoder_name_from_see_statement(str(node.msg), encoding)
-            return "return %s(opcode, ins_size, eEncoding%s); // %s" % (decoder_name, encoding, str(node.msg))
-
-        else:
-            get_decoder_from_see(self.instruction, str(node.msg))
-            # decoder_name = decoder_name_from_see_statement(str(node.msg), self.instruction["encoding"].lower())
-            # return "return %s(opcode, ins_size, eEncoding%s); // %s" % (decoder_name, self.instruction["encoding"], str(node.msg))
-
-        return "return SeeInstruction(\"%s\");" % str(node.msg)
+        return "return shared_ptr<ARMInstruction>(new SeeInstruction(\"%s\"));" % str(node.msg)
 
     def accept_ImplementationDefined(self, node):
         self.set_type(node, ("unknown", None))
-        return "return ImplementationDefinedInstruction();"
+        return "return shared_ptr<ARMInstruction>(new ImplementationDefinedInstruction());"
 
     def accept_SubArchitectureDefined(self, node):
         self.set_type(node, ("unknown", None))
-        return "return SubArchitectureDefinedInstruction();"
+        return "return shared_ptr<ARMInstruction>(new SubArchitectureDefinedInstruction());"
 
     def accept_Return(self, node):
         t = "return %s;" % self.accept(node.value)

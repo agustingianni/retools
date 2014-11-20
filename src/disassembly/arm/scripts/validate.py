@@ -56,4 +56,25 @@ def convert():
             break
 
     print "]"
-convert()
+
+def validate_binary_numbers():
+    """
+    Look for invalid binary numbers. The spec should use '00010101010' for
+    binaries, but it sometimes skips the '' and uses just the binary number
+    which is confusing.
+    """
+    import re
+    regex = re.compile("[01][01]+")
+    from ARMv7DecodingSpec import instructions
+    for ins in instructions:
+        for line in ins["decoder"].split("\n"):
+            for res in regex.findall(line):
+                idx = line.find(res)
+
+                if line[idx - 1] != "'" and line[idx - 1] != '"':
+                    print "//", ins["name"]
+                    print "//", "=" * 80
+                    print line, "// should have ", res
+                    print "//", "=" * 80
+
+validate_binary_numbers()
