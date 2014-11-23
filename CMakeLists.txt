@@ -13,6 +13,13 @@ include_directories(
 #set(CMAKE_CXX_FLAGS "-std=c++11 -O1 -g -fsanitize=address -fno-omit-frame-pointer -Wall -Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable")
 set(CMAKE_CXX_FLAGS "-std=c++11 -O1 -g -Wall -Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable")
 
+# Get some debugging information about the decoders.
+#IF (DEFINED DEBUG_DECODER)
+#	SET(DEBUG_DECODER 1)
+#	ADD_DEFINITIONS(-DDEBUG_DECODER=${DEBUG_DECODER})
+#	MESSAGE("Showing debug information on decode: ${DEBUG_DECODER}")
+#ENDIF()
+
 add_executable(
 	retools
 	src/retools.cpp
