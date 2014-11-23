@@ -346,6 +346,17 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
             for r in ret:
                 fd.write("    %s\n" % r)
 
+            fd.write("#ifdef DEBUG_DECODER\n")
+            fd.write("    std::cout << \"opcode=\" << std::hex << opcode << \" decoder=%s\" << std::endl;\n" % decoder_name)
+
+            # Get the names of the decoded variables.
+            decoded_vars = map(lambda y: y.split("#")[0], filter(lambda x: x.count("#"), instruction["pattern"].split()))
+            fd.write("    std::cout << ")
+            for decoded_var in decoded_vars:
+                fd.write('''"%s=" << %s << " " << ''' % (decoded_var, decoded_var))
+            fd.write("std::endl;\n")
+            fd.write("#endif\n")
+
             ret = ARMv7Parser.program.parseString(decoder, parseAll=True)
             visitor = ARMv7Parser.CPPTranslatorVisitor(input_vars, decoder_name, instruction)
 
@@ -372,7 +383,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
                 fd.write("    ins->%s = %s;\n" % (var, var))
 
             # Here we hard code some variables that are not defined in the body but need to go into the instruction.
-            hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "D", "W", "B", "P", "U", "op", "imm3", "imm6"]
+            hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "D", "W", "B", "P", "U", "op", "imm3", "imm6", "mode", "opcode_", "mask"]
             for var in input_vars:
                 if var[0] in hard:
                     fd.write("    ins->%s = %s;\n" % (var[0], var[0]))
@@ -1065,7 +1076,7 @@ std::string simple_reg_str(unsigned coproc) {
 std::string option_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case dbg:
-            return integer_to_string(ins->option);
+            return integer_to_string(ins->option, ins->option >= 10);
         case dmb:
         case dsb:
             if (ins->option == 15)
@@ -1084,14 +1095,20 @@ std::string option_str(const ARMInstruction *ins) {
                 return "OSH";
             else if (ins->option == 2)
                 return "OSHST";
+            else
+                return "#" + integer_to_string(ins->option, ins->option >= 10);
             break;
         case isb:
             if (ins->option == 15)
                 return "SY";
+            else
+                return "#" + integer_to_string(ins->option, true);
             break;
+        case stc_stc2:
         case ldc_ldc2_immediate:
         case ldc_ldc2_literal:
-            return "{" + std::to_string(ins->imm32) + "}";
+            // HACK: In this case ins->imm32 >> 2 == ins->imm8
+            return "{" + integer_to_string(ins->imm32 >> 2) + "}";
         default:
             break;
     }
@@ -1103,8 +1120,35 @@ std::string endian_specifier_str(unsigned endian) {
     return endian ? "BE" : "LE";
 }
 
-std::string spec_reg_str() {
-    return "APSR";
+std::string spec_reg_str(const ARMInstruction *ins) {
+    std::string t;
+
+    switch(ins->id) {
+        case mrs:
+            return ins->read_spsr ? "SPSR" : "APSR";
+
+        case mrs_banked_register:
+            return "BANKED_REG";
+
+        case msr_immediate:
+        case msr_register:
+            t = ins->write_spsr ? "SPSR_" : "CPSR_";
+
+            if (!ins->write_spsr && ins->mask == 8) return "APSR_nzcvq";
+            if (!ins->write_spsr && ins->mask == 4) return "APSR_g";
+            if (!ins->write_spsr && ins->mask == 12) return "APSR_nzcvqg";
+
+            if (ins->mask & (1 << 3)) t += "f";
+            if (ins->mask & (1 << 2)) t += "s";
+            if (ins->mask & (1 << 1)) t += "x";
+            if (ins->mask & (1 << 0)) t += "c";
+            return t;
+
+        default:
+            break;
+    }
+
+    return "INVALID";
 }
 
 std::string registers_str(unsigned registers) {
@@ -1125,7 +1169,7 @@ std::string shift_str(unsigned shift_t, unsigned shift_n) {
     if (shift_t == Disassembler::SRType_RRX && shift_n == 1)
         return std::string(shift_type_str(shift_t));
 
-    std::string shift = std::string(shift_type_str(shift_t)) + " #" + integer_to_string(shift_n);
+    std::string shift = std::string(shift_type_str(shift_t)) + " #" + integer_to_string(shift_n, false);
     return shift;
 }
 
@@ -1142,6 +1186,10 @@ std::string rotation_str(unsigned rotation) {
     }
 
     return "INVALID";
+}
+
+std::string R0_R14_APSR_nzcv(const ARMInstruction *ins) {
+    return ins->t == 15 ? std::string("apsr_nzcv") : regular_reg_str(ins->t);
 }
 
 '''
@@ -1174,7 +1222,7 @@ std::string double_reg_str(unsigned coproc);
 std::string simple_reg_str(unsigned coproc);
 std::string option_str(const Disassembler::ARMInstruction *ins);
 std::string endian_specifier_str(unsigned endian);
-std::string spec_reg_str();
+std::string spec_reg_str(const Disassembler::ARMInstruction *ins);
 std::string registers_str(unsigned registers);
 std::string shift_str(unsigned shift_t, unsigned shift_n);
 std::string rotation_str(unsigned rotation);
@@ -1209,19 +1257,19 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
     reg2string["imm16"] = "integer_to_string(ins->imm16).c_str()"
     reg2string["imm24"] = "integer_to_string(ins->imm32).c_str()"
     reg2string["imm32"] = "integer_to_string(ins->imm32).c_str()"
-    reg2string["shift_n"] = "integer_to_string(ins->shift_n).c_str()"
-    reg2string["saturate_to"] = "integer_to_string(ins->saturate_to).c_str()"
-    reg2string["const"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["shift_n"] = "integer_to_string(ins->shift_n, ins->shift_n >= 10).c_str()"
+    reg2string["saturate_to"] = "integer_to_string(ins->saturate_to, false).c_str()"
+    reg2string["const"] = "integer_to_string(ins->imm32, ins->imm32 >= 10).c_str()"
     reg2string["label"] = "integer_to_string(ins->imm32 + ((ins->ins_size == eSize16) ? 4 : 8)).c_str()"
 
-    reg2string["lsb"] = "integer_to_string(ins->lsbit).c_str()"
-    reg2string["width"] = "integer_to_string(ins->msbit - ins->lsbit + 1).c_str()"
-    reg2string["widthminus1"] = "integer_to_string(ins->widthminus1 + 1).c_str()"
+    reg2string["lsb"] = "integer_to_string(ins->lsbit, ins->lsbit >= 10).c_str()"
+    reg2string["width"] = "integer_to_string(ins->msbit - ins->lsbit + 1, ins->msbit - ins->lsbit + 1 >= 10).c_str()"
+    reg2string["widthminus1"] = "integer_to_string(ins->widthminus1 + 1, ins->widthminus1 + 1 >= 10).c_str()"
 
     reg2string["type"] = "shift_type_str(ins->shift_t).c_str()"
     reg2string["coproc"] = "coproc_str(ins->coproc).c_str()"
-    reg2string["opc1"] = "integer_to_string(ins->opc1).c_str()"
-    reg2string["opc2"] = "integer_to_string(ins->opc2).c_str()"
+    reg2string["opc1"] = "integer_to_string(ins->opc1, ins->opc1 >= 10).c_str()"
+    reg2string["opc2"] = "integer_to_string(ins->opc2, ins->opc2 >= 10).c_str()"
 
     reg2string["CRd"] = "coproc_reg_str(ins->CRd).c_str()"
     reg2string["CRn"] = "coproc_reg_str(ins->CRn).c_str()"
@@ -1229,7 +1277,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
 
     reg2string["option"] = "option_str(ins).c_str()"
     reg2string["registers"] = "registers_str(ins->registers).c_str()"
-    reg2string["spec_reg"] = "spec_reg_str().c_str()"
+    reg2string["spec_reg"] = "spec_reg_str(ins).c_str()"
     reg2string["endian_specifier"] = "endian_specifier_str(ins->set_bigend).c_str()"
 
     reg2string["Qd"] = "quad_reg_str(ins->d).c_str()"
@@ -1253,9 +1301,13 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
     reg2string["Dn[x]"] = "\"TODO_Dn[x]\""
     reg2string["Dm[x]"] = "\"TODO_Dm[x]\""
     reg2string["iflags"] = "\"TODO_iflags\""
-    reg2string["mode"] = "\"TODO_mode\""
-    reg2string["registers_with_pc"] = "\"TODO_registers_with_pc\""
-    reg2string["registers_without_pc"] = "\"TODO_registers_without_pc\""
+
+    reg2string["mode"] = "integer_to_string(ins->mode, false).c_str()"
+    reg2string["registers_with_pc"] = "registers_str(ins->registers | (1 << 15)).c_str()"
+    reg2string["registers_without_pc"] = "registers_str(ins->registers & ((1 << 15) - 1)).c_str()"
+
+    reg2string["R0_R14_APSR_nzcv"] = "R0_R14_APSR_nzcv(ins).c_str()"
+
     reg2string["banked_reg"] = "\"TODO_banked_reg\""
 
     # Create the implementation file.
@@ -1285,7 +1337,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
 
             # Write the header with the common structures.
             fd.write("std::string %s_to_string(const ARMInstruction *ins) {\n" % instruction_decoder_name(instruction))
-            fd.write("    char op_name[64], op_args[64];\n")
+            fd.write("    char op_name[128], op_args[128];\n")
             fd.write("    // DEBUG: %s\n" % format)
             fd.write("    int ret = snprintf(op_name, sizeof(op_name),\n")
             fd.write("            \"%s%s\"" % (op_name.name[0], "%s" * (len(op_name.name) - 1)))
@@ -1415,6 +1467,7 @@ to_string_custom_cpp = '''// Warning! autogenerated file, do what you want.
 #include <cstdio>
 
 #include "disassembly/arm/ARMDisassembler.h"
+#include "disassembly/arm/ARMUtilities.h"
 #include "disassembly/arm/gen/ARMDecodingTable.h"
 #include "disassembly/arm/gen/ARMtoString.h"
 #include "disassembly/arm/gen/ARMtoStringCustom.h"

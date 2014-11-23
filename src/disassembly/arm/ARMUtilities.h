@@ -199,32 +199,50 @@ static uint32_t ror(uint32_t val, uint32_t N, uint32_t shift) {
 	return (val >> m) | (val << (N - m));
 }
 
-// (imm32, carry_out) = ThumbExpandImm_C(imm12, carry_in)
-static inline std::tuple<uint32_t, uint32_t> ThumbExpandImm_C(uint32_t opcode, uint32_t carry_in) {
-	uint32_t imm32; // the expanded result
-	uint32_t i = get_bit(opcode, 26);
-	uint32_t imm3 = get_bits(opcode, 14, 12);
-	uint32_t abcdefgh = get_bits(opcode, 7, 0);
-	uint32_t imm12 = i << 11 | imm3 << 8 | abcdefgh;
-	uint32_t carry_out = 0;
+// if imm12<11:10> == '00' then
+// 	case imm12<9:8> of
+// 		when '00'
+// 			imm32 = ZeroExtend(imm12<7:0>, 32);
+// 		when '01'
+// 			if imm12<7:0> == '00000000' then UNPREDICTABLE;
+// 			imm32 = '00000000' : imm12<7:0> : '00000000' : imm12<7:0>;
+// 		when '10'
+// 			if imm12<7:0> == '00000000' then UNPREDICTABLE;
+// 			imm32 = imm12<7:0> : '00000000' : imm12<7:0> : '00000000';
+// 		when '11'
+// 			if imm12<7:0> == '00000000' then UNPREDICTABLE;
+// 			imm32 = imm12<7:0> : imm12<7:0> : imm12<7:0> : imm12<7:0>; carry_out = carry_in;
+// else
+// 	unrotated_value = ZeroExtend('1':imm12<6:0>, 32);
+// 	(imm32, carry_out) = ROR_C(unrotated_value, UInt(imm12<11:7>));
 
-	if (get_bits(imm12, 11, 10) == 0) {
-		switch (get_bits(imm12, 9, 8)) {
-			default: // Keep static analyzer happy with a default case
+// return (imm32, carry_out);
+
+// (imm32, carry_out) = ThumbExpandImm_C(imm12, carry_in)
+static inline std::tuple<uint32_t, uint32_t> ThumbExpandImm_C(uint32_t imm12, uint32_t carry_in) {
+	uint32_t imm12_7_0 = get_bits(imm12, 7, 0);
+	uint32_t imm12_9_8 = get_bits(imm12, 9, 8);
+	uint32_t imm12_11_10 = get_bits(imm12, 11, 10);
+	unsigned carry_out;
+	unsigned imm32;
+
+	if (imm12_11_10 == 0) {
+		switch (imm12_9_8) {
+			default:
 			case 0:
-				imm32 = abcdefgh;
+				imm32 = imm12_7_0;
 				break;
 
 			case 1:
-				imm32 = abcdefgh << 16 | abcdefgh;
+				imm32 = imm12_7_0 << 16 | imm12_7_0;
 				break;
 
 			case 2:
-				imm32 = abcdefgh << 24 | abcdefgh << 8;
+				imm32 = imm12_7_0 << 24 | imm12_7_0 << 8;
 				break;
 
 			case 3:
-				imm32 = abcdefgh << 24 | abcdefgh << 16 | abcdefgh << 8 | abcdefgh;
+				imm32 = imm12_7_0 << 24 | imm12_7_0 << 16 | imm12_7_0 << 8 | imm12_7_0;
 				break;
 		}
 
