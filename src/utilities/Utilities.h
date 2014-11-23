@@ -36,7 +36,7 @@ static inline std::string exec_get_output(std::string cmd) {
 
 static inline std::string integer_to_string(unsigned val, bool hexa = true) {
 	std::stringstream ss;
-	if (hexa && val >= 10) {
+	if (hexa) {
 		ss << std::hex << "0x";
 	} else {
 		ss << std::dec;
