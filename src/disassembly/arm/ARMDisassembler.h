@@ -295,7 +295,7 @@ namespace Disassembler {
 			case COND_AL:
 				return "al";
 			case COND_UNCOND:
-				return "UNCOND";
+				return "nv";
 			default:
 				std::cerr << "Unknown condition code:" << (unsigned) CC << std::endl;
 				assert(0 && "Unknown condition code");
@@ -386,7 +386,7 @@ namespace Disassembler {
 	class ARMInstruction {
 		public:
 			static std::shared_ptr<ARMInstruction> create() {
-				std::shared_ptr<ARMInstruction> ins;
+				std::shared_ptr<ARMInstruction> ins(new ARMInstruction());
 				// memset(reinterpret_cast<void *>(&ins), 0, sizeof(ARMInstruction));
 				return ins;
 			}
@@ -403,7 +403,9 @@ namespace Disassembler {
 			ARMInstrSize ins_size;
 
 			bool m_skip;
-
+			unsigned mask;
+			unsigned opcode_;
+			unsigned mode;
 			unsigned read_spsr;
 			unsigned write_spsr;
 			unsigned changemode;
