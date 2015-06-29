@@ -6,3 +6,4 @@
 .settings/
 retools
 src/disassembly/arm/gen/
+build
