@@ -1,0 +1,11 @@
+In this directory are placed all the binary formats that we support.
+
+All binary formats must provide the following entities:
+
+	- List of all the segments / sections.
+	- Referenced libraries.
+	- Entry point.
+	- Function Exports.
+	- Function Imports.
+	- Symbols.
+	- Relocations.

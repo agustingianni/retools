@@ -5,5 +5,5 @@
 .pydevproject
 .settings/
 retools
-src/disassembly/arm/gen/
+src/libdisassembly/arm/gen/
 build

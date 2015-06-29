@@ -295,7 +295,7 @@ namespace Disassembler {
 			case COND_AL:
 				return "al";
 			case COND_UNCOND:
-				return "nv";
+				return "";
 			default:
 				std::cerr << "Unknown condition code:" << (unsigned) CC << std::endl;
 				assert(0 && "Unknown condition code");
@@ -379,6 +379,23 @@ namespace Disassembler {
 		eEncodingT5
 	} ARMEncoding;
 
+	static const char *ARMEncodingToString(ARMEncoding enc) {
+		switch(enc) {
+			case eEncodingT1: return "T1";
+			case eEncodingT2: return "T2";
+			case eEncodingT3: return "T3";
+			case eEncodingT4: return "T4";
+			case eEncodingT5: return "T5";
+			case eEncodingA1: return "A1";
+			case eEncodingA2: return "A2";
+			case eEncodingA3: return "A3";
+			case eEncodingA4: return "A4";
+			case eEncodingA5: return "A5";
+		}
+
+		return "INVALID";
+	}
+
 	typedef enum ARMInstrSize {
 		eSize16, eSize32
 	} ARMInstrSize;
@@ -402,8 +419,11 @@ namespace Disassembler {
 
 			ARMInstrSize ins_size;
 
+			std::string m_decoded_by;
+
 			bool m_skip;
 			unsigned mask;
+			unsigned firstcond;
 			unsigned opcode_;
 			unsigned mode;
 			unsigned read_spsr;
@@ -420,12 +440,18 @@ namespace Disassembler {
 			unsigned wordhigher;
 
 			unsigned id;
+			unsigned reg;
+			unsigned cmode;
 			unsigned U;
+			unsigned T;
+			unsigned E;
+			unsigned Q;
 			unsigned P;
 			unsigned D;
 			unsigned W;
 			unsigned op;
 			unsigned imm3;
+			unsigned imm4;
 			unsigned imm6;
 
 			bool UnalignedAllowed;
@@ -532,7 +558,7 @@ namespace Disassembler {
 			unsigned dHi;
 			unsigned dLo;
 
-			unsigned encoding;
+			ARMEncoding encoding;
 			unsigned opcode;
 
 			unsigned reverse_mask;

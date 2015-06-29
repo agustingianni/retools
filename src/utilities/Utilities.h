@@ -34,7 +34,7 @@ static inline std::string exec_get_output(std::string cmd) {
 	return result;
 }
 
-static inline std::string integer_to_string(unsigned val, bool hexa = true) {
+static inline std::string integer_to_string(unsigned long long val, bool hexa = true) {
 	std::stringstream ss;
 	if (hexa) {
 		ss << std::hex << "0x";

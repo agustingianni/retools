@@ -5,11 +5,10 @@
  *      Author: anon
  */
 
-#include "ARMDisassembler.h"
-#include "ARMUtilities.h"
-#include "utilities/Utilities.h"
-
-#include "disassembly/arm/gen/ARMDecodingTable.h"
+#include "arm/ARMDisassembler.h"
+#include "arm/ARMUtilities.h"
+#include "arm/gen/ARMDecodingTable.h"
+#include "Utilities.h"
 
 #include <functional>
 #include <iostream>

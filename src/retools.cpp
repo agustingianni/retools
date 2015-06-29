@@ -1,15 +1,28 @@
 #include <iostream>
 
-#include "disassembly/arm/ARMDisassembler.h"
+#include "macho/MachoBinary.h"
 
 using namespace std;
-using namespace Disassembler;
 
-#include "utilities/Utilities.h"
+int main(int argc, char **argv) {
+	if (argc < 2) {
+		cerr << "I need a binary to analyze" << endl;
+		return -1;
+	}
 
-int main() {
+	MachoBinary binary { };
+
+	if (!binary.load(argv[1])) {
+		cerr << "Could not open mach-o binary" << endl;
+		return -1;
+	}
+
+	if (!binary.init()) {
+		cerr << "Could not initialize mach-o binary" << endl;
+		binary.unload();
+		return -1;
+	}
+
 	cout << "Welcome to reTools!" << endl;
-	ARMDisassembler dis;
-
 	return 0;
 }

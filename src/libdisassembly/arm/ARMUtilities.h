@@ -12,10 +12,20 @@
 #include <cassert>
 #include <cstdint>
 
-#include "ARMDisassembler.h"
-#include "utilities/Utilities.h"
+#include "arm/ARMDisassembler.h"
+#include "Utilities.h"
 
 static inline void NOP() {
+}
+
+namespace D = Disassembler;
+
+static bool EncodingIsARM(D::ARMEncoding e) {
+    return e == D::eEncodingA1 || e == D::eEncodingA2 || e == D::eEncodingA3 || e == D::eEncodingA4 || e == D::eEncodingA5;
+}
+
+static bool EncodingIsThumb(D::ARMEncoding e) {
+    return e == D::eEncodingT1 || e == D::eEncodingT2 || e == D::eEncodingT3 || e == D::eEncodingT4 || e == D::eEncodingT5;
 }
 
 // Implementation of: (bits(N), bit) LSL_C(bits(N) x, integer shift)

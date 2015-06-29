@@ -4,3 +4,78 @@ Sodium Framework
   - ARM Emulator
   - ARM Instrumentation
   - ARM Symbolic Executor
+
+  CMake notes:
+
+	project:
+	
+		definimos un proyecto. Si fuese visual studio o algo asi en la solucion crearia un proyecto
+		por cada uno de los proyectos que creemos.
+  
+  	targets: repretan un ejecutable, lib etc.
+  	
+  		add_library
+  		
+  		add_executable:
+  			
+  			http://www.cmake.org/cmake/help/v3.2/command/add_executable.html#command:add_executable
+  		
+  		add_custom_target
+  		
+  	Ejemplo:
+  	
+  		add_library(algo STATIC file1.cpp file2.cpp)
+  		
+  		Ahora el nombre 'algo' puede ser usado en el CMake
+  	
+  	set_target_properties:
+  	
+  		Seteamos cosas particulares de un target. Por ejemplo podemos 
+  		decirle que flags de linkeo usar.
+  		
+  		set_target_properties(target_name LINK_FLAGS ???)
+  		
+  	target_link_libraries:
+  	
+  		http://www.cmake.org/cmake/help/v3.2/command/target_link_libraries.html#command:target_link_libraries
+  	
+  		Agrega cosas para linkear, puede ser el nombre completo, parcial o el nombre
+  		de un target creado por 'add_library'.
+  		
+  	Ejemplo:
+  	
+  		add_library(sorete sorete.cpp)
+  		target_link_libraries(sorete otralib)
+  		
+  		add_executable(binario binario.cpp)
+  		target_link_libraries(binario sorete)
+  		
+  	set_source_properties:
+  	
+  		Seteamo coas particulares de un archivo de sources. Creo que se usa para
+  		pasarle -D a los archivos y cosas especificas que pueda necesitar.
+  	
+  		set_source_properties(nombre COMPILE_FLAGS ???)
+  		
+  		set_source_properties(nombre GENERATED)
+  		
+  			Interesante por que le dice a cmake que el archivo puede no existir
+  			pero sera generado por algun otro coso.
+  			
+  	set_property:
+  	
+  		Podemos setear propiedades a directorios y otras cosas tambien.
+  		
+  		ADDITIONAL_MAKE_CLEAN_FILES -> permite borrar otras cosas ademas de los .o etc
+  			
+  	
+ 	variables:
+ 	
+ 		set(NOMBRE 1)
+ 		if (${NOMBRE} LESS 1)
+ 			set(NOMBRE 2)
+ 		endif
+ 		
+ 	imprimir:
+ 	
+ 		message(${NOMBRE})

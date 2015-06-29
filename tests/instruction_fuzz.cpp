@@ -1,70 +1,23 @@
+#include <libdisassembly/arm/ARMDisassembler.h>
+#include <libdisassembly/arm/gen/ARMDecodingTable.h>
 #include <iostream>
 #include <random>
 #include <limits>
 #include <cassert>
 #include <memory>
+#include <cstdio>
+#include <boost/algorithm/string.hpp>
 
 #include "utilities/Utilities.h"
-#include "disassembly/arm/ARMDisassembler.h"
-#include "disassembly/arm/gen/ARMDecodingTable.h"
 
 extern "C" {
-#include <darm.h>
+#include <darm/darm.h>
 }
 
 #include <capstone/capstone.h>
-#include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
 
 using namespace std;
 using namespace Disassembler;
-
-string normalize_numbers(string input) {
-	return input;
-
-	boost::regex re("#[1-9][0-9]*");
-	boost::cmatch matches;
-	boost::regex_search(input.c_str(), matches, re);
-
-	string out = string(input);
-
-	cout << "IN " << input << endl;
-
-	for (unsigned i = 0; i < matches.size(); i++) {
-		string match(matches[i].first, matches[i].second);
-		if (!match.size())
-			continue;
-
-		unsigned integer = 0;
-
-		try {
-			integer = std::stoul(match.substr(1));
-		} catch (exception& e) {
-			// cout << "Error with: 0x" << hex << match.substr(1) << ": " << e.what() << '\n';
-			continue;
-		}
-
-		boost::replace_all(out, match, "#" + integer_to_string(integer));
-	}
-
-	cout << "OU " << out << endl;
-
-	return out;
-}
-
-string normalize_registers(string input) {
-	boost::replace_all(input, "r9", "sb");
-	boost::replace_all(input, "r10", "sl");
-	boost::replace_all(input, "r11", "fp");
-	boost::replace_all(input, "r12", "ip");
-	return input;
-}
-
-string normalize_string(string input) {
-	string tmp = normalize_numbers(normalize_registers(input));
-	boost::algorithm::to_lower(tmp);
-	return tmp;
-}
 
 template<class T> T get_random_int() {
 	static random_device rd;
@@ -73,7 +26,7 @@ template<class T> T get_random_int() {
 }
 
 uint32_t get_masked_random_arm(uint32_t mask, uint32_t value, uint32_t size = 32) {
-	uint32_t r = get_random_int<uint32_t>();
+	uint32_t r = get_random_int<uint32_t>() & ((size != 32) ? 0xffff : 0xffffffff);
 
 	for (uint32_t i = 0; i < size; ++i) {
 		if (mask & (1 << i)) {
@@ -89,11 +42,6 @@ uint32_t get_masked_random_arm(uint32_t mask, uint32_t value, uint32_t size = 32
 	return r;
 }
 
-unsigned test_thumb() {
-	Disassembler::ARMDisassembler dis;
-	return 0;
-}
-
 string objdump_disassemble(uint32_t opcode, unsigned mode) {
 	string command = "python ../tests/manual.py " + std::to_string(opcode) + (mode == 0 ? " ARM" : " THUMB");
 	string output = exec_get_output(command);
@@ -106,9 +54,6 @@ string capstone_disassemble(uint32_t op_code, cs_mode mode) {
 	size_t count;
 	string ret = "INVALID";
 
-	op_code = ((op_code & 0xffff) << 16) | (op_code >> 16);
-
-	// cs_err cs_open(cs_arch arch, cs_mode mode, csh *handle);
 	cs_open(CS_ARCH_ARM, mode, &handle);
 	{
 		count = cs_disasm_ex(handle, (unsigned char *) &op_code, sizeof(op_code), 0, 0, &insn);
@@ -125,203 +70,151 @@ string capstone_disassemble(uint32_t op_code, cs_mode mode) {
 string darm_disassemble(uint32_t opcode, unsigned mode) {
 	string ret = "INVALID";
 	darm_t d;
-	char str[1024];
-	memset(str, 0, sizeof(str));
-
-	opcode = ((opcode & 0xffff) << 16) | (opcode >> 16);
+	darm_str_t str;
 
 	if (mode == 0) {
-		if (darm_armv7(&d, opcode) != -1) {
-			darm_string(&d, str);
-			ret = string(str);
+		if (darm_armv7_disasm(&d, opcode) != -1) {
+			darm_str(&d, &str);
+			ret = string(str.total);
 		}
 	} else {
-		if (darm_thumb(&d, opcode & 0xffff, opcode >> 16) != -1) {
-			darm_string(&d, str);
-			ret = string(str);
+		if (darm_thumb2_disasm(&d, opcode & 0xffff, opcode >> 16) != -1) {
+			darm_str(&d, &str);
+			ret = string(str.total);
 		}
 	}
 
 	return ret;
 }
 
-string retools_disassemble(uint32_t opcode, unsigned mode) {
+string retools_disassemble(uint32_t opcode, unsigned mode, string &decoder) {
 	ARMDisassembler dis((ARMVariants) ((int) ARMv7 | (int) AdvancedSIMD));
 	shared_ptr<ARMInstruction> ins = dis.disassemble(opcode, mode == 0 ? ARMMode_ARM : ARMMode_Thumb);
+	decoder = ins->m_decoded_by;
 	return ins->toString();
 }
 
-bool skip_instruction(const string &n1, const string &n2, const string &n3) {
-	// Skip this instructions as they are correct but the output format does not match.
-	const char *skip_ins[] = {"bfi", "ldrh", "ldrsb", "ldrd", "ldrsh", "ldc",
-		"stc", "ssat", "pkh", "bfc", "sub", "lsl", "ldr", "vstr", "str", "usat", "udf", "msr"};
-	const unsigned skip_ins_size = sizeof(skip_ins) / sizeof(skip_ins[0]);
-	for(unsigned i = 0; i < skip_ins_size; ++i) {
-		if (n1.find(skip_ins[i]) != string::npos && n2.find(skip_ins[i]) != string::npos ) {
-			return true;
-		}
-	}
+void test_arm(unsigned n, unsigned start, unsigned finish, FILE *file) {
+	uint32_t mask;
+	uint32_t value;
+	uint32_t op_code;
 
-	if (n2.find("cdp2")!= string::npos) {
-		return true;
-	}
-
-	if (n1.find("add") != string::npos && n2.find("adr") != string::npos) {
-		return true;
-	}
-
-	// popvs {r1} == ldrvs r1, [sp], #4
-	if (n1.find("ldr") != string::npos && n2.find("pop") != string::npos) {
-		return true;
-	}
-
-	// pushhs {r0} == strhs r0, [sp, #-4]!
-	if (n1.find("str") != string::npos && n2.find("push") != string::npos) {
-		return true;
-	}
-
-	// Avoid flagging "adc r4, r6, r2, lsl #0" != "adc r4, r6, r2"
-	if (n2.find(", lsl #0") != string::npos) {
-		string tmp = n2.substr(0, n2.size() - strlen(", lsl #0"));
-		if (n1 == tmp || n3 == tmp) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-unsigned test_arm(unsigned n, unsigned start, unsigned finish, bool show) {
-	ARMDisassembler dis;
-
-	if (start == finish) {
+	if (start == finish || finish > n_arm_opcodes) {
 		finish = n_arm_opcodes;
 	}
 
 	for (unsigned i = start; i < finish; ++i) {
-		unsigned total = n;
-		unsigned match = 0;
-		unsigned fail = 0;
-		unsigned invalid = 0;
-		unsigned to_string_missing = 0;
-		unsigned todo = 0;
+		mask = arm_opcodes[i].mask;
+		value = arm_opcodes[i].value;
 
-		uint32_t mask = arm_opcodes[i].mask;
-		uint32_t value = arm_opcodes[i].value;
-		uint32_t op_code;
+		fprintf(file, "    {\n");
+		fprintf(file, "      \"name\"     : \"%s\",\n", arm_opcodes[i].name);
+		fprintf(file, "      \"mask\"     : %u,\n", arm_opcodes[i].mask);
+		fprintf(file, "      \"value\"    : %u,\n", arm_opcodes[i].value);
+		fprintf(file, "      \"size\"     : %u,\n", 32);
+		fprintf(file, "      \"encoding\" : \"%s\",\n", ARMEncodingToString(arm_opcodes[i].encoding));
+		fprintf(file, "      \"results\"  :\n");
+		fprintf(file, "      [\n");
 
-		unsigned c = 0;
-		for (unsigned j = 0; j < total; ++j) {
+		for (unsigned j = 0; j < n; ++j) {
 			op_code = get_masked_random_arm(mask, value);
 
 			// We avoid generating condition codes of 0b1111.
 			if (get_bit(mask, 28) == 0) {
-				// printf("CACA: %.8x %.8x %.8x %.8x\n", mask ,value, op_code, op_code&0xefffffff);
 				op_code &= 0xefffffff;
 			}
 
-			string capstone = normalize_string(capstone_disassemble(op_code, CS_MODE_ARM));
-			string darm = normalize_string(darm_disassemble(op_code, 0));
-			string retools = normalize_string(retools_disassemble(op_code, 0));
-			// string objdump = normalize_string(objdump_disassemble(op_code, 0));
+			string decoder;
+			string capstone = capstone_disassemble(op_code, CS_MODE_ARM);
+			string darm = darm_disassemble(op_code, 0);
+			string retools = retools_disassemble(op_code, 0, decoder);
 
-			// if (capstone == retools || darm == retools || objdump == retools) {
-			if (capstone == retools || darm == retools) {
-				match++;
-				continue;
-			}
-
-			// Some instructions are a match but differ in the way they are displayed.
-			if (skip_instruction(capstone, retools, darm)) {
-				match++;
-				continue;
-			}
-
-			if (retools.find("todo_") != string::npos) {
-				todo++;
-			} else if (retools == "to_string_missing") {
-				to_string_missing++;
-			// } else if (capstone == "invalid" || objdump.find("invalid")) {
-			} else if (capstone == "invalid" || retools == "unpredictableinstruction" || retools == "unknown" || retools == "undefinedinstruction") {
-				invalid++;
-			} else {
-				if (show && c++ < 10) {
-					printf("reto: 0x%.8x = %40s\n", op_code, retools.c_str());
-					printf("caps: 0x%.8x = %40s\n", op_code, capstone.c_str());
-					printf("darm: 0x%.8x = %40s\n\n", op_code, darm.c_str());
-					// printf("objd: 0x%.8x = %40s\n\n", op_code, objdump.c_str());
-				}
-
-				fail++;
-			}
+			fprintf(file, "        {\n");
+			fprintf(file, "          \"opcode\"  : %u,\n", op_code);
+			fprintf(file, "          \"decoder\" : \"%s\",\n", decoder.c_str());
+			fprintf(file, "          \"reto\"    : \"%s\",\n", retools.c_str());
+			fprintf(file, "          \"caps\"    : \"%s\",\n", capstone.c_str());
+			fprintf(file, "          \"darm\"    : \"%s\"\n", darm.c_str());
+			fprintf(file, "        }");
+			fprintf(file, (j == n - 1) ? "\n" : ",\n");
 		}
 
-		if (fail) {
-			printf("%6.2f%% | %6.2f%% -> match: %4d fail: %4d invalid: %4d todo: %4d to_string: %4d name: %50s enc: %4d n: %d\n",
-				(match + invalid) * 100.0 / total,
-				match * 100.0 / total,
-				match,
-				fail,
-				invalid,
-				todo,
-				to_string_missing,
-				arm_opcodes[i].name,
-				arm_opcodes[i].encoding,
-				i
-			);
-		}
+		fprintf(file, "      ]\n");
+		fprintf(file, "    }");
+		fprintf(file, (i == finish - 1) ? "\n" : ",\n");
 	}
-
-	return 0;
 }
 
-unsigned test_thumb(unsigned n, unsigned start, unsigned finish, bool show) {
-	ARMDisassembler dis;
+void test_thumb(unsigned n, unsigned start, unsigned finish, FILE *file) {
+	uint32_t mask;
+	uint32_t value;
+	uint32_t size;
+	uint32_t op_code;
 
-	for (unsigned i = start; i < finish; ++i) {
-		unsigned total = n;
-		unsigned match = 0;
-		unsigned fail = 0;
-		unsigned invalid = 0;
-		unsigned to_string_missing = 0;
-
-		uint32_t mask = thumb_opcodes[i].mask;
-		uint32_t value = thumb_opcodes[i].value;
-		uint32_t size = thumb_opcodes[i].ins_size == eSize16 ? 16 : 32;
-		uint32_t op_code;
-
-		printf("m=%.8x v=%.8x s=%u n=\"%s\"\n",
-			thumb_opcodes[i].mask,
-			thumb_opcodes[i].value,
-			size,
-			thumb_opcodes[i].name
-		);
-
-		for (unsigned j = 0; j < total; ++j) {
-			op_code = get_masked_random_arm(mask, value, size);
-			// if (size == 32)
-			// 	op_code = ((op_code & 0xffff) << 16) | (op_code >> 16);
-
-			string capstone = normalize_string(capstone_disassemble(op_code, CS_MODE_THUMB));
-			string darm = normalize_string(darm_disassemble(op_code, 1));
-			string retools = normalize_string(retools_disassemble(op_code, 1));
-
-			if (capstone == retools || darm == retools) {
-				match++;
-				continue;
-			}
-
-			printf("reto: 0x%.8x = %40s\n", op_code, retools.c_str());
-			printf("caps: 0x%.8x = %40s\n", op_code, capstone.c_str());
-			printf("darm: 0x%.8x = %40s\n\n", op_code, darm.c_str());
-		}
-
-		printf("%6.2f%% %6.2f%% match: %4d fail: %4d invalid: %4d to_string_missing: %4d name: %50s encoding: %4d n: %d\n",
-				(match + invalid) * 100.0 / total, match * 100.0 / total, match, fail, invalid, to_string_missing,
-				arm_opcodes[i].name, arm_opcodes[i].encoding, i);
+	if (start == finish || finish > n_thumb_opcodes) {
+		finish = n_thumb_opcodes;
 	}
 
-	return 0;
+	for (unsigned i = start; i < finish; ++i) {
+		mask = thumb_opcodes[i].mask;
+		value = thumb_opcodes[i].value;
+		size = thumb_opcodes[i].ins_size == eSize16 ? 16 : 32;
+
+		fprintf(file, "    {\n");
+		fprintf(file, "      \"name\"     : \"%s\",\n", thumb_opcodes[i].name);
+		fprintf(file, "      \"mask\"     : %u,\n", thumb_opcodes[i].mask);
+		fprintf(file, "      \"value\"    : %u,\n", thumb_opcodes[i].value);
+		fprintf(file, "      \"size\"     : %u,\n", thumb_opcodes[i].ins_size == eSize16 ? 16 : 32);
+		fprintf(file, "      \"encoding\" : \"%s\",\n", ARMEncodingToString(thumb_opcodes[i].encoding));
+		fprintf(file, "      \"results\"  :\n");
+		fprintf(file, "      [\n");
+
+		for (unsigned j = 0; j < n; ++j) {
+			op_code = get_masked_random_arm(mask, value, size);
+
+			unsigned caps_op_code = size == 32 ? ((op_code & 0xffff) << 16 ) | (op_code >> 16) : op_code;
+			// unsigned darm_op_code = size == 16 ? ((op_code & 0xffff) << 16 ) | (op_code >> 16) : op_code;
+
+			string decoder;
+			string capstone = capstone_disassemble(caps_op_code, CS_MODE_THUMB);
+			string darm = darm_disassemble(op_code, 1);
+			string retools = retools_disassemble(op_code, 1, decoder);
+
+			fprintf(file, "        {\n");
+			fprintf(file, "          \"opcode\"  : %u,\n", op_code);
+			fprintf(file, "          \"decoder\" : \"%s\",\n", decoder.c_str());
+			fprintf(file, "          \"reto\"    : \"%s\",\n", retools.c_str());
+			fprintf(file, "          \"caps\"    : \"%s\",\n", capstone.c_str());
+			fprintf(file, "          \"darm\"    : \"%s\"\n", darm.c_str());
+			fprintf(file, "        }");
+			fprintf(file, (j == n - 1) ? "\n" : ",\n");
+		}
+
+		fprintf(file, "      ]\n");
+		fprintf(file, "    }");
+		fprintf(file, (i == finish - 1) ? "\n" : ",\n");
+	}
+}
+
+void test(unsigned n, unsigned start, unsigned finish, unsigned mode, char *path) {
+	FILE *file = fopen(path, "w");
+	assert(file && "Could not open output file.");
+
+	fprintf(file, "{\n");
+	fprintf(file, "  \"mode\" : \"%s\",\n", mode == 0 ? "ARM" : "THUMB");
+	fprintf(file, "  \"tests\" : \n");
+	fprintf(file, "  [\n");
+
+	if (mode == 0) {
+		test_arm(n, start, finish, file);
+	} else {
+		test_thumb(n, start, finish, file);
+	}
+
+	fprintf(file, "  ]\n");
+	fprintf(file, "}\n");
+
+	fclose(file);
 }
 
 void gen_shit(unsigned i, unsigned j) {
@@ -350,16 +243,6 @@ void gen_shit(unsigned i, unsigned j) {
 
 				if (dis_retools.find(", lsl #0") != string::npos) {
 					dis_retools = dis_retools.substr(0, dis_retools.size() - strlen(", lsl #0"));
-				}
-
-				// if (dis_caps != dis_retools && dis_retools != "UnpredictableIns") {
-				if (normalize_string(dis_caps) != normalize_string(dis_retools)
-					&& dis_retools != "unpredictableinstruction"
-					&& dis_retools != "unknown") {
-
-					cout << "OPCODE  : " << hex << opcode << '\n';
-					cout << "CAPSTONE: " << dis_caps << '\n';
-					cout << "RETOOOLS: " << dis_retools << "\n\n";
 				}
 
 				ok++;
@@ -416,10 +299,11 @@ void test_decoding_table() {
 
 // Print the representation under all the available disassemblers.
 void test_manual_opcode(uint32_t op_code) {
-	string capstone = normalize_string(capstone_disassemble(op_code, CS_MODE_ARM));
-	string darm = normalize_string(darm_disassemble(op_code, 0));
-	string retools = normalize_string(retools_disassemble(op_code, 0));
-	string objdump = normalize_string(objdump_disassemble(op_code, 0));
+	string decoder;
+	string capstone = capstone_disassemble(op_code, CS_MODE_ARM);
+	string darm = darm_disassemble(op_code, 0);
+	string retools = retools_disassemble(op_code, 0, decoder);
+	string objdump = objdump_disassemble(op_code, 0);
 
 	printf("MANUAL:\nreto: 0x%.8x = %40s\n", op_code, retools.c_str());
 	printf("caps: 0x%.8x = %40s\n", op_code, capstone.c_str());
@@ -428,22 +312,12 @@ void test_manual_opcode(uint32_t op_code) {
 }
 
 int main(int argc, char **argv) {
-	// test_decoding_table();
-	// return 0;
-
-	// test_manual_opcode(0xcafecafe);
-	// return 0;
-
-	cout << "Executing 'instruction_fuzz' test" << endl;
-
 	unsigned n = std::stoi(argv[1]);
 	unsigned i = std::stoi(argv[2]);
 	unsigned j = std::stoi(argv[3]);
 	unsigned k = std::stoi(argv[4]);
+	char *path = argv[5];
 
-	test_thumb(n, i, j, k == 1 ? true : false);
-	return 0;
-
-	test_arm(n, i, j, k == 1 ? true : false);
+	test(n, i, j, k, path);
 	return 0;
 }

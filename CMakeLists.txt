@@ -1,72 +1,35 @@
 cmake_minimum_required(VERSION 2.8)
 
-#set(CMAKE_C_COMPILER "/usr/local/bin/clang")
-#set(CMAKE_CXX_COMPILER "/usr/local/bin/clang++")
+# Disable C++ exceptions and enable C++11 globaly.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables")
 
-project(disassembler_project)
+# Build related libraries.
+add_subdirectory(src/libbinary)
+add_subdirectory(src/libdisassembly)
+# add_subdirectory(src/libemulation)
+# add_subdirectory(src/libsymbolic)
 
-include_directories(
-	"${CMAKE_CURRENT_SOURCE_DIR}/src"
-	"${CMAKE_CURRENT_SOURCE_DIR}/src/disassembly/arm/gen"
-)
-
-#set(CMAKE_CXX_FLAGS "-std=c++11 -O1 -g -fsanitize=address -fno-omit-frame-pointer -Wall -Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable")
-set(CMAKE_CXX_FLAGS "-std=c++11 -O1 -g -Wall -Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable")
-
-# Get some debugging information about the decoders.
-#IF (DEFINED DEBUG_DECODER)
-#	SET(DEBUG_DECODER 1)
-#	ADD_DEFINITIONS(-DDEBUG_DECODER=${DEBUG_DECODER})
-#	MESSAGE("Showing debug information on decode: ${DEBUG_DECODER}")
-#ENDIF()
+project(retools)
 
 add_executable(
 	retools
-	src/retools.cpp
-	src/disassembly/arm/ARMDisassembler.cpp
-	src/disassembly/arm/ARMDisassembler.h
-	src/disassembly/arm/ARMUtilities.h
-	src/disassembly/arm/gen/ARMDecodingTable.cpp
-	src/disassembly/arm/gen/ARMDecodingTable.h
-	src/disassembly/arm/gen/ARMtoString.cpp
-	src/disassembly/arm/gen/ARMtoString.h
-	src/disassembly/arm/gen/ARMtoStringCustom.cpp
-	src/disassembly/arm/gen/ARMtoStringCustom.h
-	src/utilities/Utilities.h
+	${CMAKE_CURRENT_SOURCE_DIR}/src/retools.cpp
 )
 
-add_executable(
-	instruction_fuzz
-	tests/instruction_fuzz.cpp
-	src/disassembly/arm/ARMDisassembler.cpp
-	src/disassembly/arm/ARMDisassembler.h
-	src/disassembly/arm/ARMUtilities.h
-	src/disassembly/arm/gen/ARMDecodingTable.cpp
-	src/disassembly/arm/gen/ARMDecodingTable.h
-	src/disassembly/arm/gen/ARMtoString.cpp
-	src/disassembly/arm/gen/ARMtoString.h
-	src/disassembly/arm/gen/ARMtoStringCustom.cpp
-	src/disassembly/arm/gen/ARMtoStringCustom.h
-	src/utilities/Utilities.h
+target_include_directories(
+	retools
+	PRIVATE
+	${CMAKE_CURRENT_SOURCE_DIR}/src/libbinary
 )
 
-find_package(Boost 1.56.0)
-if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-endif()
+# Enable c++11 on the target.
+set_target_properties(
+	retools
+	PROPERTIES 
+	COMPILE_FLAGS "-std=c++11"
+)
 
 target_link_libraries(
-	instruction_fuzz
-	capstone
-	boost_regex
-	darm
-)
-
-install(TARGETS retools DESTINATION bin)
-
-enable_testing()
-
-add_test(
-	NAME instruction_fuzz
-	COMMAND instruction_fuzz
+	retools
+	binary
 )
