@@ -383,7 +383,11 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
                 fd.write("    ins->%s = %s;\n" % (var, var))
 
             # Here we hard code some variables that are not defined in the body but need to go into the instruction.
-            hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "D", "W", "B", "P", "U", "op", "imm3", "imm6", "mode", "opcode_", "mask"]
+            hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm",
+                "opc2", "option", "D", "W", "B", "P", "U", "op", "imm3", "imm6",
+                "mode", "opcode_", "mask"]
+
+            fd.write("    ins->encoding = encoding;\n")
             for var in input_vars:
                 if var[0] in hard:
                     fd.write("    ins->%s = %s;\n" % (var[0], var[0]))
@@ -427,7 +431,18 @@ std::string S_str(const ARMInstruction *ins) {
     return ins->setflags ? "S" : "";
 }
 
+bool EncodingIsARM(ARMEncoding e) {
+    return e == eEncodingA1 || e == eEncodingA2 || e == eEncodingA3 || e == eEncodingA4 || e == eEncodingA5;
+}
+
+bool EncodingIsThumb(ARMEncoding e) {
+    return e == eEncodingT1 || e == eEncodingT2 || e == eEncodingT3 || e == eEncodingT4 || e == eEncodingT5;
+}
+
 std::string c_str(const ARMInstruction *ins) {
+    if (EncodingIsThumb(ins->encoding))
+        return "";
+
     return ins->cond != COND_AL ? ARMCondCodeToString((cond_t) ins->cond) : "";
 }
 
