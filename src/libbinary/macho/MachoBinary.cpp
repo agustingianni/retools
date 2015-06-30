@@ -10,6 +10,31 @@
 
 #include <cassert>
 #include <string>
+#include <cstring>
+
+static uintptr_t read_uleb128(const uint8_t *&p, const uint8_t *end) {
+	uint64_t result = 0;
+	int bit = 0;
+	do {
+
+		uint64_t slice = *p & 0x7f;
+
+		result |= (slice << bit);
+		bit += 7;
+	} while (*p++ & 0x80);
+
+	return result;
+}
+
+static uintptr_t read_terminal_size(const uint8_t *&p, const uint8_t *end) {
+	uintptr_t terminal_size = *p++;
+	if (terminal_size > 127) {
+		--p;
+		terminal_size = read_uleb128(p, end);
+	}
+
+	return terminal_size;
+}
 
 std::string LoadCommandName(unsigned cmd) {
     switch (cmd) {
@@ -169,6 +194,7 @@ bool MachoBinary::init() {
             m_binary_type = BinaryType::Executable;
             break;
         case MH_DYLIB:
+        case MH_BUNDLE: // XXX: Verify that this is a library.
             m_binary_type = BinaryType::Library;
             break;
         default:
@@ -989,8 +1015,113 @@ bool MachoBinary::parse_encryption_info_64(struct load_command *lc) {
 	return true;
 }
 
+#include <vector>
+#include <queue>
 
 bool MachoBinary::parse_dyld_info(struct load_command *lc) {
     struct dyld_info_command *cmd = m_data->pointer<struct dyld_info_command>(lc);
+
+    LOG_DEBUG("Rebase information: rebase_off = 0x%.8x rebase_size = 0x%.8x", cmd->rebase_off, cmd->rebase_size);
+    LOG_DEBUG("Binding information: bind_off = 0x%.8x bind_size = 0x%.8x", cmd->bind_off, cmd->bind_size);
+    LOG_DEBUG("Weak binding information: weak_bind_off = 0x%.8x weak_bind_size = 0x%.8x", cmd->weak_bind_off, cmd->weak_bind_size);
+    LOG_DEBUG("Lazy binding information: lazy_bind_off = 0x%.8x lazy_bind_size = 0x%.8x", cmd->lazy_bind_off, cmd->lazy_bind_size);
+    LOG_DEBUG("Export information: export_off = 0x%.8x export_size = 0x%.8x", cmd->export_off, cmd->export_size);
+
+#define EXPORT_SYMBOL_FLAGS_KIND_MASK				0x03
+#define EXPORT_SYMBOL_FLAGS_KIND_REGULAR			0x00
+#define EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL		0x01
+#define EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION			0x04
+#define EXPORT_SYMBOL_FLAGS_REEXPORT				0x08
+#define EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER		0x10
+
+    // The export information is inside a trie.
+    const uint8_t *export_start = m_data->offset<const uint8_t>(cmd->export_off, cmd->export_size);
+    const uint8_t *export_end = export_start + cmd->export_size;
+
+    struct Node;
+    struct Edge {
+    	Node *prev;
+    	Node *next;
+    	std::string label;
+    };
+
+    struct Node {
+    	std::vector<Edge *> m_children;
+    	unsigned m_terminal_size;
+    	const uint8_t *m_data;
+    	uintptr_t m_offset;
+    };
+
+    // Start from offset zero.
+	Node *init = new Node();
+	init->m_offset = 0;
+
+	// Setup the initial node.
+    std::queue<Node *> working_set;
+	working_set.push(init);
+
+	const uint8_t* cur_byte = export_start;
+
+	// Process all the nodes.
+	while (!working_set.empty() && cur_byte < export_end) {
+		// Get a Node from the queue.
+		Node *cur_node = working_set.front();
+		working_set.pop();
+
+		// Get a pointer to the data.
+		cur_byte = export_start + cur_node->m_offset;
+		cur_node->m_data = cur_byte;
+
+		// Read the terminal size.
+		cur_node->m_terminal_size = read_terminal_size(cur_byte, export_end);
+
+		// Skip the symbol properties to get to the children.
+		cur_byte += cur_node->m_terminal_size;
+
+		uint8_t child_count = *cur_byte++;
+		for(unsigned i = 0; i < child_count; i++) {
+			// Current child label.
+			const char *edge_label = (const char *) cur_byte;
+
+			// Skip the node label.
+			cur_byte += strlen(edge_label) + 1;
+
+			// Get the offset of the node.
+			uintptr_t node_offset = read_uleb128(cur_byte, export_end);
+
+			Node *new_node = new Node();
+			new_node->m_offset = node_offset;
+
+			Edge *new_edge = new Edge();
+			new_edge->prev = cur_node;
+			new_edge->next = new_node;
+			new_edge->label = edge_label;
+
+			cur_node->m_children.push_back(new_edge);
+			working_set.push(new_node);
+		}
+	}
+
+	std::function<void(Node *, std::vector<std::string> &vec)> dfs_printer = [&dfs_printer](Node *node, std::vector<std::string> &vec) {
+		if (node->m_terminal_size) {
+			std::string joined;
+			for(const auto &el : vec) {
+				joined += el;
+			}
+
+			LOG_DEBUG("label = %s", joined.c_str());
+		}
+
+		for(Edge *edge : node->m_children) {
+			vec.push_back(edge->label);
+			dfs_printer(edge->next, vec);
+			vec.pop_back();
+		}
+	};
+
+	std::vector<std::string> vec;
+	dfs_printer(init, vec);
+	exit(0);
+
     return true;
 }
