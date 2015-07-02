@@ -48,7 +48,6 @@ private:
 
     bool parse_load_commands();
 
-
     bool parse_data_in_code(struct load_command *lc);
     bool parse_function_starts(struct load_command *lc);
 
@@ -56,10 +55,17 @@ private:
     bool parse_routines_64(struct load_command *lc);
 
     // Segment and section parsers.
-    bool parse_segment_32(struct load_command *lc);
-    bool parse_section_32(struct section_32 *lc);
-    bool parse_segment_64(struct load_command *lc);
-    bool parse_section_64(struct section_64 *lc);
+	template<typename Segment_t, typename Section_t> bool parse_segment(struct load_command *lc);
+	template<typename Section_t> bool parse_section(Section_t *lc);
+
+    // Section parsers.
+    template<typename Section_t> bool parse_cstring_literals_section(Section_t *lc);
+    template<typename Section_t> bool parse_4byte_literals(Section_t *lc);
+    template<typename Section_t> bool parse_8byte_literals(Section_t *lc);
+    template<typename Section_t> bool parse_16byte_literals(Section_t *lc);
+    template<typename Section_t> bool parse_literal_pointers(Section_t *lc);
+    template<typename Section_t> bool parse_mod_init_func_pointers(Section_t *lc);
+    template<typename Section_t> bool parse_mod_term_func_pointers(Section_t *lc);
 
     bool parse_symtab(struct load_command *lc);
     bool parse_generic_symbol(struct nlist_64 *symbol);
@@ -71,10 +77,22 @@ private:
     bool parse_dylib(struct load_command *lc);
     bool parse_main(struct load_command *lc);
     bool parse_unixthread(struct load_command *lc);
+
     bool parse_dyld_info(struct load_command *lc);
+    bool parse_dyld_info_exports(const uint8_t *start, const uint8_t *end);
+    bool parse_dyld_info_rebase(const uint8_t *start, const uint8_t *end);
+    bool parse_dyld_info_binding(const uint8_t *start, const uint8_t *end);
+    bool parse_dyld_info_weak_binding(const uint8_t *start, const uint8_t *end);
+    bool parse_dyld_info_lazy_binding(const uint8_t *start, const uint8_t *end);
 
     bool parse_encryption_info_32(struct load_command *lc);
     bool parse_encryption_info_64(struct load_command *lc);
+
+    template <typename T> void add_segment(T *);
+    template <typename T> void add_section(T *);
+    std::string segment_name(unsigned index);
+    uint64_t segment_address(unsigned index);
+    std::string section_name(unsigned index, uint64_t address);
 
     // Required for parsing names and symbols. Loaded at 'parse_symtab'.
     struct nlist_64 *m_symbol_table;
@@ -82,6 +100,16 @@ private:
 
     char *m_string_table;
     size_t m_string_table_size;
+
+    // XXX: This so far represents the address of the first __TEXT segment.
+    uint64_t m_base_address;
+
+    // Architecture specific information collected while parsing.
+    std::vector<segment_command> m_segments_32;
+    std::vector<segment_command_64> m_segments_64;
+    std::vector<section> m_sections_32;
+    std::vector<section_64> m_sections_64;
+    std::vector<std::string> m_imported_libs;
 
 public:
     bool init();

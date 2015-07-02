@@ -11,8 +11,27 @@
 #include <cassert>
 #include <string>
 #include <cstring>
+#include <vector>
+#include <queue>
 
-static uintptr_t read_uleb128(const uint8_t *&p, const uint8_t *end) {
+using namespace std;
+
+static int64_t read_sleb128(const uint8_t*& p, const uint8_t* end) {
+	int64_t result = 0;
+	int bit = 0;
+	uint8_t byte;
+	do {
+		byte = *p++;
+		result |= ((byte & 0x7f) << bit);
+		bit += 7;
+	} while (byte & 0x80);
+
+	if ((byte & 0x40) != 0)
+		result |= (-1LL) << bit;
+	return result;
+}
+
+static uint64_t read_uleb128(const uint8_t *&p, const uint8_t *end) {
 	uint64_t result = 0;
 	int bit = 0;
 	do {
@@ -36,7 +55,7 @@ static uintptr_t read_terminal_size(const uint8_t *&p, const uint8_t *end) {
 	return terminal_size;
 }
 
-std::string LoadCommandName(unsigned cmd) {
+string LoadCommandName(unsigned cmd) {
     switch (cmd) {
         case LC_SEGMENT:
             return "LC_SEGMENT";
@@ -302,7 +321,7 @@ bool MachoBinary::parse_load_commands() {
                 break;
             case LC_SEGMENT:
                 // Defines a segment of this file to be mapped into the address space.
-                if (!parse_segment_32(cur_lc)) {
+                if (!parse_segment<segment_command, section>(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
                     continue;
                 }
@@ -318,7 +337,7 @@ bool MachoBinary::parse_load_commands() {
                 break;
             case LC_SEGMENT_64:
                 // Defines a 64-bit segment of this file to be mapped into the address space.
-                if (!parse_segment_64(cur_lc)) {
+                if (!parse_segment<segment_command_64, section_64>(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
                     continue;
                 }
@@ -418,8 +437,7 @@ bool MachoBinary::parse_data_in_code(struct load_command *lc) {
     struct data_in_code_entry *data = m_data->offset<struct data_in_code_entry>(cmd->dataoff, cmd->datasize);
 
     // Get the number of entries.
-    unsigned n = cmd->datasize / sizeof(struct data_in_code_entry);
-
+    unsigned n = cmd->datasize / sizeof(*data);
     for (unsigned i = 0; i < n; ++i) {
         switch (data[i].kind) {
             case DICE_KIND_DATA:
@@ -490,25 +508,174 @@ bool MachoBinary::parse_routines_64(struct load_command *lc) {
     return true;
 }
 
-bool MachoBinary::parse_segment_32(struct load_command *lc) {
-    struct segment_command *cmd = m_data->pointer<struct segment_command>(lc);
-    printf("name = %-16s | base = 0x%.8x | size = 0x%.8x\n", cmd->segname, cmd->vmaddr, cmd->vmsize);
+template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
+    uint32_t section_type = lc->flags & SECTION_TYPE;
+    uint32_t section_usr_attr = lc->flags & SECTION_ATTRIBUTES_USR;
+    uint32_t section_sys_attr = lc->flags & SECTION_ATTRIBUTES_SYS;
+
+    add_section<Section_t>(lc);
+
+    LOG_DEBUG("name%16s:%-16s addr=%p size=0x%.16llx offset=0x%.8x align=0x%.8x reloff=0x%.8x nreloc=0x%.8x flags=0x%.8x",
+    		lc->segname, lc->sectname, (void * ) lc->addr, lc->size, lc->offset,
+			lc->align, lc->reloff, lc->nreloc, lc->flags);
+
+    switch (section_type) {
+        case S_REGULAR:
+            LOG_DEBUG("S_REGULAR");
+            break;
+
+        case S_ZEROFILL:
+            LOG_DEBUG("S_ZEROFILL");
+            break;
+
+        case S_CSTRING_LITERALS:
+            LOG_DEBUG("S_CSTRING_LITERALS");
+            parse_cstring_literals_section<Section_t>(lc);
+            break;
+
+        case S_4BYTE_LITERALS:
+            LOG_DEBUG("S_4BYTE_LITERALS");
+            parse_4byte_literals<Section_t>(lc);
+            break;
+
+        case S_8BYTE_LITERALS:
+            LOG_DEBUG("S_8BYTE_LITERALS");
+            parse_8byte_literals<Section_t>(lc);
+            break;
+
+        case S_16BYTE_LITERALS:
+            LOG_DEBUG("S_16BYTE_LITERALS");
+            parse_16byte_literals<Section_t>(lc);
+            break;
+
+        case S_LITERAL_POINTERS:
+            LOG_DEBUG("S_LITERAL_POINTERS");
+            parse_literal_pointers<Section_t>(lc);
+            break;
+
+        case S_MOD_INIT_FUNC_POINTERS:
+            LOG_DEBUG("S_MOD_INIT_FUNC_POINTERS");
+            parse_mod_init_func_pointers<Section_t>(lc);
+            break;
+
+        case S_MOD_TERM_FUNC_POINTERS:
+            LOG_DEBUG("S_MOD_TERM_FUNC_POINTERS");
+            parse_mod_term_func_pointers<Section_t>(lc);
+            break;
+
+        case S_NON_LAZY_SYMBOL_POINTERS:
+            LOG_DEBUG("S_NON_LAZY_SYMBOL_POINTERS");
+            break;
+
+        case S_LAZY_SYMBOL_POINTERS:
+            LOG_DEBUG("S_LAZY_SYMBOL_POINTERS");
+            break;
+
+        case S_SYMBOL_STUBS:
+            LOG_DEBUG("S_SYMBOL_STUBS");
+            break;
+
+        case S_COALESCED:
+            LOG_DEBUG("S_COALESCED");
+            break;
+
+        case S_GB_ZEROFILL:
+            LOG_DEBUG("S_GB_ZEROFILL");
+            break;
+
+        case S_INTERPOSING:
+            LOG_DEBUG("S_INTERPOSING");
+            break;
+
+        case S_DTRACE_DOF:
+            LOG_DEBUG("S_DTRACE_DOF");
+            break;
+
+        case S_LAZY_DYLIB_SYMBOL_POINTERS:
+            LOG_DEBUG("S_LAZY_DYLIB_SYMBOL_POINTERS");
+            break;
+
+        case S_THREAD_LOCAL_REGULAR:
+            LOG_DEBUG("S_THREAD_LOCAL_REGULAR");
+            break;
+
+        case S_THREAD_LOCAL_ZEROFILL:
+            LOG_DEBUG("S_THREAD_LOCAL_ZEROFILL");
+            break;
+
+        case S_THREAD_LOCAL_VARIABLES:
+            LOG_DEBUG("S_THREAD_LOCAL_VARIABLES");
+            break;
+
+        case S_THREAD_LOCAL_VARIABLE_POINTERS:
+            LOG_DEBUG("S_THREAD_LOCAL_VARIABLE_POINTERS");
+            break;
+
+        case S_THREAD_LOCAL_INIT_FUNCTION_POINTERS:
+            LOG_DEBUG("S_THREAD_LOCAL_INIT_FUNCTION_POINTERS");
+            break;
+
+        default:
+            LOG_WARN("Unknown section type 0x%.8x, ignoring", section_type);
+            break;
+    }
+
+	if (section_usr_attr & S_ATTR_DEBUG) {
+		LOG_DEBUG("S_ATTR_DEBUG");
+	}
+
+	if (section_usr_attr & S_ATTR_LIVE_SUPPORT) {
+		LOG_DEBUG("S_ATTR_LIVE_SUPPORT");
+	}
+
+	if (section_usr_attr & S_ATTR_NO_DEAD_STRIP) {
+		LOG_DEBUG("S_ATTR_NO_DEAD_STRIP");
+	}
+
+	if (section_usr_attr & S_ATTR_NO_TOC) {
+		LOG_DEBUG("S_ATTR_NO_TOC");
+	}
+
+	if (section_usr_attr & S_ATTR_PURE_INSTRUCTIONS) {
+		LOG_DEBUG("S_ATTR_PURE_INSTRUCTIONS");
+	}
+
+	if (section_usr_attr & S_ATTR_SELF_MODIFYING_CODE) {
+		LOG_DEBUG("S_ATTR_SELF_MODIFYING_CODE");
+	}
+
+	if (section_usr_attr & S_ATTR_STRIP_STATIC_SYMS) {
+		LOG_DEBUG("S_ATTR_STRIP_STATIC_SYMS");
+	}
+
+	if (section_sys_attr & S_ATTR_SOME_INSTRUCTIONS) {
+		LOG_DEBUG("S_ATTR_SOME_INSTRUCTIONS");
+	}
+
+	if (section_sys_attr & S_ATTR_EXT_RELOC) {
+		LOG_DEBUG("S_ATTR_EXT_RELOC");
+	}
+	if (section_sys_attr & S_ATTR_LOC_RELOC) {
+		LOG_DEBUG("S_ATTR_LOC_RELOC");
+	}
+
     return true;
 }
 
-bool MachoBinary::parse_section_32(struct section_32 *lc) {
-    return true;
-}
+template <typename Segment_t, typename Section_t> bool MachoBinary::parse_segment(struct load_command *lc) {
+	Segment_t *cmd = m_data->pointer<Segment_t>(lc);
 
-// Specifies the range of bytes in a 64-bit mach-o file that make up a segment.
-// Those bytes are mapped by the loader into the address space of a program.
-bool MachoBinary::parse_segment_64(struct load_command *lc) {
-    struct segment_command_64 *cmd = m_data->pointer<struct segment_command_64>(lc);
+	add_segment<Segment_t>(cmd);
 
     LOG_DEBUG("name = %-16s | base = 0x%.16llx | size = 0x%.16llx", cmd->segname, cmd->vmaddr, cmd->vmsize);
 
+    if (string(cmd->segname) == SEG_TEXT) {
+    	LOG_DEBUG("m_base_address = %p", (void *) m_base_address);
+    	m_base_address = cmd->vmaddr;
+    }
+
     // Get a pointer to the first section.
-    struct section_64 *cur_section = m_data->pointer<struct section_64>(cmd + 1);
+    Section_t *cur_section = m_data->pointer<Section_t>(cmd + 1);
 
     // Parse each of the segments sections.
     for (unsigned i = 0; i < cmd->nsects; ++i) {
@@ -520,12 +687,8 @@ bool MachoBinary::parse_segment_64(struct load_command *lc) {
 
         LOG_DEBUG("Parsing section %d of %d", i, cmd->nsects);
 
-        LOG_DEBUG("name%16s:%-16s addr=%p size=0x%.16llx offset=0x%.8x align=0x%.8x reloff=0x%.8x nreloc=0x%.8x flags=0x%.8x",
-                cur_section->segname, cur_section->sectname, (void * ) cur_section->addr, cur_section->size, cur_section->offset,
-                cur_section->align, cur_section->reloff, cur_section->nreloc, cur_section->flags);
-
         // Parse the section.
-        if (!parse_section_64(cur_section)) {
+        if (!parse_section<Section_t>(cur_section)) {
             LOG_ERR("Error, could not parse section %u of %u, skipping", i, cmd->nsects);
             continue;
         }
@@ -536,151 +699,84 @@ bool MachoBinary::parse_segment_64(struct load_command *lc) {
     return true;
 }
 
-bool MachoBinary::parse_section_64(struct section_64 *lc) {
-    uint32_t section_type = lc->flags & SECTION_TYPE;
-    uint32_t section_usr_attr = lc->flags & SECTION_ATTRIBUTES_USR;
-    uint32_t section_sys_attr = lc->flags & SECTION_ATTRIBUTES_SYS;
+template<typename Section_t> bool MachoBinary::parse_cstring_literals_section(Section_t *lc) {
+	auto start = m_data->offset<const char>(lc->offset, lc->size);
+	if (!start) {
+		return false;
+	}
 
-    switch (section_type) {
-        case S_REGULAR:
-            // No particular type. This is used for "__TEXT,__text".
-            LOG_DEBUG("S_REGULAR");
-            break;
-        case S_ZEROFILL:
-            // This section will be filled with zero bytes whenever it is accessed.
-            LOG_DEBUG("S_ZEROFILL");
-            break;
-        case S_CSTRING_LITERALS:
-            // This section contains only constant C strings.
-            LOG_DEBUG("S_CSTRING_LITERALS");
-            break;
-        case S_4BYTE_LITERALS:
-            // This section contains only constant values that are 4 bytes long.
-            LOG_DEBUG("S_4BYTE_LITERALS");
-            break;
-        case S_8BYTE_LITERALS:
-            // This section contains only constant values that are 8 bytes long.
-            LOG_DEBUG("S_8BYTE_LITERALS");
-            break;
-        case S_LITERAL_POINTERS:
-            // This section contains only pointers to constant values.
-            LOG_DEBUG("S_LITERAL_POINTERS");
-            break;
-        case S_NON_LAZY_SYMBOL_POINTERS:
-            // This section contains only non-lazy pointers to symbols.
-            LOG_DEBUG("S_NON_LAZY_SYMBOL_POINTERS");
-            break;
-        case S_LAZY_SYMBOL_POINTERS:
-            // This section contains only lazy pointers to symbols.
-            LOG_DEBUG("S_LAZY_SYMBOL_POINTERS");
-            break;
-        case S_SYMBOL_STUBS:
-            // This section contains symbol stubs.
-            LOG_DEBUG("S_SYMBOL_STUBS");
-            break;
-        case S_MOD_INIT_FUNC_POINTERS:
-            // This section contains pointers to module initialization functions.
-            LOG_DEBUG("S_MOD_INIT_FUNC_POINTERS");
-            break;
-        case S_MOD_TERM_FUNC_POINTERS:
-            // This section contains pointers to module termination functions.
-            LOG_DEBUG("S_MOD_TERM_FUNC_POINTERS");
-            break;
-        case S_COALESCED:
-            // This section contains symbols that are coalesced by the static linker and possibly the dynamic linker.
-            LOG_DEBUG("S_COALESCED");
-            break;
-        case S_GB_ZEROFILL:
-            // This is a zero-filled on-demand section.
-            LOG_DEBUG("S_GB_ZEROFILL");
-            break;
-        case S_INTERPOSING:
-            LOG_DEBUG("S_INTERPOSING");
-            break;
-        case S_16BYTE_LITERALS:
-            LOG_DEBUG("S_16BYTE_LITERALS");
-            break;
-        case S_DTRACE_DOF:
-            LOG_DEBUG("S_DTRACE_DOF");
-            break;
-        case S_LAZY_DYLIB_SYMBOL_POINTERS:
-            LOG_DEBUG("S_LAZY_DYLIB_SYMBOL_POINTERS");
-            break;
-        case S_THREAD_LOCAL_REGULAR:
-            LOG_DEBUG("S_THREAD_LOCAL_REGULAR");
-            break;
-        case S_THREAD_LOCAL_ZEROFILL:
-            LOG_DEBUG("S_THREAD_LOCAL_ZEROFILL");
-            break;
-        case S_THREAD_LOCAL_VARIABLES:
-            LOG_DEBUG("S_THREAD_LOCAL_VARIABLES");
-            break;
-        case S_THREAD_LOCAL_VARIABLE_POINTERS:
-            LOG_DEBUG("S_THREAD_LOCAL_VARIABLE_POINTERS");
-            break;
-        case S_THREAD_LOCAL_INIT_FUNCTION_POINTERS:
-            LOG_DEBUG("S_THREAD_LOCAL_INIT_FUNCTION_POINTERS");
-            break;
-        default:
-            LOG_WARN("Unknown section type 0x%.8x, ignoring", section_type);
-            break;
-    }
+	const char *end = start + lc->size;
+	const char *cur_byte = start;
+	const char *cur_string = cur_byte;
 
-    switch (section_usr_attr) {
-        case S_ATTR_PURE_INSTRUCTIONS:
-            // This section contains only executable machine instructions.
-            LOG_DEBUG("S_ATTR_PURE_INSTRUCTIONS");
-            break;
-        case S_ATTR_NO_TOC:
-            // This section contains coalesced symbols that must not be placed in the table of contents (SYMDEF member) of a static archive library.
-            LOG_DEBUG("S_ATTR_NO_TOC");
-            break;
-        case S_ATTR_STRIP_STATIC_SYMS:
-            // The static symbols in this section can be stripped.
-            LOG_DEBUG("S_ATTR_STRIP_STATIC_SYMS");
-            break;
-        case S_ATTR_NO_DEAD_STRIP:
-            // This section must not be dead-stripped.
-            LOG_DEBUG("S_ATTR_NO_DEAD_STRIP");
-            break;
-        case S_ATTR_LIVE_SUPPORT:
-            // This section must not be dead-stripped if they reference code that is live, but the reference is undetectable.
-            LOG_DEBUG("S_ATTR_LIVE_SUPPORT");
-            break;
-        case S_ATTR_SELF_MODIFYING_CODE:
-            LOG_DEBUG("S_ATTR_SELF_MODIFYING_CODE");
-            break;
-        case S_ATTR_DEBUG:
-            LOG_DEBUG("S_ATTR_DEBUG");
-            break;
-        case 0:
-            break;
-        default:
-            LOG_WARN("Unknown section user attribute 0x%.8x, ignoring", section_usr_attr);
-            break;
-    }
+	while(cur_byte < end) {
+		if (!*cur_byte) {
+			LOG_DEBUG("String: %s", cur_string);
+			cur_string = ++cur_byte;
+			continue;
+		}
 
-    switch (section_sys_attr) {
-        case S_ATTR_SOME_INSTRUCTIONS:
-            // This section contains executable machine instructions.
-            LOG_DEBUG("S_ATTR_SOME_INSTRUCTIONS");
-            break;
-        case S_ATTR_EXT_RELOC:
-            // This section contains external references that must be relocated.
-            LOG_DEBUG("S_ATTR_EXT_RELOC");
-            break;
-        case S_ATTR_LOC_RELOC:
-            // This section contains references that must be relocated.
-            LOG_DEBUG("S_ATTR_LOC_RELOC");
-            break;
-        case 0:
-            break;
-        default:
-            LOG_WARN("Unknown section system attribute 0x%.8x, ignoring", section_sys_attr);
-            break;
-    }
+		cur_byte++;
+	}
 
-    return true;
+	return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_4byte_literals(Section_t *lc) {
+	if (auto start = m_data->offset<uint32_t>(lc->offset, lc->size)) {
+		for(unsigned i = 0; i < lc->size / sizeof(uint32_t); ++i) {
+			LOG_DEBUG("Four byte literal: 0x%.8x", start[i]);
+		}
+	}
+
+	return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_8byte_literals(Section_t *lc) {
+	if (auto start = m_data->offset<uint64_t>(lc->offset, lc->size)) {
+		for(unsigned i = 0; i < lc->size / sizeof(uint64_t); ++i) {
+			LOG_DEBUG("Eight byte literal: 0x%.16llx", start[i]);
+		}
+	}
+
+	return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_16byte_literals(Section_t *lc) {
+	if (auto start = m_data->offset<uint32_t>(lc->offset, lc->size)) {
+		for(unsigned i = 0; i < lc->size / sizeof(uint32_t); i += 4) {
+			LOG_DEBUG("Sixteen byte literal: 0x%.8x 0x%.8x 0x%.8x 0x%.8x",
+					start[i], start[i + 1], start[i + 2], start[i + 3]);
+		}
+	}
+
+	return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_literal_pointers(Section_t *lc) {
+	if (auto start = m_data->offset<uint64_t>(lc->offset, lc->size)) {
+		for(unsigned i = 0; i < lc->size / sizeof(uint64_t); ++i) {
+			LOG_DEBUG("POINTER: 0x%.16llx", start[i]);
+		}
+	}
+
+	return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_mod_init_func_pointers(Section_t *lc) {
+	for (uint64_t initializer = lc->addr; initializer < lc->addr + lc->size; initializer += pointer_size()) {
+		LOG_DEBUG("  Initializer at: %p", (void *) (initializer + m_base_address));
+	}
+
+	return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_mod_term_func_pointers(Section_t *lc) {
+    for (uint64_t terminator = lc->addr; terminator < lc->addr + lc->size; terminator += pointer_size()) {
+		LOG_DEBUG("  Terminator at: %p", (void *) (terminator + m_base_address));
+	}
+
+	return true;
 }
 
 bool MachoBinary::parse_generic_symbol(struct nlist_64 *symbol) {
@@ -860,8 +956,6 @@ bool MachoBinary::parse_symtab(struct load_command *lc) {
         } else {
             parse_generic_symbol(&m_symbol_table[i]);
         }
-
-        LOG_DEBUG("");
     }
 
     return true;
@@ -1015,38 +1109,66 @@ bool MachoBinary::parse_encryption_info_64(struct load_command *lc) {
 	return true;
 }
 
-#include <vector>
-#include <queue>
+template<> void MachoBinary::add_segment<segment_command>(segment_command *cmd) {
+	m_segments_32.push_back(*cmd);
+};
 
-bool MachoBinary::parse_dyld_info(struct load_command *lc) {
-    struct dyld_info_command *cmd = m_data->pointer<struct dyld_info_command>(lc);
+template<> void MachoBinary::add_segment<segment_command_64>(segment_command_64 *cmd) {
+	m_segments_64.push_back(*cmd);
+};
 
-    LOG_DEBUG("Rebase information: rebase_off = 0x%.8x rebase_size = 0x%.8x", cmd->rebase_off, cmd->rebase_size);
-    LOG_DEBUG("Binding information: bind_off = 0x%.8x bind_size = 0x%.8x", cmd->bind_off, cmd->bind_size);
-    LOG_DEBUG("Weak binding information: weak_bind_off = 0x%.8x weak_bind_size = 0x%.8x", cmd->weak_bind_off, cmd->weak_bind_size);
-    LOG_DEBUG("Lazy binding information: lazy_bind_off = 0x%.8x lazy_bind_size = 0x%.8x", cmd->lazy_bind_off, cmd->lazy_bind_size);
-    LOG_DEBUG("Export information: export_off = 0x%.8x export_size = 0x%.8x", cmd->export_off, cmd->export_size);
+template<> void MachoBinary::add_section<section>(section *cmd) {
+	m_sections_32.push_back(*cmd);
+};
 
-#define EXPORT_SYMBOL_FLAGS_KIND_MASK				0x03
-#define EXPORT_SYMBOL_FLAGS_KIND_REGULAR			0x00
-#define EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL		0x01
-#define EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION			0x04
-#define EXPORT_SYMBOL_FLAGS_REEXPORT				0x08
-#define EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER		0x10
+template<> void MachoBinary::add_section<section_64>(section_64 *cmd) {
+	m_sections_64.push_back(*cmd);
+};
 
-    // The export information is inside a trie.
-    const uint8_t *export_start = m_data->offset<const uint8_t>(cmd->export_off, cmd->export_size);
-    const uint8_t *export_end = export_start + cmd->export_size;
+std::string MachoBinary::segment_name(unsigned index) {
+	if (is64()) {
+		return (index < m_segments_64.size()) ?  m_segments_64[index].segname : "invalid";
+	}
 
+	return (index < m_segments_32.size()) ?  m_segments_32[index].segname : "invalid";
+}
+
+std::string MachoBinary::section_name(unsigned index, uint64_t address) {
+	if (is64()) {
+		for(auto section : m_sections_64) {
+			if (address >= section.addr && address < (section.addr + section.size)) {
+				return section.sectname;
+			}
+		}
+	} else {
+		for(auto section : m_sections_32) {
+			if (address >= section.addr && address < (section.addr + section.size)) {
+				return section.sectname;
+			}
+		}
+	}
+
+	return "invalid";
+}
+
+uint64_t MachoBinary::segment_address(unsigned index) {
+	if (is64()) {
+		return (index < m_segments_64.size()) ?  m_segments_64[index].vmaddr : 0;
+	}
+
+	return (index < m_segments_32.size()) ?  m_segments_32[index].vmaddr : 0;
+}
+
+
+bool MachoBinary::parse_dyld_info_exports(const uint8_t *export_start, const uint8_t *export_end) {
     struct Node;
     struct Edge {
-    	Node *prev;
     	Node *next;
-    	std::string label;
+    	string label;
     };
 
     struct Node {
-    	std::vector<Edge *> m_children;
+    	vector<Edge *> m_children;
     	unsigned m_terminal_size;
     	const uint8_t *m_data;
     	uintptr_t m_offset;
@@ -1057,7 +1179,7 @@ bool MachoBinary::parse_dyld_info(struct load_command *lc) {
 	init->m_offset = 0;
 
 	// Setup the initial node.
-    std::queue<Node *> working_set;
+    queue<Node *> working_set;
 	working_set.push(init);
 
 	const uint8_t* cur_byte = export_start;
@@ -1093,7 +1215,6 @@ bool MachoBinary::parse_dyld_info(struct load_command *lc) {
 			new_node->m_offset = node_offset;
 
 			Edge *new_edge = new Edge();
-			new_edge->prev = cur_node;
 			new_edge->next = new_node;
 			new_edge->label = edge_label;
 
@@ -1102,9 +1223,9 @@ bool MachoBinary::parse_dyld_info(struct load_command *lc) {
 		}
 	}
 
-	std::function<void(Node *, std::vector<std::string> &vec)> dfs_printer = [&dfs_printer](Node *node, std::vector<std::string> &vec) {
+	function<void(Node *, vector<string> &vec)> dfs_printer = [&dfs_printer](Node *node, vector<string> &vec) {
 		if (node->m_terminal_size) {
-			std::string joined;
+			string joined;
 			for(const auto &el : vec) {
 				joined += el;
 			}
@@ -1119,9 +1240,188 @@ bool MachoBinary::parse_dyld_info(struct load_command *lc) {
 		}
 	};
 
-	std::vector<std::string> vec;
+	vector<string> vec;
 	dfs_printer(init, vec);
-	exit(0);
+
+	#define EXPORT_SYMBOL_FLAGS_KIND_MASK				0x03
+	#define EXPORT_SYMBOL_FLAGS_KIND_REGULAR			0x00
+	#define EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL		0x01
+	#define EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION			0x04
+	#define EXPORT_SYMBOL_FLAGS_REEXPORT				0x08
+	#define EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER		0x10
+
+	return true;
+}
+
+const char* rebaseTypeName(uint8_t type) {
+	switch (type) {
+	case REBASE_TYPE_POINTER:
+		return "pointer";
+	case REBASE_TYPE_TEXT_ABSOLUTE32:
+		return "text abs32";
+	case REBASE_TYPE_TEXT_PCREL32:
+		return "text rel32";
+	}
+
+	return "!!unknown!!";
+}
+
+const char* bindTypeName(uint8_t type) {
+	switch (type) {
+	case BIND_TYPE_POINTER:
+		return "pointer";
+	case BIND_TYPE_TEXT_ABSOLUTE32:
+		return "text abs32";
+	case BIND_TYPE_TEXT_PCREL32:
+		return "text rel32";
+	}
+	return "!!unknown!!";
+}
+
+bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *end) {
+	auto p = start;
+	auto done = false;
+
+	uint8_t type = 0;
+	uint8_t seg_index = 0;
+	uint64_t seg_offset = 0;
+	int64_t addend = 0;
+	uint32_t count;
+	uint32_t skip;
+	uint64_t seg_addr = 0;
+	std::string seg_name = "??", sec_name = "???";
+	const char* type_name = "??";
+	uintptr_t address = 0;
+
+	printf("rebase information (from compressed dyld info):\n");
+	printf("segment section          address             type\n");
+
+	while(!done && p < end) {
+		uint8_t imm = *p & REBASE_IMMEDIATE_MASK;
+		uint8_t opcode = *p & REBASE_OPCODE_MASK;
+		p++;
+
+		switch (opcode) {
+		case REBASE_OPCODE_DONE:
+			done = true;
+			break;
+
+		case REBASE_OPCODE_SET_TYPE_IMM:
+			type = imm;
+			type_name = rebaseTypeName(type);
+			break;
+
+		case REBASE_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB:
+			seg_index = imm;
+			seg_offset = read_uleb128(p, end);
+			seg_addr = segment_address(seg_index);
+			seg_name = segment_name(seg_index);
+			break;
+
+		case REBASE_OPCODE_ADD_ADDR_IMM_SCALED:
+			seg_offset += imm * pointer_size();
+			break;
+
+		case REBASE_OPCODE_ADD_ADDR_ULEB:
+			seg_offset += read_uleb128(p, end);
+			break;
+
+		case REBASE_OPCODE_DO_REBASE_IMM_TIMES:
+			for (int i=0; i < imm; ++i) {
+				sec_name = section_name(seg_index, seg_addr + seg_offset);
+				printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_IMM_TIMES\n",
+						seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name);
+				seg_offset += pointer_size();
+			}
+			break;
+
+		case REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB:
+			sec_name = section_name(seg_index, seg_addr + seg_offset);
+			printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB\n",
+					seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name);
+			seg_offset += read_uleb128(p, end) + pointer_size();
+			break;
+
+		case REBASE_OPCODE_DO_REBASE_ULEB_TIMES:
+			count = read_uleb128(p, end);
+			for (uint32_t i = 0; i < count; ++i) {
+				sec_name = section_name(seg_index, seg_addr + seg_offset);
+				printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ULEB_TIMES\n",
+						seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name);
+				seg_offset += pointer_size();
+			}
+			break;
+
+		case REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIPPING_ULEB:
+			count = read_uleb128(p, end);
+			skip = read_uleb128(p, end);
+			for (uint32_t i = 0; i < count; ++i) {
+				sec_name = section_name(seg_index, seg_addr + seg_offset);
+				printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIPPING_ULEB\n",
+						seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name);
+				seg_offset += skip + pointer_size();
+			}
+			break;
+
+		default:
+			LOG_ERR("Invalid rebase opcode! (%.2x)", opcode);
+			break;
+		}
+	}
+
+	return true;
+}
+
+bool MachoBinary::parse_dyld_info_binding(const uint8_t *start, const uint8_t *end) {
+	return true;
+}
+
+bool MachoBinary::parse_dyld_info_weak_binding(const uint8_t *start, const uint8_t *end) {
+	return true;
+}
+
+bool MachoBinary::parse_dyld_info_lazy_binding(const uint8_t *start, const uint8_t *end) {
+	return true;
+}
+
+bool MachoBinary::parse_dyld_info(struct load_command *lc) {
+    struct dyld_info_command *cmd = m_data->pointer<struct dyld_info_command>(lc);
+
+    LOG_DEBUG("Rebase information: rebase_off = 0x%.8x rebase_size = 0x%.8x", cmd->rebase_off, cmd->rebase_size);
+    LOG_DEBUG("Binding information: bind_off = 0x%.8x bind_size = 0x%.8x", cmd->bind_off, cmd->bind_size);
+    LOG_DEBUG("Weak binding information: weak_bind_off = 0x%.8x weak_bind_size = 0x%.8x", cmd->weak_bind_off, cmd->weak_bind_size);
+    LOG_DEBUG("Lazy binding information: lazy_bind_off = 0x%.8x lazy_bind_size = 0x%.8x", cmd->lazy_bind_off, cmd->lazy_bind_size);
+    LOG_DEBUG("Export information: export_off = 0x%.8x export_size = 0x%.8x", cmd->export_off, cmd->export_size);
+
+    // Parse rebase information.
+    if (auto start = m_data->offset<const uint8_t>(cmd->rebase_off, cmd->rebase_size)) {
+        auto end = start + cmd->rebase_size;
+        parse_dyld_info_rebase(start, end);
+    }
+
+    // Parse binding information.
+    if (auto start = m_data->offset<const uint8_t>(cmd->bind_off, cmd->bind_size)) {
+        auto end = start + cmd->bind_size;
+        parse_dyld_info_binding(start, end);
+    }
+
+    // Parse weak binding information.
+    if (auto start = m_data->offset<const uint8_t>(cmd->weak_bind_off, cmd->weak_bind_size)) {
+        auto end = start + cmd->weak_bind_size;
+        parse_dyld_info_weak_binding(start, end);
+    }
+
+    // Parse lazy binding information.
+    if (auto start = m_data->offset<const uint8_t>(cmd->lazy_bind_off, cmd->lazy_bind_size)) {
+        auto end = start + cmd->lazy_bind_size;
+        parse_dyld_info_lazy_binding(start, end);
+    }
+
+    // Parse the exports information.
+    if (auto start = m_data->offset<const uint8_t>(cmd->export_off, cmd->export_size)) {
+        auto end = start + cmd->export_size;
+        parse_dyld_info_exports(start, end);
+    }
 
     return true;
 }
