@@ -93,6 +93,10 @@ public:
         return m_address_space_size == AddressSpaceSize::BINARY_64;
     }
 
+    unsigned pointer_size() const {
+    	return is64() ? sizeof(uint64_t) : sizeof(uint32_t);
+    }
+
 protected:
     MemoryMap *m_data;
     unsigned char *m_memory;
