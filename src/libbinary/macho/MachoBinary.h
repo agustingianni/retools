@@ -93,6 +93,7 @@ private:
     std::string segment_name(unsigned index);
     uint64_t segment_address(unsigned index);
     std::string section_name(unsigned index, uint64_t address);
+    std::string ordinal_name(int libraryOrdinal);
 
     // Required for parsing names and symbols. Loaded at 'parse_symtab'.
     struct nlist_64 *m_symbol_table;

@@ -1062,10 +1062,17 @@ bool MachoBinary::parse_dylib(struct load_command *lc) {
     struct dylib_command *cmd = m_data->pointer<struct dylib_command>(lc);
 
     // Get the name of the imported library.
-    char *name = m_data->pointer<char>(reinterpret_cast<char *>(cmd) + cmd->dylib.name.offset);
+    std::string name = m_data->pointer<char>(reinterpret_cast<char *>(cmd) + cmd->dylib.name.offset);
 
-    LOG_DEBUG("Imported library: name=%-40s tstamp=0x%.8x ver=0x%.8x compat=0x%.8x", name, cmd->dylib.timestamp, cmd->dylib.current_version,
+    LOG_DEBUG("Imported library: name=%-40s tstamp=0x%.8x ver=0x%.8x compat=0x%.8x", name.c_str(), cmd->dylib.timestamp, cmd->dylib.current_version,
             cmd->dylib.compatibility_version);
+
+    std::string base_filename = name;
+    if (auto idx = name.find_last_of("/\\")) {
+    	base_filename = name.substr(idx + 1);
+    }
+
+    m_imported_libs.push_back(base_filename);
 
     return true;
 }
@@ -1253,7 +1260,7 @@ bool MachoBinary::parse_dyld_info_exports(const uint8_t *export_start, const uin
 	return true;
 }
 
-const char* rebaseTypeName(uint8_t type) {
+std::string rebaseTypeName(uint8_t type) {
 	switch (type) {
 	case REBASE_TYPE_POINTER:
 		return "pointer";
@@ -1266,7 +1273,7 @@ const char* rebaseTypeName(uint8_t type) {
 	return "!!unknown!!";
 }
 
-const char* bindTypeName(uint8_t type) {
+std::string bindTypeName(uint8_t type) {
 	switch (type) {
 	case BIND_TYPE_POINTER:
 		return "pointer";
@@ -1290,7 +1297,7 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
 	uint32_t skip;
 	uint64_t seg_addr = 0;
 	std::string seg_name = "??", sec_name = "???";
-	const char* type_name = "??";
+	std::string type_name = "??";
 	uintptr_t address = 0;
 
 	printf("rebase information (from compressed dyld info):\n");
@@ -1330,7 +1337,7 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
 			for (int i=0; i < imm; ++i) {
 				sec_name = section_name(seg_index, seg_addr + seg_offset);
 				printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_IMM_TIMES\n",
-						seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name);
+						seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name.c_str());
 				seg_offset += pointer_size();
 			}
 			break;
@@ -1338,7 +1345,7 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
 		case REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB:
 			sec_name = section_name(seg_index, seg_addr + seg_offset);
 			printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB\n",
-					seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name);
+					seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name.c_str());
 			seg_offset += read_uleb128(p, end) + pointer_size();
 			break;
 
@@ -1347,7 +1354,7 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
 			for (uint32_t i = 0; i < count; ++i) {
 				sec_name = section_name(seg_index, seg_addr + seg_offset);
 				printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ULEB_TIMES\n",
-						seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name);
+						seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name.c_str());
 				seg_offset += pointer_size();
 			}
 			break;
@@ -1358,7 +1365,7 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
 			for (uint32_t i = 0; i < count; ++i) {
 				sec_name = section_name(seg_index, seg_addr + seg_offset);
 				printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIPPING_ULEB\n",
-						seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name);
+						seg_name.c_str(), sec_name.c_str(), seg_addr + seg_offset, type_name.c_str());
 				seg_offset += skip + pointer_size();
 			}
 			break;
@@ -1372,15 +1379,363 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
 	return true;
 }
 
+std::string MachoBinary::ordinal_name(int libraryOrdinal) {
+	switch (libraryOrdinal) {
+	case BIND_SPECIAL_DYLIB_SELF:
+		return "this-image";
+	case BIND_SPECIAL_DYLIB_MAIN_EXECUTABLE:
+		return "main-executable";
+	case BIND_SPECIAL_DYLIB_FLAT_LOOKUP:
+		return "flat-namespace";
+	}
+
+	if (libraryOrdinal < BIND_SPECIAL_DYLIB_FLAT_LOOKUP
+			|| libraryOrdinal > m_imported_libs.size())
+		return "invalid";
+
+	return m_imported_libs[libraryOrdinal - 1];
+}
+
+
 bool MachoBinary::parse_dyld_info_binding(const uint8_t *start, const uint8_t *end) {
+	printf("bind information:\n");
+	printf("segment section          address        type    addend dylib            symbol\n");
+	const uint8_t* p = start;
+
+
+	uint8_t type = 0;
+	uint8_t segIndex = 0;
+	uint64_t segOffset = 0;
+	std::string symbolName = "";
+	std::string fromDylib = "??";
+	int libraryOrdinal = 0;
+	int64_t addend = 0;
+	uint32_t count;
+	uint32_t skip;
+	uint64_t segStartAddr = 0;
+	std::string segName = "??";
+	std::string typeName = "??";
+	std::string weak_import = "";
+	bool done = false;
+
+	while (!done && (p < end)) {
+		uint8_t immediate = *p & BIND_IMMEDIATE_MASK;
+		uint8_t opcode = *p & BIND_OPCODE_MASK;
+		++p;
+
+		switch (opcode) {
+			case BIND_OPCODE_DONE:
+				done = true;
+				break;
+
+			case BIND_OPCODE_SET_DYLIB_ORDINAL_IMM:
+				libraryOrdinal = immediate;
+				fromDylib = ordinal_name(libraryOrdinal);
+				break;
+
+			case BIND_OPCODE_SET_DYLIB_ORDINAL_ULEB:
+				libraryOrdinal = read_uleb128(p, end);
+				fromDylib = ordinal_name(libraryOrdinal);
+				break;
+
+			case BIND_OPCODE_SET_DYLIB_SPECIAL_IMM:
+				// the special ordinals are negative numbers
+				if ( immediate == 0 )
+					libraryOrdinal = 0;
+				else {
+					int8_t signExtended = BIND_OPCODE_MASK | immediate;
+					libraryOrdinal = signExtended;
+				}
+				fromDylib = ordinal_name(libraryOrdinal);
+				break;
+			case BIND_OPCODE_SET_SYMBOL_TRAILING_FLAGS_IMM:
+				symbolName = (char*)p;
+				while (*p != '\0')
+					++p;
+				++p;
+				if ( (immediate & BIND_SYMBOL_FLAGS_WEAK_IMPORT) != 0 )
+					weak_import = " (weak import)";
+				else
+					weak_import = "";
+				break;
+			case BIND_OPCODE_SET_TYPE_IMM:
+				type = immediate;
+				typeName = bindTypeName(type);
+				break;
+			case BIND_OPCODE_SET_ADDEND_SLEB:
+				addend = read_sleb128(p, end);
+				break;
+			case BIND_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB:
+				segIndex = immediate;
+				segStartAddr = segment_address(segIndex);
+				segName = segment_name(segIndex);
+				segOffset = read_uleb128(p, end);
+				break;
+			case BIND_OPCODE_ADD_ADDR_ULEB:
+				segOffset += read_uleb128(p, end);
+				break;
+			case BIND_OPCODE_DO_BIND:
+				printf("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n",
+						segName.c_str(),
+						section_name(segIndex, segStartAddr+segOffset).c_str(),
+						segStartAddr+segOffset,
+						typeName.c_str(),
+						addend,
+						fromDylib.c_str(),
+						symbolName.c_str(),
+						weak_import.c_str()
+				);
+
+				segOffset += pointer_size();
+				break;
+			case BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB:
+				printf("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n",
+						segName.c_str(),
+						section_name(segIndex, segStartAddr+segOffset).c_str(),
+						segStartAddr+segOffset,
+						typeName.c_str(),
+						addend,
+						fromDylib.c_str(),
+						symbolName.c_str(),
+						weak_import.c_str()
+				);
+
+				segOffset += read_uleb128(p, end) + pointer_size();
+				break;
+			case BIND_OPCODE_DO_BIND_ADD_ADDR_IMM_SCALED:
+				printf("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n",
+						segName.c_str(),
+						section_name(segIndex, segStartAddr+segOffset).c_str(),
+						segStartAddr+segOffset,
+						typeName.c_str(),
+						addend,
+						fromDylib.c_str(),
+						symbolName.c_str(),
+						weak_import.c_str()
+				);
+
+				segOffset += immediate*pointer_size() + pointer_size();
+				break;
+			case BIND_OPCODE_DO_BIND_ULEB_TIMES_SKIPPING_ULEB:
+				count = read_uleb128(p, end);
+				skip = read_uleb128(p, end);
+				for (uint32_t i=0; i < count; ++i) {
+					printf("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n",
+							segName.c_str(),
+							section_name(segIndex, segStartAddr+segOffset).c_str(),
+							segStartAddr+segOffset,
+							typeName.c_str(),
+							addend,
+							fromDylib.c_str(),
+							symbolName.c_str(),
+							weak_import.c_str()
+					);
+
+					segOffset += skip + pointer_size();
+				}
+				break;
+			default:
+				LOG_ERR("bad bind opcode %d", *p);
+		}
+	}
+
 	return true;
 }
 
 bool MachoBinary::parse_dyld_info_weak_binding(const uint8_t *start, const uint8_t *end) {
+	printf("weak binding information:\n");
+	printf("segment section          address       type     addend symbol\n");
+	const uint8_t* p = start;
+
+	uint8_t type = 0;
+	uint8_t segIndex = 0;
+	uint64_t segOffset = 0;
+	std::string symbolName = "";;
+	int64_t addend = 0;
+	uint32_t count;
+	uint32_t skip;
+	uint64_t segStartAddr = 0;
+	std::string segName = "??";
+	std::string typeName = "??";
+	bool done = false;
+	while ( !done && (p < end) ) {
+		uint8_t immediate = *p & BIND_IMMEDIATE_MASK;
+		uint8_t opcode = *p & BIND_OPCODE_MASK;
+		++p;
+		switch (opcode) {
+			case BIND_OPCODE_DONE:
+				done = true;
+				break;
+			case BIND_OPCODE_SET_SYMBOL_TRAILING_FLAGS_IMM:
+				symbolName = (char*)p;
+				while (*p != '\0')
+					++p;
+				++p;
+				if ( (immediate & BIND_SYMBOL_FLAGS_NON_WEAK_DEFINITION) != 0 )
+					printf("                                       strong          %s\n", symbolName.c_str());
+				break;
+			case BIND_OPCODE_SET_TYPE_IMM:
+				type = immediate;
+				typeName = bindTypeName(type);
+				break;
+			case BIND_OPCODE_SET_ADDEND_SLEB:
+				addend = read_sleb128(p, end);
+				break;
+			case BIND_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB:
+				segIndex = immediate;
+				segStartAddr = segment_address(segIndex);
+				segName = segment_name(segIndex);
+				segOffset = read_uleb128(p, end);
+				break;
+			case BIND_OPCODE_ADD_ADDR_ULEB:
+				segOffset += read_uleb128(p, end);
+				break;
+			case BIND_OPCODE_DO_BIND:
+				printf("%-7s %-16s 0x%08llX %10s   %5lld %s\n",
+						segName.c_str(),
+						section_name(segIndex, segStartAddr+segOffset).c_str(),
+						segStartAddr+segOffset,
+						typeName.c_str(),
+						addend,
+						symbolName.c_str()
+				);
+
+				segOffset += pointer_size();
+				break;
+			case BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB:
+				printf("%-7s %-16s 0x%08llX %10s   %5lld %s\n",
+						segName.c_str(),
+						section_name(segIndex, segStartAddr+segOffset).c_str(),
+						segStartAddr+segOffset,
+						typeName.c_str(),
+						addend,
+						symbolName.c_str()
+				);
+
+				segOffset += read_uleb128(p, end) + pointer_size();
+				break;
+			case BIND_OPCODE_DO_BIND_ADD_ADDR_IMM_SCALED:
+				printf("%-7s %-16s 0x%08llX %10s   %5lld %s\n",
+						segName.c_str(),
+						section_name(segIndex, segStartAddr+segOffset).c_str(),
+						segStartAddr+segOffset,
+						typeName.c_str(),
+						addend,
+						symbolName.c_str()
+				);
+
+				segOffset += immediate*pointer_size() + pointer_size();
+				break;
+			case BIND_OPCODE_DO_BIND_ULEB_TIMES_SKIPPING_ULEB:
+				count = read_uleb128(p, end);
+				skip = read_uleb128(p, end);
+				for (uint32_t i=0; i < count; ++i) {
+					printf("%-7s %-16s 0x%08llX %10s   %5lld %s\n",
+							segName.c_str(),
+							section_name(segIndex, segStartAddr+segOffset).c_str(),
+							segStartAddr+segOffset,
+							typeName.c_str(),
+							addend,
+							symbolName.c_str()
+					);
+
+					segOffset += skip + pointer_size();
+				}
+				break;
+			default:
+				LOG_ERR("unknown weak bind opcode %d", *p);
+		}
+	}
+
 	return true;
 }
 
 bool MachoBinary::parse_dyld_info_lazy_binding(const uint8_t *start, const uint8_t *end) {
+	printf("lazy binding information (from lazy_bind part of dyld info):\n");
+	printf("segment section          address    index  dylib            symbol\n");
+
+	uint8_t type = BIND_TYPE_POINTER;
+	uint8_t segIndex = 0;
+	uint64_t segOffset = 0;
+	std::string symbolName = "";;
+	std::string fromDylib = "??";
+	int libraryOrdinal = 0;
+	int64_t addend = 0;
+	uint32_t lazy_offset = 0;
+	uint64_t segStartAddr = 0;
+	std::string segName = "??";
+	std::string typeName = "??";
+	std::string weak_import = "";
+	for (const uint8_t* p=start; p < end; ) {
+		uint8_t immediate = *p & BIND_IMMEDIATE_MASK;
+		uint8_t opcode = *p & BIND_OPCODE_MASK;
+		++p;
+		switch (opcode) {
+			case BIND_OPCODE_DONE:
+				lazy_offset = p-start;
+				break;
+			case BIND_OPCODE_SET_DYLIB_ORDINAL_IMM:
+				libraryOrdinal = immediate;
+				fromDylib = ordinal_name(libraryOrdinal);
+				break;
+			case BIND_OPCODE_SET_DYLIB_ORDINAL_ULEB:
+				libraryOrdinal = read_uleb128(p, end);
+				fromDylib = ordinal_name(libraryOrdinal);
+				break;
+			case BIND_OPCODE_SET_DYLIB_SPECIAL_IMM:
+				// the special ordinals are negative numbers
+				if ( immediate == 0 )
+					libraryOrdinal = 0;
+				else {
+					int8_t signExtended = BIND_OPCODE_MASK | immediate;
+					libraryOrdinal = signExtended;
+				}
+				fromDylib = ordinal_name(libraryOrdinal);
+				break;
+			case BIND_OPCODE_SET_SYMBOL_TRAILING_FLAGS_IMM:
+				symbolName = (char*)p;
+				while (*p != '\0')
+					++p;
+				++p;
+				if ( (immediate & BIND_SYMBOL_FLAGS_WEAK_IMPORT) != 0 )
+					weak_import = " (weak import)";
+				else
+					weak_import = "";
+				break;
+			case BIND_OPCODE_SET_TYPE_IMM:
+				type = immediate;
+				typeName = bindTypeName(type);
+				break;
+			case BIND_OPCODE_SET_ADDEND_SLEB:
+				addend = read_sleb128(p, end);
+				break;
+			case BIND_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB:
+				segIndex = immediate;
+				segStartAddr = segment_address(segIndex);
+				segName = segment_name(segIndex);
+				segOffset = read_uleb128(p, end);
+				break;
+			case BIND_OPCODE_ADD_ADDR_ULEB:
+				segOffset += read_uleb128(p, end);
+				break;
+			case BIND_OPCODE_DO_BIND:
+				printf("%-7s %-16s 0x%08llX 0x%04X %-16s %s%s\n",
+						segName.c_str(),
+						section_name(segIndex, segStartAddr+segOffset).c_str(),
+						segStartAddr+segOffset,
+						lazy_offset,
+						fromDylib.c_str(),
+						symbolName.c_str(),
+						weak_import.c_str()
+				);
+
+				segOffset += pointer_size();
+				break;
+			default:
+				LOG_ERR("bad lazy bind opcode %d", *p);
+		}
+	}
+
 	return true;
 }
 
