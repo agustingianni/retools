@@ -51,8 +51,7 @@ private:
     bool parse_data_in_code(struct load_command *lc);
     bool parse_function_starts(struct load_command *lc);
 
-    bool parse_routines_32(struct load_command *lc);
-    bool parse_routines_64(struct load_command *lc);
+    template<typename T> bool parse_routines(struct load_command *lc);
 
     // Segment and section parsers.
 	template<typename Segment_t, typename Section_t> bool parse_segment(struct load_command *lc);

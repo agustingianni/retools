@@ -305,7 +305,7 @@ bool MachoBinary::parse_load_commands() {
                 break;
             case LC_ROUTINES:
                 // Describes the location of the shared library initialization function.
-                if (!parse_routines_32(cur_lc)) {
+                if (!parse_routines<routines_command>(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
                     continue;
                 }
@@ -313,7 +313,7 @@ bool MachoBinary::parse_load_commands() {
                 break;
             case LC_ROUTINES_64:
                 // Describes the location of the shared library initialization function.
-                if (!parse_routines_64(cur_lc)) {
+                if (!parse_routines<routines_command_64>(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
                     continue;
                 }
@@ -496,15 +496,9 @@ bool MachoBinary::parse_function_starts(struct load_command *lc) {
     return true;
 }
 
-bool MachoBinary::parse_routines_32(struct load_command *lc) {
-    struct routines_command * cmd = m_data->pointer<struct routines_command>(lc);
-    LOG_DEBUG("init_address = 0x%.8x init_module = 0x%.8x", cmd->init_address, cmd->init_module);
-    return true;
-}
-
-bool MachoBinary::parse_routines_64(struct load_command *lc) {
-    struct routines_command_64 * cmd = m_data->pointer<struct routines_command_64>(lc);
-    LOG_DEBUG("init_address = 0x%.16llx init_module = 0x%.16llx", cmd->init_address, cmd->init_module);
+template<typename T> bool MachoBinary::parse_routines(struct load_command *lc) {
+    T * cmd = m_data->pointer<T>(lc);
+    LOG_DEBUG("init_address = 0x%.16llx init_module = 0x%.16llx", (uint64_t) cmd->init_address, (uint64_t) cmd->init_module);
     return true;
 }
 
@@ -515,8 +509,8 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
 
     add_section<Section_t>(lc);
 
-    LOG_DEBUG("name%16s:%-16s addr=%p size=0x%.16llx offset=0x%.8x align=0x%.8x reloff=0x%.8x nreloc=0x%.8x flags=0x%.8x",
-    		lc->segname, lc->sectname, (void * ) lc->addr, lc->size, lc->offset,
+    LOG_DEBUG("name%16s:%-16s addr=0x%.16llx size=0x%.16llx offset=0x%.8x align=0x%.8x reloff=0x%.8x nreloc=0x%.8x flags=0x%.8x",
+    		lc->segname, lc->sectname, (uint64_t) lc->addr, (uint64_t) lc->size, lc->offset,
 			lc->align, lc->reloff, lc->nreloc, lc->flags);
 
     switch (section_type) {
@@ -667,7 +661,7 @@ template <typename Segment_t, typename Section_t> bool MachoBinary::parse_segmen
 
 	add_segment<Segment_t>(cmd);
 
-    LOG_DEBUG("name = %-16s | base = 0x%.16llx | size = 0x%.16llx", cmd->segname, cmd->vmaddr, cmd->vmsize);
+    LOG_DEBUG("name = %-16s | base = 0x%.16llx | size = 0x%.16llx", cmd->segname, (uint64_t) cmd->vmaddr, (uint64_t) cmd->vmsize);
 
     if (string(cmd->segname) == SEG_TEXT) {
     	LOG_DEBUG("m_base_address = %p", (void *) m_base_address);
