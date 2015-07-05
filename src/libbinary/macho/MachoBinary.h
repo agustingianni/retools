@@ -65,6 +65,7 @@ private:
     template<typename Section_t> bool parse_literal_pointers(Section_t *lc);
     template<typename Section_t> bool parse_mod_init_func_pointers(Section_t *lc);
     template<typename Section_t> bool parse_mod_term_func_pointers(Section_t *lc);
+    template<typename Section_t> bool parse_non_lazy_symbol_pointers(Section_t *lc);
 
     bool parse_symtab(struct load_command *lc);
     bool parse_generic_symbol(struct nlist_64 *symbol);
@@ -97,6 +98,8 @@ private:
     // Required for parsing names and symbols. Loaded at 'parse_symtab'.
     struct nlist_64 *m_symbol_table;
     size_t m_symbol_table_size;
+
+    struct dysymtab_command *m_dysymtab_command;
 
     char *m_string_table;
     size_t m_string_table_size;

@@ -269,13 +269,53 @@ bool MachoBinary::parse_load_commands() {
     // Get the section size align mask.
     unsigned align_mask = is32() ? 3 : 7;
 
+    // Order is important so we need these load commands to be parsed before the rest.
+	for (unsigned i = 0; i < ncmds(); ++i) {
+		struct load_command *cur_lc = get_load_command(i);
+		if (!cur_lc) {
+			LOG_ERR("Could not get command %d", i);
+			continue;
+		}
+
+		if ((cur_lc->cmdsize & align_mask) != 0) {
+			LOG_WARN("Load command %u has an unaligned size, skipping", i);
+			continue;
+		}
+
+		if (cur_lc->cmd == LC_SYMTAB) {
+			auto cmd = m_data->pointer<struct symtab_command>(cur_lc);
+
+			// Save a reference to the symbol table.
+			m_symbol_table_size = cmd->nsyms;
+			m_symbol_table = m_data->offset<struct nlist_64>(cmd->symoff, cmd->nsyms * sizeof(struct nlist_64));
+			if (!m_symbol_table) {
+				LOG_ERR("Symbol table is outside the binary mapped file (offset=%u, size=%u).",
+						cmd->stroff, cmd->strsize);
+			}
+
+			// Save a reference to the string table.
+			m_string_table_size = cmd->strsize;
+			m_string_table = m_data->offset<char>(cmd->stroff, cmd->strsize);
+			if (!m_string_table) {
+				LOG_ERR("Symbol string table is outside the binary mapped file (offset=%u, size=%u).",
+						cmd->stroff, cmd->strsize);
+			}
+		} else if (cur_lc->cmd == LC_DYSYMTAB) {
+			m_dysymtab_command = m_data->pointer<struct dysymtab_command>(cur_lc);
+			if (!m_dysymtab_command) {
+				LOG_ERR("Dynamic symbol table is outside the binary mapped file.");
+			}
+		}
+	}
+
+
     // For each load command.
     for (unsigned i = 0; i < ncmds(); ++i) {
         // Get the 'i'th load command.
         struct load_command *cur_lc = get_load_command(i);
         if (!cur_lc) {
             LOG_ERR("Could not get command %d", i);
-            break;
+            continue;
         }
 
         // Check the size of the load command.
@@ -327,14 +367,6 @@ bool MachoBinary::parse_load_commands() {
                 }
 
                 break;
-            case LC_SYMTAB:
-                // Specifies the symbol table for this file.
-                if (!parse_symtab(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
-                break;
             case LC_SEGMENT_64:
                 // Defines a 64-bit segment of this file to be mapped into the address space.
                 if (!parse_segment<segment_command_64, section_64>(cur_lc)) {
@@ -343,17 +375,17 @@ bool MachoBinary::parse_load_commands() {
                 }
 
                 break;
-            case LC_DYSYMTAB:
-                // Specifies additional symbol table information used by the dynamic linker.
-                if (!parse_dysymtab(cur_lc)) {
+            case LC_SYMTAB:
+                // Specifies the symbol table for this file.
+                if (!parse_symtab(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
                     continue;
                 }
 
                 break;
-            case LC_THREAD:
-                // Defines the initial thread state of the main thread of the process but does not allocate a stack.
-                if (!parse_thread(cur_lc)) {
+            case LC_DYSYMTAB:
+                // Specifies additional symbol table information used by the dynamic linker.
+                if (!parse_dysymtab(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
                     continue;
                 }
@@ -388,6 +420,14 @@ bool MachoBinary::parse_load_commands() {
                 }
 
                 break;
+            case LC_THREAD:
+                // Defines the initial thread state of the main thread of the process but does not allocate a stack.
+                if (!parse_thread(cur_lc)) {
+                    LOG_WARN("Could not parse the load command, skipping");
+                    continue;
+                }
+
+                break;
             case LC_UNIXTHREAD:
                 // Defines the initial thread state of the main thread of the process and allocates a stack.
                 if (!parse_unixthread(cur_lc)) {
@@ -398,7 +438,7 @@ bool MachoBinary::parse_load_commands() {
                 break;
             case LC_DYLD_INFO:
             case LC_DYLD_INFO_ONLY:
-                // Compressed dyld information. This somehow indicates that the mach-o file is compressed.
+                // Compressed dyld information.
                 if (!parse_dyld_info(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
                     continue;
@@ -513,6 +553,8 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
     		lc->segname, lc->sectname, (uint64_t) lc->addr, (uint64_t) lc->size, lc->offset,
 			lc->align, lc->reloff, lc->nreloc, lc->flags);
 
+    // Handle the traditional sections defined by the mach-o specification.
+    bool handled = false;
     switch (section_type) {
         case S_REGULAR:
             LOG_DEBUG("S_REGULAR");
@@ -520,45 +562,47 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
 
         case S_ZEROFILL:
             LOG_DEBUG("S_ZEROFILL");
+            handled = true;
             break;
 
         case S_CSTRING_LITERALS:
             LOG_DEBUG("S_CSTRING_LITERALS");
-            parse_cstring_literals_section<Section_t>(lc);
+            handled = parse_cstring_literals_section<Section_t>(lc);
             break;
 
         case S_4BYTE_LITERALS:
             LOG_DEBUG("S_4BYTE_LITERALS");
-            parse_4byte_literals<Section_t>(lc);
+            handled = parse_4byte_literals<Section_t>(lc);
             break;
 
         case S_8BYTE_LITERALS:
             LOG_DEBUG("S_8BYTE_LITERALS");
-            parse_8byte_literals<Section_t>(lc);
+            handled = parse_8byte_literals<Section_t>(lc);
             break;
 
         case S_16BYTE_LITERALS:
             LOG_DEBUG("S_16BYTE_LITERALS");
-            parse_16byte_literals<Section_t>(lc);
+            handled = parse_16byte_literals<Section_t>(lc);
             break;
 
         case S_LITERAL_POINTERS:
             LOG_DEBUG("S_LITERAL_POINTERS");
-            parse_literal_pointers<Section_t>(lc);
+            handled = parse_literal_pointers<Section_t>(lc);
             break;
 
         case S_MOD_INIT_FUNC_POINTERS:
             LOG_DEBUG("S_MOD_INIT_FUNC_POINTERS");
-            parse_mod_init_func_pointers<Section_t>(lc);
+            handled = parse_mod_init_func_pointers<Section_t>(lc);
             break;
 
         case S_MOD_TERM_FUNC_POINTERS:
             LOG_DEBUG("S_MOD_TERM_FUNC_POINTERS");
-            parse_mod_term_func_pointers<Section_t>(lc);
+            handled = parse_mod_term_func_pointers<Section_t>(lc);
             break;
 
         case S_NON_LAZY_SYMBOL_POINTERS:
             LOG_DEBUG("S_NON_LAZY_SYMBOL_POINTERS");
+            handled = parse_non_lazy_symbol_pointers<Section_t>(lc);
             break;
 
         case S_LAZY_SYMBOL_POINTERS:
@@ -773,159 +817,52 @@ template<typename Section_t> bool MachoBinary::parse_mod_term_func_pointers(Sect
 	return true;
 }
 
-bool MachoBinary::parse_generic_symbol(struct nlist_64 *symbol) {
-    if (symbol->n_type & N_PEXT) {
-        // Private external symbol.
-        LOG_DEBUG("N_PEXT");
-    }
+template<typename Section_t> bool MachoBinary::parse_non_lazy_symbol_pointers(Section_t *lc) {
+	uint32_t indirect_offset = lc->reserved1;
+	uint32_t *indirect_symbol_table = m_data->offset<uint32_t>(m_dysymtab_command->indirectsymoff,
+			m_dysymtab_command->nindirectsyms * pointer_size());
 
-    if (symbol->n_type & N_EXT) {
-        // External symbol.
-        LOG_DEBUG("N_EXT");
-    }
+	if (!indirect_symbol_table) {
+		LOG_ERR("Failed to retrieve the indirect symbol table.");
+		return false;
+	}
 
-    switch (symbol->n_type & N_TYPE) {
-        case N_UNDF:
-            LOG_DEBUG("N_UNDF");
-            break;
-        case N_ABS:
-            LOG_DEBUG("N_ABS");
-            break;
-        case N_SECT:
-            LOG_DEBUG("N_SECT");
-            break;
-        case N_PBUD:
-            LOG_DEBUG("N_PBUD");
-            break;
-        case N_INDR:
-            LOG_DEBUG("N_INDR");
-            break;
-        default:
-            LOG_ERR("Unknown symbol type %u, ignoring", symbol->n_type & N_TYPE);
-            break;
-    }
+	LOG_DEBUG("NON LAZY SYMBOL POINTERS");
 
-    // Get the description for symbols of type N_UNDF only.
-    switch (symbol->n_desc & REFERENCE_TYPE) {
-        case REFERENCE_FLAG_DEFINED:
-            LOG_DEBUG("REFERENCE_FLAG_DEFINED");
-            break;
-        case REFERENCE_FLAG_PRIVATE_DEFINED:
-            LOG_DEBUG("REFERENCE_FLAG_PRIVATE_DEFINED");
-            break;
-        case REFERENCE_FLAG_PRIVATE_UNDEFINED_LAZY:
-            LOG_DEBUG("REFERENCE_FLAG_PRIVATE_UNDEFINED_LAZY");
-            break;
-        case REFERENCE_FLAG_PRIVATE_UNDEFINED_NON_LAZY:
-            LOG_DEBUG("REFERENCE_FLAG_PRIVATE_UNDEFINED_NON_LAZY");
-            break;
-        case REFERENCE_FLAG_UNDEFINED_LAZY:
-            LOG_DEBUG("REFERENCE_FLAG_UNDEFINED_LAZY");
-            break;
-        case REFERENCE_FLAG_UNDEFINED_NON_LAZY:
-            LOG_DEBUG("REFERENCE_FLAG_UNDEFINED_NON_LAZY");
-            break;
-        default:
-            LOG_ERR("Unknown reference type 0x%.2x, ignoring", symbol->n_desc & REFERENCE_TYPE);
-            break;
-    }
+	uint32_t count = lc->size / pointer_size();
+	printf("%d\n", count);
+	for (uint32_t i = 0; i < count; ++i) {
+		uint32_t index = indirect_symbol_table[indirect_offset + i];
+		uint64_t addr = lc->addr + i * pointer_size();
+		std::string typeName = "pointer";
 
-    LOG_DEBUG("symbol->n_desc = 0x%.2x", symbol->n_desc);
-    LOG_DEBUG("symbol->n_desc = 0x%.2x", symbol->n_desc & REFERENCE_TYPE);
+		std: string symbol_name;
+		if (index == INDIRECT_SYMBOL_LOCAL) {
+			symbol_name = "INDIRECT_SYMBOL_LOCAL";
+		} else if (index == INDIRECT_SYMBOL_ABS) {
+			symbol_name = "INDIRECT_SYMBOL_ABS";
+		} else if (index == (INDIRECT_SYMBOL_ABS | INDIRECT_SYMBOL_LOCAL)) {
+			symbol_name = "INDIRECT_SYMBOL_ABS | INDIRECT_SYMBOL_LOCAL";
+		} else {
+			symbol_name = &m_string_table[m_symbol_table[index].n_un.n_strx];
+		}
 
-    if (symbol->n_desc & REFERENCED_DYNAMICALLY)
-        LOG_DEBUG("REFERENCED_DYNAMICALLY");
+		printf("0x%.16llx %d pointer %s\n", addr, index, symbol_name.c_str());
+	}
 
-    if (filetype() == MH_OBJECT && (symbol->n_desc & N_NO_DEAD_STRIP))
-        LOG_DEBUG("N_NO_DEAD_STRIP");
-
-    if (filetype() != MH_OBJECT && (symbol->n_desc & N_DESC_DISCARDED))
-        LOG_DEBUG("N_DESC_DISCARDED");
-
-    if (symbol->n_desc & N_WEAK_REF)
-        LOG_DEBUG("N_WEAK_REF");
-
-    if (symbol->n_desc & N_WEAK_DEF)
-        LOG_DEBUG("N_WEAK_DEF");
-
-    if (symbol->n_desc & N_REF_TO_WEAK)
-        LOG_DEBUG("N_REF_TO_WEAK");
-
-    if (symbol->n_desc & N_ARM_THUMB_DEF)
-        LOG_DEBUG("N_ARM_THUMB_DEF");
-
-    if (symbol->n_desc & N_SYMBOL_RESOLVER)
-        LOG_DEBUG("N_SYMBOL_RESOLVER");
-
-    if (symbol->n_desc & N_ALT_ENTRY)
-        LOG_DEBUG("N_ALT_ENTRY");
-
-    return true;
-}
-
-bool MachoBinary::parse_stab_symbol(struct nlist_64 *symbol) {
-    switch (symbol->n_type & N_STAB) {
-        /* Labeled as NO_SECT in stab.h */
-        case N_GSYM:
-        case N_FNAME:
-        case N_RSYM:
-        case N_SSYM:
-        case N_LSYM:
-        case N_BINCL:
-        case N_PARAMS:
-        case N_VERSION:
-        case N_OLEVEL:
-        case N_PSYM:
-        case N_EINCL:
-        case N_EXCL:
-        case N_BCOMM:
-        case N_LENG:
-        case N_OPT:
-        case N_OSO:
-            // sym->is_absolute = 1;
-            break;
-            /* Labeled as n_sect in stab.h */
-        case N_FUN:
-        case N_STSYM:
-        case N_LCSYM:
-        case N_BNSYM:
-        case N_SLINE:
-        case N_ENSYM:
-        case N_SO:
-        case N_SOL:
-        case N_ENTRY:
-        case N_ECOMM:
-        case N_ECOML:
-            /* These are labeled as NO_SECT in stab.h, but they are actually
-             * section-based on OS X.  We must mark them as such so they get
-             * relocated.
-             */
-        case N_RBRAC:
-        case N_LBRAC:
-            // sym->is_section = 1;
-            break;
-        default:
-            break;
-    }
-    return true;
+	return true;
 }
 
 bool MachoBinary::parse_symtab(struct load_command *lc) {
     struct symtab_command *cmd = m_data->pointer<struct symtab_command>(lc);
 
-    // Save a reference to the symbol table.
-    m_symbol_table_size = cmd->nsyms;
-    m_symbol_table = m_data->offset<struct nlist_64>(cmd->symoff, cmd->nsyms * sizeof(struct nlist_64));
     if (!m_symbol_table) {
-        LOG_ERR("Symbol table is outside the binary mapped file");
+        LOG_ERR("Invalid symbol table.");
         return false;
     }
 
-    // Save a reference to the string table.
-    m_string_table_size = cmd->strsize;
-    m_string_table = m_data->offset<char>(cmd->stroff, cmd->strsize);
     if (!m_string_table) {
-        LOG_ERR("Symbol string table is outside the binary mapped file (offset=%u, size=%u)", cmd->stroff, cmd->strsize);
+        LOG_ERR("Invalid string table.");
         return false;
     }
 
@@ -945,11 +882,21 @@ bool MachoBinary::parse_symtab(struct load_command *lc) {
         // Get the symbol value.
         LOG_DEBUG("symbol->n_value = 0x%.16llx", m_symbol_table[i].n_value);
 
-        if (m_symbol_table[i].n_type & N_STAB) {
-            parse_stab_symbol(&m_symbol_table[i]);
-        } else {
-            parse_generic_symbol(&m_symbol_table[i]);
-        }
+        // Get the symbol description.
+        std::string desc = "";
+        if (m_symbol_table[i].n_desc & N_WEAK_REF)
+        	desc += "N_WEAK_REF";
+
+        if (m_symbol_table[i].n_desc & N_WEAK_DEF)
+        	desc += "N_WEAK_DEF";
+
+        if (m_symbol_table[i].n_desc & N_ARM_THUMB_DEF)
+        	desc += "N_ARM_THUMB_DEF";
+
+        if (m_symbol_table[i].n_desc & N_SYMBOL_RESOLVER)
+        	desc += "N_SYMBOL_RESOLVER";
+
+        LOG_DEBUG("symbol->n_desc = %s (%.2x)", desc.c_str(), m_symbol_table[i].n_desc);
     }
 
     return true;
@@ -959,6 +906,11 @@ bool MachoBinary::parse_dysymtab(struct load_command *lc) {
     // Symbols used by the dynamic linker.
     // This is an additional segment that requires a prior symtab load command.
     struct dysymtab_command *cmd = m_data->pointer<struct dysymtab_command>(lc);
+
+    if (!m_dysymtab_command) {
+    	LOG_ERR("Invalid dynamic symbol table");
+    	return false;
+    }
 
     // Verify that we have string and symbolic information.
     if (!m_symbol_table || !m_string_table) {
@@ -1007,9 +959,6 @@ bool MachoBinary::parse_dysymtab(struct load_command *lc) {
         LOG_DEBUG("  symbol->n_sect  = 0x%.2x", m_symbol_table[i].n_sect);
         LOG_DEBUG("  symbol->n_value = 0x%.16llx\n", m_symbol_table[i].n_value);
     }
-
-    uint32_t tocoff; /* file offset to table of contents */
-    uint32_t ntoc; /* number of entries in table of contents */
 
     LOG_DEBUG("tocoff       = 0x%.8x ntoc        = 0x%.8x modtaboff      = 0x%.8x nmodtab       = 0x%.8x", cmd->tocoff, cmd->ntoc,
             cmd->modtaboff, cmd->nmodtab);
