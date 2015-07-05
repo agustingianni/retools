@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Disable C++ exceptions and enable C++11 globaly.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -g")
 
 # Build related libraries.
 add_subdirectory(src/libbinary)
