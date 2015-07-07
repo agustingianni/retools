@@ -16,6 +16,49 @@
 
 using namespace std;
 
+static void hexdump (char *desc, void *addr, int len) {
+    int i;
+    unsigned char buff[17];
+    unsigned char *pc = (unsigned char*)addr;
+
+    // Output description if given.
+    if (desc != NULL)
+        printf ("%s:\n", desc);
+
+    // Process every byte in the data.
+    for (i = 0; i < len; i++) {
+        // Multiple of 16 means new line (with line offset).
+
+        if ((i % 16) == 0) {
+            // Just don't print ASCII for the zeroth line.
+            if (i != 0)
+                printf ("  %s\n", buff);
+
+            // Output the offset.
+            printf ("  %04x ", i);
+        }
+
+        // Now the hex code for the specific character.
+        printf (" %02x", pc[i]);
+
+        // And store a printable ASCII character for later.
+        if ((pc[i] < 0x20) || (pc[i] > 0x7e))
+            buff[i % 16] = '.';
+        else
+            buff[i % 16] = pc[i];
+        buff[(i % 16) + 1] = '\0';
+    }
+
+    // Pad out last line if not exactly 16 characters.
+    while ((i % 16) != 0) {
+        printf ("   ");
+        i++;
+    }
+
+    // And print the final ASCII bit.
+    printf ("  %s\n", buff);
+}
+
 static int64_t read_sleb128(const uint8_t*& p, const uint8_t* end) {
 	int64_t result = 0;
 	int bit = 0;
@@ -477,8 +520,8 @@ bool MachoBinary::parse_data_in_code(struct load_command *lc) {
     struct data_in_code_entry *data = m_data->offset<struct data_in_code_entry>(cmd->dataoff, cmd->datasize);
 
     // Get the number of entries.
-    unsigned n = cmd->datasize / sizeof(*data);
-    for (unsigned i = 0; i < n; ++i) {
+    unsigned count = cmd->datasize / sizeof(*data);
+    for (unsigned i = 0; i < count; ++i) {
         switch (data[i].kind) {
             case DICE_KIND_DATA:
                 LOG_DEBUG("DICE_KIND_DATA:offset=%u length=%u\n", data[i].offset, data[i].length);
@@ -558,6 +601,11 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
     switch (section_type) {
         case S_REGULAR:
             LOG_DEBUG("S_REGULAR");
+            
+            // For some reason the S_INTERPOSING type is not used.
+            if(string(lc->segname) == "__DATA" && string(lc->sectname) == "__interpose")
+                handled = parse_interposing(lc);            
+            
             break;
 
         case S_ZEROFILL:
@@ -607,10 +655,12 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
 
         case S_LAZY_SYMBOL_POINTERS:
             LOG_DEBUG("S_LAZY_SYMBOL_POINTERS");
+            handled = parse_lazy_symbol_pointers(lc);
             break;
 
         case S_SYMBOL_STUBS:
             LOG_DEBUG("S_SYMBOL_STUBS");
+            handled = parse_symbol_stubs(lc);
             break;
 
         case S_COALESCED:
@@ -623,6 +673,7 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
 
         case S_INTERPOSING:
             LOG_DEBUG("S_INTERPOSING");
+            handled = parse_interposing(lc);
             break;
 
         case S_DTRACE_DOF:
@@ -631,6 +682,7 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
 
         case S_LAZY_DYLIB_SYMBOL_POINTERS:
             LOG_DEBUG("S_LAZY_DYLIB_SYMBOL_POINTERS");
+            handled = parse_lazy_dylib_symbol_pointers(lc);
             break;
 
         case S_THREAD_LOCAL_REGULAR:
@@ -643,14 +695,17 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
 
         case S_THREAD_LOCAL_VARIABLES:
             LOG_DEBUG("S_THREAD_LOCAL_VARIABLES");
+            handled = parse_thread_local_variables(lc);
             break;
 
         case S_THREAD_LOCAL_VARIABLE_POINTERS:
             LOG_DEBUG("S_THREAD_LOCAL_VARIABLE_POINTERS");
+            handled = parse_thread_local_variable_pointers(lc);
             break;
 
         case S_THREAD_LOCAL_INIT_FUNCTION_POINTERS:
             LOG_DEBUG("S_THREAD_LOCAL_INIT_FUNCTION_POINTERS");
+            handled = parse_thread_local_init_function_pointers(lc);
             break;
 
         default:
@@ -830,7 +885,6 @@ template<typename Section_t> bool MachoBinary::parse_non_lazy_symbol_pointers(Se
 	LOG_DEBUG("NON LAZY SYMBOL POINTERS");
 
 	uint32_t count = lc->size / pointer_size();
-	printf("%d\n", count);
 	for (uint32_t i = 0; i < count; ++i) {
 		uint32_t index = indirect_symbol_table[indirect_offset + i];
 		uint64_t addr = lc->addr + i * pointer_size();
@@ -851,6 +905,63 @@ template<typename Section_t> bool MachoBinary::parse_non_lazy_symbol_pointers(Se
 	}
 
 	return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_lazy_symbol_pointers(Section_t *lc) {
+    uint32_t indirect_offset = lc->reserved1;
+    uint32_t *indirect_symbol_table = m_data->offset<uint32_t>(m_dysymtab_command->indirectsymoff,
+            m_dysymtab_command->nindirectsyms * sizeof(uint32_t));
+
+    if (!indirect_symbol_table) {
+        LOG_ERR("Failed to retrieve the indirect symbol table.");
+        return false;
+    }
+
+    return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_symbol_stubs(Section_t *lc) {
+    unsigned indirect_table_offset = lc->reserved1;
+    unsigned element_size = lc->reserved2;
+    unsigned element_count = lc->size / element_size;
+
+    for(unsigned i = 0; i < element_count; i++) {
+        LOG_DEBUG("Stub at 0x%.16llx", (uint64_t) lc->addr + i * element_size);
+    }
+
+    return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_interposing(Section_t *lc) {
+    auto data = m_data->offset<char>(lc->offset, lc->size);
+    unsigned count = lc->size / (pointer_size() * 2);
+
+    for (unsigned i = 0; i < count; i++) {
+
+    }
+
+    return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_lazy_dylib_symbol_pointers(Section_t *lc) {
+    return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_thread_local_variables(Section_t *lc) {
+    return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_thread_local_variable_pointers(Section_t *lc) {
+    return true;
+}
+
+template<typename Section_t> bool MachoBinary::parse_thread_local_init_function_pointers(Section_t *lc) {
+    const size_t count = lc->size / pointer_size();
+    for (unsigned i = 0; i < count; i++) {
+        LOG_DEBUG("Initializer at: 0x%.16llx", (uint64_t) lc->addr + i * pointer_size());
+    }
+
+    return true;
 }
 
 bool MachoBinary::parse_symtab(struct load_command *lc) {

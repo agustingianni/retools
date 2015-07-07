@@ -66,6 +66,13 @@ private:
     template<typename Section_t> bool parse_mod_init_func_pointers(Section_t *lc);
     template<typename Section_t> bool parse_mod_term_func_pointers(Section_t *lc);
     template<typename Section_t> bool parse_non_lazy_symbol_pointers(Section_t *lc);
+    template<typename Section_t> bool parse_lazy_symbol_pointers(Section_t *lc);
+    template<typename Section_t> bool parse_symbol_stubs(Section_t *lc);
+    template<typename Section_t> bool parse_interposing(Section_t *lc);
+    template<typename Section_t> bool parse_lazy_dylib_symbol_pointers(Section_t *lc);
+    template<typename Section_t> bool parse_thread_local_variables(Section_t *lc);
+    template<typename Section_t> bool parse_thread_local_variable_pointers(Section_t *lc);
+    template<typename Section_t> bool parse_thread_local_init_function_pointers(Section_t *lc);
 
     bool parse_symtab(struct load_command *lc);
     bool parse_generic_symbol(struct nlist_64 *symbol);
