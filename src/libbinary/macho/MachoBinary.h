@@ -52,6 +52,7 @@ private:
     bool parse_function_starts(struct load_command *lc);
 
     template<typename T> bool parse_routines(struct load_command *lc);
+    template<typename T> bool parse_encryption_info(struct load_command *lc);
 
     // Segment and section parsers.
 	template<typename Segment_t, typename Section_t> bool parse_segment(struct load_command *lc);
@@ -75,9 +76,6 @@ private:
     template<typename Section_t> bool parse_thread_local_init_function_pointers(Section_t *lc);
 
     bool parse_symtab(struct load_command *lc);
-    bool parse_generic_symbol(struct nlist_64 *symbol);
-    bool parse_stab_symbol(struct nlist_64 *symbol);
-
     bool parse_dysymtab(struct load_command *lc);
     bool parse_thread(struct load_command *lc);
     bool parse_id_dylib(struct load_command *lc);
@@ -91,9 +89,6 @@ private:
     bool parse_dyld_info_binding(const uint8_t *start, const uint8_t *end);
     bool parse_dyld_info_weak_binding(const uint8_t *start, const uint8_t *end);
     bool parse_dyld_info_lazy_binding(const uint8_t *start, const uint8_t *end);
-
-    bool parse_encryption_info_32(struct load_command *lc);
-    bool parse_encryption_info_64(struct load_command *lc);
 
     template <typename T> void add_segment(T *);
     template <typename T> void add_section(T *);

@@ -489,14 +489,14 @@ bool MachoBinary::parse_load_commands() {
 
                 break;
             case LC_ENCRYPTION_INFO:
-                if (!parse_encryption_info_32(cur_lc)) {
+                if (!parse_encryption_info<encryption_info_command>(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
                     continue;
                 }
 
             	break;
             case LC_ENCRYPTION_INFO_64:
-                if (!parse_encryption_info_64(cur_lc)) {
+                if (!parse_encryption_info<encryption_info_command_64>(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
                     continue;
                 }
@@ -1156,16 +1156,9 @@ bool MachoBinary::parse_unixthread(struct load_command *lc) {
     return true;
 }
 
-bool MachoBinary::parse_encryption_info_32(struct load_command *lc) {
+template<typename T> bool MachoBinary::parse_encryption_info(struct load_command *lc) {
 	// This commands identify a range of the file that is encrypted.
-	struct encryption_info_command *cmd = m_data->pointer<struct encryption_info_command>(lc);
-	LOG_DEBUG("cryptoff = 0x%.8x cryptsize = 0x%.8x cryptid = 0x%.8x", cmd->cryptoff, cmd->cryptsize, cmd->cryptid);
-	return true;
-}
-
-bool MachoBinary::parse_encryption_info_64(struct load_command *lc) {
-	// This commands identify a range of the file that is encrypted.
-	struct encryption_info_command_64 *cmd = m_data->pointer<struct encryption_info_command_64>(lc);
+	T *cmd = m_data->pointer<T>(lc);
 	LOG_DEBUG("cryptoff = 0x%.8x cryptsize = 0x%.8x cryptid = 0x%.8x", cmd->cryptoff, cmd->cryptsize, cmd->cryptid);
 	return true;
 }
