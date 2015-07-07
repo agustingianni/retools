@@ -359,15 +359,18 @@ bool MachoBinary::parse_load_commands() {
 
 			// Save a reference to the string table.
 			m_string_table_size = cmd->strsize;
-			m_string_table = m_data->offset<char>(cmd->stroff, cmd->strsize);
+			m_string_table = m_data->offset<char>(cmd->stroff, m_string_table_size);
 			if (!m_string_table) {
-				LOG_ERR("Symbol string table is outside the binary mapped file (offset=%u, size=%u).",
-						cmd->stroff, cmd->strsize);
+				LOG_ERR("Symbol string table is outside the binary mapped file.");
+				continue;
 			}
-		} else if (cur_lc->cmd == LC_DYSYMTAB) {
+		}
+
+		if (cur_lc->cmd == LC_DYSYMTAB) {
 			m_dysymtab_command = m_data->pointer<struct dysymtab_command>(cur_lc);
 			if (!m_dysymtab_command) {
 				LOG_ERR("Dynamic symbol table is outside the binary mapped file.");
+				continue;
 			}
 		}
 	}
@@ -424,6 +427,12 @@ bool MachoBinary::parse_load_commands() {
 
                 break;
             case LC_SEGMENT:
+            	// Check that we have a valid 32 bit segment.
+            	if (!is32()) {
+            		LOG_WARN("Found a 32 bit segment on a 64 bit binary (results may be wrong)");
+            		continue;
+            	}
+
                 // Defines a segment of this file to be mapped into the address space.
                 if (!parse_segment<segment_command, section>(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
@@ -432,6 +441,12 @@ bool MachoBinary::parse_load_commands() {
 
                 break;
             case LC_SEGMENT_64:
+            	// Check that we have a valid 64 bit segment.
+            	if (!is64()) {
+            		LOG_WARN("Found a 64 bit segment on a 32 bit binary (results may be wrong)");
+            		continue;
+            	}
+
                 // Defines a 64-bit segment of this file to be mapped into the address space.
                 if (!parse_segment<segment_command_64, section_64>(cur_lc)) {
                     LOG_WARN("Could not parse the load command, skipping");
@@ -572,14 +587,14 @@ bool MachoBinary::parse_function_starts(struct load_command *lc) {
     if (!cmd)
         return false;
 
-    const uint8_t *infoStart = m_data->offset<const uint8_t>(cmd->dataoff, cmd->datasize);
-    if (!infoStart)
+    const uint8_t *data_start = m_data->offset<const uint8_t>(cmd->dataoff, cmd->datasize);
+    if (!data_start)
         return false;
 
-    const uint8_t *infoEnd = &infoStart[cmd->datasize];
+    const uint8_t *data_end = &data_start[cmd->datasize];
 
     uint64_t address = 0;
-    for (const uint8_t* p = infoStart; (*p != 0) && (p < infoEnd);) {
+    for (auto p = data_start; (*p != 0) && (p < data_end);) {
         uint64_t delta = 0;
         uint32_t shift = 0;
         bool more = true;
@@ -590,7 +605,6 @@ bool MachoBinary::parse_function_starts(struct load_command *lc) {
 
             if (byte < 0x80) {
                 address += delta;
-                //printFunctionStartLine(address);
                 LOG_DEBUG("address = %p", (void * ) address);
                 more = false;
             }
@@ -611,7 +625,7 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
     uint32_t section_usr_attr = lc->flags & SECTION_ATTRIBUTES_USR;
     uint32_t section_sys_attr = lc->flags & SECTION_ATTRIBUTES_SYS;
 
-    add_section<Section_t>(lc);
+    add_section(lc);
 
     LOG_DEBUG("name%16s:%-16s addr=0x%.16llx size=0x%.16llx offset=0x%.8x align=0x%.8x reloff=0x%.8x nreloc=0x%.8x flags=0x%.8x",
     		lc->segname, lc->sectname, (uint64_t) lc->addr, (uint64_t) lc->size, lc->offset,
@@ -621,112 +635,79 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
     bool handled = false;
     switch (section_type) {
         case S_REGULAR:
-            LOG_DEBUG("S_REGULAR");
-            
             // For some reason the S_INTERPOSING type is not used.
             if(string(lc->segname) == "__DATA" && string(lc->sectname) == "__interpose")
                 handled = parse_interposing(lc);            
             
             break;
 
-        case S_ZEROFILL:
-            LOG_DEBUG("S_ZEROFILL");
-            handled = true;
-            break;
-
         case S_CSTRING_LITERALS:
-            LOG_DEBUG("S_CSTRING_LITERALS");
-            handled = parse_cstring_literals_section<Section_t>(lc);
+            handled = parse_cstring_literals_section(lc);
             break;
 
         case S_4BYTE_LITERALS:
-            LOG_DEBUG("S_4BYTE_LITERALS");
-            handled = parse_4byte_literals<Section_t>(lc);
+            handled = parse_4byte_literals(lc);
             break;
 
         case S_8BYTE_LITERALS:
-            LOG_DEBUG("S_8BYTE_LITERALS");
-            handled = parse_8byte_literals<Section_t>(lc);
+            handled = parse_8byte_literals(lc);
             break;
 
         case S_16BYTE_LITERALS:
-            LOG_DEBUG("S_16BYTE_LITERALS");
-            handled = parse_16byte_literals<Section_t>(lc);
+            handled = parse_16byte_literals(lc);
             break;
 
         case S_LITERAL_POINTERS:
-            LOG_DEBUG("S_LITERAL_POINTERS");
-            handled = parse_literal_pointers<Section_t>(lc);
+            handled = parse_literal_pointers(lc);
             break;
 
         case S_MOD_INIT_FUNC_POINTERS:
-            LOG_DEBUG("S_MOD_INIT_FUNC_POINTERS");
-            handled = parse_mod_init_func_pointers<Section_t>(lc);
+            handled = parse_mod_init_func_pointers(lc);
             break;
 
         case S_MOD_TERM_FUNC_POINTERS:
-            LOG_DEBUG("S_MOD_TERM_FUNC_POINTERS");
-            handled = parse_mod_term_func_pointers<Section_t>(lc);
+            handled = parse_mod_term_func_pointers(lc);
             break;
 
         case S_NON_LAZY_SYMBOL_POINTERS:
-            LOG_DEBUG("S_NON_LAZY_SYMBOL_POINTERS");
-            handled = parse_non_lazy_symbol_pointers<Section_t>(lc);
+            handled = parse_non_lazy_symbol_pointers(lc);
             break;
 
         case S_LAZY_SYMBOL_POINTERS:
-            LOG_DEBUG("S_LAZY_SYMBOL_POINTERS");
             handled = parse_lazy_symbol_pointers(lc);
             break;
 
         case S_SYMBOL_STUBS:
-            LOG_DEBUG("S_SYMBOL_STUBS");
             handled = parse_symbol_stubs(lc);
             break;
 
-        case S_COALESCED:
-            LOG_DEBUG("S_COALESCED");
-            break;
-
-        case S_GB_ZEROFILL:
-            LOG_DEBUG("S_GB_ZEROFILL");
-            break;
-
         case S_INTERPOSING:
-            LOG_DEBUG("S_INTERPOSING");
             handled = parse_interposing(lc);
             break;
 
-        case S_DTRACE_DOF:
-            LOG_DEBUG("S_DTRACE_DOF");
-            break;
-
         case S_LAZY_DYLIB_SYMBOL_POINTERS:
-            LOG_DEBUG("S_LAZY_DYLIB_SYMBOL_POINTERS");
             handled = parse_lazy_dylib_symbol_pointers(lc);
             break;
 
-        case S_THREAD_LOCAL_REGULAR:
-            LOG_DEBUG("S_THREAD_LOCAL_REGULAR");
-            break;
-
-        case S_THREAD_LOCAL_ZEROFILL:
-            LOG_DEBUG("S_THREAD_LOCAL_ZEROFILL");
-            break;
-
         case S_THREAD_LOCAL_VARIABLES:
-            LOG_DEBUG("S_THREAD_LOCAL_VARIABLES");
             handled = parse_thread_local_variables(lc);
             break;
 
         case S_THREAD_LOCAL_VARIABLE_POINTERS:
-            LOG_DEBUG("S_THREAD_LOCAL_VARIABLE_POINTERS");
             handled = parse_thread_local_variable_pointers(lc);
             break;
 
         case S_THREAD_LOCAL_INIT_FUNCTION_POINTERS:
-            LOG_DEBUG("S_THREAD_LOCAL_INIT_FUNCTION_POINTERS");
             handled = parse_thread_local_init_function_pointers(lc);
+            break;
+
+        case S_COALESCED:
+        case S_GB_ZEROFILL:
+        case S_DTRACE_DOF:
+        case S_THREAD_LOCAL_REGULAR:
+        case S_THREAD_LOCAL_ZEROFILL:
+        case S_ZEROFILL:
+            handled = true;
             break;
 
         default:
@@ -779,7 +760,7 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
 template <typename Segment_t, typename Section_t> bool MachoBinary::parse_segment(struct load_command *lc) {
 	Segment_t *cmd = m_data->pointer<Segment_t>(lc);
 
-	add_segment<Segment_t>(cmd);
+	add_segment(cmd);
 
     LOG_DEBUG("name = %-16s | base = 0x%.16llx | size = 0x%.16llx", cmd->segname, (uint64_t) cmd->vmaddr, (uint64_t) cmd->vmsize);
 
@@ -790,24 +771,18 @@ template <typename Segment_t, typename Section_t> bool MachoBinary::parse_segmen
 
     // Get a pointer to the first section.
     Section_t *cur_section = m_data->pointer<Section_t>(cmd + 1);
-
-    // Parse each of the segments sections.
     for (unsigned i = 0; i < cmd->nsects; ++i) {
         // Check if the data does not go beyond our loaded memory.
-        if (!m_data->valid(cur_section)) {
+        if (!m_data->valid(&cur_section[i])) {
             LOG_ERR("Error, the current section (%u) goes beyond the mapped file", i);
             break;
         }
 
-        LOG_DEBUG("Parsing section %d of %d", i, cmd->nsects);
-
         // Parse the section.
-        if (!parse_section<Section_t>(cur_section)) {
+        if (!parse_section(&cur_section[i])) {
             LOG_ERR("Error, could not parse section %u of %u, skipping", i, cmd->nsects);
             continue;
         }
-
-        cur_section++;
     }
 
     return true;
