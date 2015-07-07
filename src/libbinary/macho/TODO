@@ -1,5 +1,10 @@
-Each Mach-O file is made up of one Mach-O header, followed by a series of load commands,
-followed by one or more segments, each of which contains between 0 and 255 sections.
+Implement a way to read fat binaries. A tentative solution would be something like:
 
-At the beginning of every Mach-O file is a header structure that identifies the file as a Mach-O file.
-
+	vector<AbstractBinary> binaries = AbstractBinary::load(file_path);
+	for(auto binary : binaries) {
+		// ...
+	}
+	
+	
+parse_thread
+parse_unixthread

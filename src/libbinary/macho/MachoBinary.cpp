@@ -308,6 +308,16 @@ struct load_command *MachoBinary::get_load_command(unsigned idx) {
     return lc;
 }
 
+static struct nlist_64 nlist_to_64(const struct nlist &n) {
+	struct nlist_64 tmp;
+	tmp.n_desc = n.n_desc;
+	tmp.n_sect = n.n_sect;
+	tmp.n_type = n.n_type;
+	tmp.n_un.n_strx = n.n_un.n_strx;
+	tmp.n_value = n.n_value;
+	return tmp;
+}
+
 bool MachoBinary::parse_load_commands() {
     // Get the section size align mask.
     unsigned align_mask = is32() ? 3 : 7;
@@ -330,10 +340,21 @@ bool MachoBinary::parse_load_commands() {
 
 			// Save a reference to the symbol table.
 			m_symbol_table_size = cmd->nsyms;
-			m_symbol_table = m_data->offset<struct nlist_64>(cmd->symoff, cmd->nsyms * sizeof(struct nlist_64));
-			if (!m_symbol_table) {
-				LOG_ERR("Symbol table is outside the binary mapped file (offset=%u, size=%u).",
-						cmd->stroff, cmd->strsize);
+
+			// Create space for the symbol table. This should be freed later.
+			m_symbol_table = new nlist_64[m_symbol_table_size];
+
+			// This sucks.
+			if (is32()) {
+				auto temp = m_data->offset<struct nlist>(cmd->symoff, m_symbol_table_size * sizeof(struct nlist));
+				for (unsigned i = 0; i < m_symbol_table_size; i++) {
+					m_symbol_table[i] = nlist_to_64(temp[i]);
+				}
+			} else {
+				auto temp = m_data->offset<struct nlist_64>(cmd->symoff, m_symbol_table_size * sizeof(struct nlist_64));
+				for (unsigned i = 0; i < m_symbol_table_size; i++) {
+					m_symbol_table[i] = temp[i];
+				}
 			}
 
 			// Save a reference to the string table.
@@ -1000,6 +1021,7 @@ bool MachoBinary::parse_symtab(struct load_command *lc) {
 
         if (m_symbol_table[i].n_desc & N_WEAK_DEF)
         	desc += "N_WEAK_DEF";
+
 
         if (m_symbol_table[i].n_desc & N_ARM_THUMB_DEF)
         	desc += "N_ARM_THUMB_DEF";
