@@ -82,8 +82,6 @@ private:
     template<typename Section_t> bool parse_symbol_stubs(Section_t *lc);
     template<typename Section_t> bool parse_interposing(Section_t *lc);
     template<typename Section_t> bool parse_lazy_dylib_symbol_pointers(Section_t *lc);
-    template<typename Section_t> bool parse_thread_local_variables(Section_t *lc);
-    template<typename Section_t> bool parse_thread_local_variable_pointers(Section_t *lc);
     template<typename Section_t> bool parse_thread_local_init_function_pointers(Section_t *lc);
 
     bool parse_symtab(struct load_command *lc);

@@ -692,14 +692,6 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
             handled = parse_lazy_dylib_symbol_pointers(lc);
             break;
 
-        case S_THREAD_LOCAL_VARIABLES:
-            handled = parse_thread_local_variables(lc);
-            break;
-
-        case S_THREAD_LOCAL_VARIABLE_POINTERS:
-            handled = parse_thread_local_variable_pointers(lc);
-            break;
-
         case S_THREAD_LOCAL_INIT_FUNCTION_POINTERS:
             handled = parse_thread_local_init_function_pointers(lc);
             break;
@@ -709,6 +701,8 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
         case S_DTRACE_DOF:
         case S_THREAD_LOCAL_REGULAR:
         case S_THREAD_LOCAL_ZEROFILL:
+        case S_THREAD_LOCAL_VARIABLES:
+        case S_THREAD_LOCAL_VARIABLE_POINTERS:
         case S_ZEROFILL:
             handled = true;
             break;
@@ -717,45 +711,6 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
             LOG_WARN("Unknown section type 0x%.8x, ignoring", section_type);
             break;
     }
-
-	if (section_usr_attr & S_ATTR_DEBUG) {
-		LOG_DEBUG("S_ATTR_DEBUG");
-	}
-
-	if (section_usr_attr & S_ATTR_LIVE_SUPPORT) {
-		LOG_DEBUG("S_ATTR_LIVE_SUPPORT");
-	}
-
-	if (section_usr_attr & S_ATTR_NO_DEAD_STRIP) {
-		LOG_DEBUG("S_ATTR_NO_DEAD_STRIP");
-	}
-
-	if (section_usr_attr & S_ATTR_NO_TOC) {
-		LOG_DEBUG("S_ATTR_NO_TOC");
-	}
-
-	if (section_usr_attr & S_ATTR_PURE_INSTRUCTIONS) {
-		LOG_DEBUG("S_ATTR_PURE_INSTRUCTIONS");
-	}
-
-	if (section_usr_attr & S_ATTR_SELF_MODIFYING_CODE) {
-		LOG_DEBUG("S_ATTR_SELF_MODIFYING_CODE");
-	}
-
-	if (section_usr_attr & S_ATTR_STRIP_STATIC_SYMS) {
-		LOG_DEBUG("S_ATTR_STRIP_STATIC_SYMS");
-	}
-
-	if (section_sys_attr & S_ATTR_SOME_INSTRUCTIONS) {
-		LOG_DEBUG("S_ATTR_SOME_INSTRUCTIONS");
-	}
-
-	if (section_sys_attr & S_ATTR_EXT_RELOC) {
-		LOG_DEBUG("S_ATTR_EXT_RELOC");
-	}
-	if (section_sys_attr & S_ATTR_LOC_RELOC) {
-		LOG_DEBUG("S_ATTR_LOC_RELOC");
-	}
 
     return true;
 }
@@ -992,14 +947,6 @@ template<typename Section_t> bool MachoBinary::parse_lazy_dylib_symbol_pointers(
 
     exit(0);
 
-    return true;
-}
-
-template<typename Section_t> bool MachoBinary::parse_thread_local_variables(Section_t *lc) {
-    return true;
-}
-
-template<typename Section_t> bool MachoBinary::parse_thread_local_variable_pointers(Section_t *lc) {
     return true;
 }
 
