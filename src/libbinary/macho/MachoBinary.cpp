@@ -936,12 +936,12 @@ template<typename Section_t> bool MachoBinary::parse_lazy_symbol_pointers(Sectio
     	printf("0x%.16llx 0x%.16llx LAZY %s\n", (uint64_t) addr, data[i], symbol_name.c_str());
     }
 
-    exit(0);
-
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_symbol_stubs(Section_t *lc) {
+	// A symbol_stubs section contains symbol stubs, which are sequences of machine instructions
+	// (all the same size) used for lazily binding undefined function calls at runtime.
     unsigned indirect_table_offset = lc->reserved1;
     unsigned element_size = lc->reserved2;
     unsigned element_count = lc->size / element_size;
@@ -969,6 +969,29 @@ template<typename Section_t> bool MachoBinary::parse_interposing(Section_t *lc) 
 }
 
 template<typename Section_t> bool MachoBinary::parse_lazy_dylib_symbol_pointers(Section_t *lc) {
+	using pointer_t = typename Traits<Section_t>::pointer_t;
+    uint32_t indirect_offset = lc->reserved1;
+    uint32_t *indirect_symbol_table = m_data->offset<uint32_t>(m_dysymtab_command->indirectsymoff,
+            m_dysymtab_command->nindirectsyms * sizeof(uint32_t));
+
+    if (!indirect_symbol_table) {
+        LOG_ERR("Failed to retrieve the indirect symbol table.");
+        return false;
+    }
+
+    LOG_DEBUG("lazy symbol pointers:");
+
+    auto data = m_data->offset<pointer_t>(lc->offset, lc->size);
+    auto count = lc->size / sizeof(pointer_t);
+    for(unsigned i = 0; i < count; i++) {
+		unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
+		pointer_t addr = lc->addr + i * sizeof(pointer_t);
+		string symbol_name = symbol_index < m_symbol_table_size ? &m_string_table[m_symbol_table[symbol_index].n_un.n_strx] : "invalid";
+    	printf("0x%.16llx 0x%.16llx parse_lazy_dylib_symbol_pointers %s\n", (uint64_t) addr, data[i], symbol_name.c_str());
+    }
+
+    exit(0);
+
     return true;
 }
 
