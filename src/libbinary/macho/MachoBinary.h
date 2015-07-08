@@ -24,6 +24,17 @@ std::string LoadCommandName(unsigned cmd);
 #define GET_HEADER_VALUE(field) (is32()) ? m_header.header_32.field : m_header.header_64.field
 #define DEFINE_HEADER_ACCESSOR(type, field) type field() const { return GET_HEADER_VALUE(field); }
 
+template<typename T> struct Traits;
+template<> struct Traits<section> {
+	typedef uint32_t pointer_t;
+	const static unsigned pointer_size = sizeof(pointer_t);
+};
+
+template<> struct Traits<section_64> {
+	typedef uint64_t pointer_t;
+	const static unsigned pointer_size = sizeof(pointer_t);
+};
+
 class MachoBinary: public AbstractBinary {
 private:
     union {

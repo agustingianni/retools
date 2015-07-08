@@ -16,7 +16,7 @@
 
 using namespace std;
 
-static void hexdump (char *desc, void *addr, int len) {
+static void hexdump(char *desc, void *addr, int len) {
     int i;
     unsigned char buff[17];
     unsigned char *pc = (unsigned char*)addr;
@@ -631,14 +631,17 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
     		lc->segname, lc->sectname, (uint64_t) lc->addr, (uint64_t) lc->size, lc->offset,
 			lc->align, lc->reloff, lc->nreloc, lc->flags);
 
+    string segname = lc->segname;
+    string sectname = lc->sectname;
+
     // Handle the traditional sections defined by the mach-o specification.
     bool handled = false;
     switch (section_type) {
         case S_REGULAR:
             // For some reason the S_INTERPOSING type is not used.
-            if(string(lc->segname) == "__DATA" && string(lc->sectname) == "__interpose")
-                handled = parse_interposing(lc);            
-            
+            if(segname == "__DATA" && sectname == "__interpose")
+                handled = parse_interposing(lc);
+
             break;
 
         case S_CSTRING_LITERALS:
@@ -758,19 +761,19 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
 }
 
 template <typename Segment_t, typename Section_t> bool MachoBinary::parse_segment(struct load_command *lc) {
-	Segment_t *cmd = m_data->pointer<Segment_t>(lc);
+	auto cmd = m_data->pointer<Segment_t>(lc);
 
 	add_segment(cmd);
 
     LOG_DEBUG("name = %-16s | base = 0x%.16llx | size = 0x%.16llx", cmd->segname, (uint64_t) cmd->vmaddr, (uint64_t) cmd->vmsize);
 
     if (string(cmd->segname) == SEG_TEXT) {
-    	LOG_DEBUG("m_base_address = %p", (void *) m_base_address);
     	m_base_address = cmd->vmaddr;
+    	LOG_DEBUG("m_base_address = %p", (void *) m_base_address);
     }
 
     // Get a pointer to the first section.
-    Section_t *cur_section = m_data->pointer<Section_t>(cmd + 1);
+    auto cur_section = m_data->pointer<Section_t>(cmd + 1);
     for (unsigned i = 0; i < cmd->nsects; ++i) {
         // Check if the data does not go beyond our loaded memory.
         if (!m_data->valid(&cur_section[i])) {
@@ -843,9 +846,10 @@ template<typename Section_t> bool MachoBinary::parse_16byte_literals(Section_t *
 }
 
 template<typename Section_t> bool MachoBinary::parse_literal_pointers(Section_t *lc) {
-	if (auto start = m_data->offset<uint64_t>(lc->offset, lc->size)) {
-		for(unsigned i = 0; i < lc->size / sizeof(uint64_t); ++i) {
-			LOG_DEBUG("POINTER: 0x%.16llx", start[i]);
+	using pointer_t = typename Traits<Section_t>::pointer_t;
+	if (auto start = m_data->offset<pointer_t>(lc->offset, lc->size)) {
+		for(unsigned i = 0; i < lc->size / sizeof(pointer_t); ++i) {
+			LOG_DEBUG("POINTER: 0x%.16llx -> 0x%.16llx", (uint64_t) lc->addr + i * sizeof(pointer_t), (uint64_t) start[i]);
 		}
 	}
 
@@ -853,7 +857,8 @@ template<typename Section_t> bool MachoBinary::parse_literal_pointers(Section_t 
 }
 
 template<typename Section_t> bool MachoBinary::parse_mod_init_func_pointers(Section_t *lc) {
-	for (uint64_t initializer = lc->addr; initializer < lc->addr + lc->size; initializer += pointer_size()) {
+	using pointer_t = typename Traits<Section_t>::pointer_t;
+	for (pointer_t initializer = lc->addr; initializer < lc->addr + lc->size; initializer += sizeof(pointer_t)) {
 		LOG_DEBUG("  Initializer at: %p", (void *) (initializer + m_base_address));
 	}
 
@@ -861,7 +866,8 @@ template<typename Section_t> bool MachoBinary::parse_mod_init_func_pointers(Sect
 }
 
 template<typename Section_t> bool MachoBinary::parse_mod_term_func_pointers(Section_t *lc) {
-    for (uint64_t terminator = lc->addr; terminator < lc->addr + lc->size; terminator += pointer_size()) {
+	using pointer_t = typename Traits<Section_t>::pointer_t;
+    for (pointer_t terminator = lc->addr; terminator < lc->addr + lc->size; terminator += sizeof(pointer_t)) {
 		LOG_DEBUG("  Terminator at: %p", (void *) (terminator + m_base_address));
 	}
 
@@ -869,35 +875,40 @@ template<typename Section_t> bool MachoBinary::parse_mod_term_func_pointers(Sect
 }
 
 template<typename Section_t> bool MachoBinary::parse_non_lazy_symbol_pointers(Section_t *lc) {
+	using pointer_t = typename Traits<Section_t>::pointer_t;
+
 	uint32_t indirect_offset = lc->reserved1;
 	uint32_t *indirect_symbol_table = m_data->offset<uint32_t>(m_dysymtab_command->indirectsymoff,
-			m_dysymtab_command->nindirectsyms * pointer_size());
+			m_dysymtab_command->nindirectsyms * sizeof(uint32_t));
 
 	if (!indirect_symbol_table) {
 		LOG_ERR("Failed to retrieve the indirect symbol table.");
 		return false;
 	}
 
-	LOG_DEBUG("NON LAZY SYMBOL POINTERS");
+	uint32_t count = lc->size / sizeof(pointer_t);
+	LOG_DEBUG("NONLAZY %d", count);
+	for (unsigned i = 0; i < count; ++i) {
+		unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
+		pointer_t addr = lc->addr + i * sizeof(pointer_t);
+		string symbol_name;
 
-	uint32_t count = lc->size / pointer_size();
-	for (uint32_t i = 0; i < count; ++i) {
-		uint32_t index = indirect_symbol_table[indirect_offset + i];
-		uint64_t addr = lc->addr + i * pointer_size();
-		std::string typeName = "pointer";
-
-		std: string symbol_name;
-		if (index == INDIRECT_SYMBOL_LOCAL) {
-			symbol_name = "INDIRECT_SYMBOL_LOCAL";
-		} else if (index == INDIRECT_SYMBOL_ABS) {
+		switch(symbol_index) {
+		case INDIRECT_SYMBOL_ABS:
 			symbol_name = "INDIRECT_SYMBOL_ABS";
-		} else if (index == (INDIRECT_SYMBOL_ABS | INDIRECT_SYMBOL_LOCAL)) {
+			break;
+		case INDIRECT_SYMBOL_LOCAL:
+			symbol_name = "INDIRECT_SYMBOL_LOCAL";
+			break;
+		case INDIRECT_SYMBOL_ABS | INDIRECT_SYMBOL_LOCAL:
 			symbol_name = "INDIRECT_SYMBOL_ABS | INDIRECT_SYMBOL_LOCAL";
-		} else {
-			symbol_name = &m_string_table[m_symbol_table[index].n_un.n_strx];
+			break;
+		default:
+			symbol_name = symbol_index < m_symbol_table_size ? &m_string_table[m_symbol_table[symbol_index].n_un.n_strx] : "invalid";
+			break;
 		}
 
-		printf("0x%.16llx %d pointer %s\n", addr, index, symbol_name.c_str());
+		printf("0x%.16llx 0x%.8x NONLAZY %s\n", (uint64_t) addr, symbol_index, symbol_name.c_str());
 	}
 
 	return true;
@@ -929,11 +940,15 @@ template<typename Section_t> bool MachoBinary::parse_symbol_stubs(Section_t *lc)
 }
 
 template<typename Section_t> bool MachoBinary::parse_interposing(Section_t *lc) {
-    auto data = m_data->offset<char>(lc->offset, lc->size);
-    unsigned count = lc->size / (pointer_size() * 2);
+	using pointer_t = typename Traits<Section_t>::pointer_t;
+	struct interposer {
+		pointer_t from, to;
+	};
 
+	auto data = m_data->offset<interposer>(lc->offset, lc->size);
+    auto count = lc->size / sizeof(interposer);
     for (unsigned i = 0; i < count; i++) {
-
+    	LOG_DEBUG("Interposer from 0x%.16llx to 0x%.16llx", (uint64_t) data[i].from, (uint64_t) data[i].to);
     }
 
     return true;
@@ -952,9 +967,10 @@ template<typename Section_t> bool MachoBinary::parse_thread_local_variable_point
 }
 
 template<typename Section_t> bool MachoBinary::parse_thread_local_init_function_pointers(Section_t *lc) {
-    const size_t count = lc->size / pointer_size();
+	using pointer_t = typename Traits<Section_t>::pointer_t;
+    const size_t count = lc->size / sizeof(pointer_t);
     for (unsigned i = 0; i < count; i++) {
-        LOG_DEBUG("Initializer at: 0x%.16llx", (uint64_t) lc->addr + i * pointer_size());
+        LOG_DEBUG("Initializer at: 0x%.16llx", (uint64_t) lc->addr + i * sizeof(pointer_t));
     }
 
     return true;
