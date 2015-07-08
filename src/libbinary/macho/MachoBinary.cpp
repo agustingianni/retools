@@ -915,6 +915,7 @@ template<typename Section_t> bool MachoBinary::parse_non_lazy_symbol_pointers(Se
 }
 
 template<typename Section_t> bool MachoBinary::parse_lazy_symbol_pointers(Section_t *lc) {
+	using pointer_t = typename Traits<Section_t>::pointer_t;
     uint32_t indirect_offset = lc->reserved1;
     uint32_t *indirect_symbol_table = m_data->offset<uint32_t>(m_dysymtab_command->indirectsymoff,
             m_dysymtab_command->nindirectsyms * sizeof(uint32_t));
@@ -923,6 +924,19 @@ template<typename Section_t> bool MachoBinary::parse_lazy_symbol_pointers(Sectio
         LOG_ERR("Failed to retrieve the indirect symbol table.");
         return false;
     }
+
+    LOG_DEBUG("lazy symbol pointers:");
+
+    auto data = m_data->offset<pointer_t>(lc->offset, lc->size);
+    auto count = lc->size / sizeof(pointer_t);
+    for(unsigned i = 0; i < count; i++) {
+		unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
+		pointer_t addr = lc->addr + i * sizeof(pointer_t);
+		string symbol_name = symbol_index < m_symbol_table_size ? &m_string_table[m_symbol_table[symbol_index].n_un.n_strx] : "invalid";
+    	printf("0x%.16llx 0x%.16llx LAZY %s\n", (uint64_t) addr, data[i], symbol_name.c_str());
+    }
+
+    exit(0);
 
     return true;
 }
