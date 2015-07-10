@@ -737,7 +737,7 @@ template <typename Segment_t, typename Section_t> bool MachoBinary::parse_segmen
         }
 
         // Parse the section.
-        if (!parse_section(&cur_section[i])) {
+        if (!parse_section<Section_t>(&cur_section[i])) {
             LOG_ERR("Error, could not parse section %u of %u, skipping", i, cmd->nsects);
             continue;
         }
@@ -888,7 +888,7 @@ template<typename Section_t> bool MachoBinary::parse_lazy_symbol_pointers(Sectio
 		unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
 		pointer_t addr = lc->addr + i * sizeof(pointer_t);
 		string symbol_name = symbol_index < m_symbol_table_size ? &m_string_table[m_symbol_table[symbol_index].n_un.n_strx] : "invalid";
-    	printf("0x%.16llx 0x%.16llx LAZY %s\n", (uint64_t) addr, data[i], symbol_name.c_str());
+    	printf("0x%.16llx 0x%.16llx LAZY %s\n", (uint64_t) addr, (uint64_t) data[i], symbol_name.c_str());
     }
 
     return true;
@@ -942,10 +942,8 @@ template<typename Section_t> bool MachoBinary::parse_lazy_dylib_symbol_pointers(
 		unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
 		pointer_t addr = lc->addr + i * sizeof(pointer_t);
 		string symbol_name = symbol_index < m_symbol_table_size ? &m_string_table[m_symbol_table[symbol_index].n_un.n_strx] : "invalid";
-    	printf("0x%.16llx 0x%.16llx parse_lazy_dylib_symbol_pointers %s\n", (uint64_t) addr, data[i], symbol_name.c_str());
+    	printf("0x%.16llx 0x%.16llx parse_lazy_dylib_symbol_pointers %s\n", (uint64_t) addr, (uint64_t) data[i], symbol_name.c_str());
     }
-
-    exit(0);
 
     return true;
 }
