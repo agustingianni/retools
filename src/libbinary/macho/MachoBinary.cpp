@@ -631,17 +631,11 @@ template<typename Section_t> bool MachoBinary::parse_section(Section_t *lc) {
     		lc->segname, lc->sectname, (uint64_t) lc->addr, (uint64_t) lc->size, lc->offset,
 			lc->align, lc->reloff, lc->nreloc, lc->flags);
 
-    string segname = lc->segname;
-    string sectname = lc->sectname;
-
     // Handle the traditional sections defined by the mach-o specification.
     bool handled = false;
     switch (section_type) {
         case S_REGULAR:
-            // For some reason the S_INTERPOSING type is not used.
-            if(segname == "__DATA" && sectname == "__interpose")
-                handled = parse_interposing(lc);
-
+        	handled = parse_regular_section(lc);
             break;
 
         case S_CSTRING_LITERALS:
@@ -745,6 +739,54 @@ template <typename Segment_t, typename Section_t> bool MachoBinary::parse_segmen
 
     return true;
 }
+
+template<typename Section_t> bool MachoBinary::parse_regular_section(Section_t *lc) {
+    bool handled = false;
+	string segname = lc->segname;
+    string sectname = lc->sectname;
+
+    LOG_DEBUG("PEPE: %20s %s", segname.c_str(), sectname.c_str());
+
+    // For some reason the S_INTERPOSING type is not used sometimes.
+    if(segname == "__DATA" && sectname == "__interpose")
+        handled = parse_interposing(lc);
+
+    if(segname == "__DATA" && sectname == "__cfstring")
+        handled = parse_data_cfstring(lc);
+
+	return handled;
+}
+
+template<typename Section_t> bool MachoBinary::parse_data_cfstring(Section_t *lc) {
+    using pointer_t = typename Traits<Section_t>::pointer_t;
+    struct CFString {
+    	pointer_t pointer;
+    	pointer_t data;
+    	pointer_t cstr;	// rva not offset
+    	pointer_t size;
+    };
+
+    unsigned count = lc->size / sizeof(CFString);
+    LOG_DEBUG("Number of entries %d", count);
+
+    auto data = m_data->offset<CFString>(lc->offset, lc->size);
+    for(unsigned i = 0; i < count; i++) {
+    	auto string_data = m_data->offset<char>(offset_from_rva<pointer_t>(data[i].cstr), data[i].size);
+    	std::string value = std::string(string_data, data[i].size);
+    	LOG_DEBUG("CFString -> 0x%.16llx: %s", (uint64_t) data[i].cstr, value.c_str());
+    }
+
+    return true;
+}
+
+#if 0
+template<typename Section_t> bool MachoBinary::parse_data_cfstring(Section_t *lc) {
+    auto data = m_data->offset<char>(lc->offset, lc->size);
+    hexdump((char *) (segname + ":" + sectname).c_str(), data, lc->size);
+    exit(0);
+	return true;
+}
+#endif
 
 template<typename Section_t> bool MachoBinary::parse_cstring_literals_section(Section_t *lc) {
 	auto start = m_data->offset<const char>(lc->offset, lc->size);
@@ -1438,6 +1480,25 @@ std::string MachoBinary::ordinal_name(int libraryOrdinal) {
 	return m_imported_libs[libraryOrdinal - 1];
 }
 
+template<> uint32_t MachoBinary::offset_from_rva<uint32_t>(uint32_t rva) {
+	for(auto seg : m_segments_32) {
+		if (rva >= seg.vmaddr && rva < seg.vmaddr + seg.vmsize) {
+			return (rva - seg.vmaddr) + seg.fileoff;
+		}
+	}
+
+	return 0;
+}
+
+template<> uint64_t MachoBinary::offset_from_rva<uint64_t>(uint64_t rva) {
+	for(auto seg : m_segments_64) {
+		if (rva >= seg.vmaddr && rva < seg.vmaddr + seg.vmsize) {
+			return (rva - seg.vmaddr) + seg.fileoff;
+		}
+	}
+
+	return 0;
+}
 
 bool MachoBinary::parse_dyld_info_binding(const uint8_t *start, const uint8_t *end) {
 	printf("bind information:\n");

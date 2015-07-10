@@ -70,6 +70,9 @@ private:
 	template<typename Section_t> bool parse_section(Section_t *lc);
 
     // Section parsers.
+	template<typename Section_t> bool parse_regular_section(Section_t *lc);
+	template<typename Section_t> bool parse_data_cfstring(Section_t *lc);
+
     template<typename Section_t> bool parse_cstring_literals_section(Section_t *lc);
     template<typename Section_t> bool parse_4byte_literals(Section_t *lc);
     template<typename Section_t> bool parse_8byte_literals(Section_t *lc);
@@ -105,6 +108,7 @@ private:
     uint64_t segment_address(unsigned index);
     std::string section_name(unsigned index, uint64_t address);
     std::string ordinal_name(int libraryOrdinal);
+    template <typename T> T offset_from_rva(T rva);
 
     // Required for parsing names and symbols. Loaded at 'parse_symtab'.
     struct nlist_64 *m_symbol_table;
