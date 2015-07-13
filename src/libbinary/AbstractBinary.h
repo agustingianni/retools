@@ -31,7 +31,7 @@ enum class BinaryEndianness {
 };
 
 enum class BinaryType {
-    Object, Core, Executable, Library
+    Object, Core, Executable, Library, Unknown
 };
 
 enum class BinaryArch {
