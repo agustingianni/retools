@@ -32,7 +32,7 @@ bool AbstractBinary::load(const std::string &path) {
     }
 
     m_size = file_stats.st_size;
-    m_memory = static_cast<unsigned char *>(mmap(nullptr, m_size, PROT_READ, MAP_FILE | MAP_SHARED, fd, 0));
+    m_memory = static_cast<unsigned char *>(mmap(nullptr, m_size, PROT_READ | PROT_WRITE, MAP_FILE | MAP_PRIVATE, fd, 0));
     if (m_memory == MAP_FAILED) {
         close(fd);
         return false;
