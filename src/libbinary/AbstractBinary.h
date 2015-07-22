@@ -12,22 +12,14 @@
 #include <vector>
 
 #include "MemoryMap.h"
-
-struct BinarySegment {
-	uintptr_t m_start_addr;
-	uintptr_t m_end_addr;
-	unsigned m_permissions;
-	size_t m_size;
-	char *m_contents;
-	std::string m_name;
-};
+#include "Utilities.h"
 
 enum class AddressSpaceSize {
-	BINARY_16, BINARY_32, BINARY_64, MULTIPLE
+	BINARY_16, BINARY_32, BINARY_64, MULTIPLE, Unknown
 };
 
 enum class BinaryEndianness {
-	BIG, LITTLE
+	BIG, LITTLE, Unknown
 };
 
 enum class BinaryType {
@@ -35,17 +27,29 @@ enum class BinaryType {
 };
 
 enum class BinaryArch {
-	X86, X86_64, ARM, ARM64, MULTIPLE
+	X86, X86_64, ARM, ARM64, MULTIPLE, Unknown
 };
 
 enum class BinaryFormat {
-	MACHO, ELF, PE, FAT
+	MACHO, ELF, PE, FAT, Unknown
 };
 
 class AbstractBinary {
 public:
-	virtual ~AbstractBinary() {
+	AbstractBinary() :
+		m_size(0),
+		m_data(nullptr),
+		m_memory(nullptr),
+		m_unmap(false),
+		m_address_space_size(AddressSpaceSize::Unknown),
+		m_endianness(BinaryEndianness::Unknown),
+		m_host_endianness(IsHostBigEndian() ? BinaryEndianness::BIG : BinaryEndianness::LITTLE),
+		m_binary_arch(BinaryArch::Unknown),
+		m_binary_format(BinaryFormat::Unknown),
+		m_binary_type(BinaryType::Unknown) {
 	}
+
+	virtual ~AbstractBinary() = default;
 
 	// Create a new binary by reading the file pointer by 'path'.
 	bool load(const std::string &path);
@@ -87,6 +91,10 @@ public:
 		return !isLittleEndian();
 	}
 
+	bool needs_swap() const {
+		return m_host_endianness != m_endianness;
+	}
+
 	bool is16() const {
 		return m_address_space_size == AddressSpaceSize::BINARY_16;
 	}
@@ -99,8 +107,15 @@ public:
 		return m_address_space_size == AddressSpaceSize::BINARY_64;
 	}
 
-protected:
+	const std::vector<AbstractBinary *> &binaries() const {
+		return m_binaries;
+	}
 
+	size_t binary_count() const {
+		return m_binaries.size();
+	}
+
+protected:
 	unsigned pointer_size() const {
 		switch (m_address_space_size) {
 		case AddressSpaceSize::BINARY_64:
@@ -117,15 +132,23 @@ protected:
 		}
 	}
 
+	// Some binaries contain a collection of binaries inside (e.g. fat mach-o).
+	std::vector<AbstractBinary *> m_binaries;
+
+	// Access to binaries memory is performed using a memory map.
+	// Access to the binary memory is performed using a memory map.
 	MemoryMap *m_data;
-	unsigned char *m_memory;
 	std::string m_path;
+
+	// If 'm_unmap' is true then we need to clean the resources used.
 	bool m_unmap;
+	unsigned char *m_memory;
 	size_t m_size;
 
 	BinaryType m_binary_type;
 	AddressSpaceSize m_address_space_size;
 	BinaryEndianness m_endianness;
+	BinaryEndianness m_host_endianness;
 	BinaryArch m_binary_arch;
 	BinaryFormat m_binary_format;
 };

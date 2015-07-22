@@ -11,6 +11,10 @@ add_library(
 	${CMAKE_CURRENT_SOURCE_DIR}/AbstractBinary.h
 	${CMAKE_CURRENT_SOURCE_DIR}/macho/MachoBinary.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/macho/MachoBinary.h
+	${CMAKE_CURRENT_SOURCE_DIR}/macho/FatBinary.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/macho/FatBinary.h
+	${CMAKE_CURRENT_SOURCE_DIR}/macho/Swap.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/macho/Swap.h
 )
 
 # Enable c++11 on the target.

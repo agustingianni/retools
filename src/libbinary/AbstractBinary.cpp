@@ -65,7 +65,7 @@ bool AbstractBinary::load(unsigned char *memory, size_t size) {
 
 // Free any used resources.
 bool AbstractBinary::unload() {
-    if (m_unmap) {
+    if (m_unmap && m_memory) {
         if (munmap(m_memory, m_size) < 0) {
             return false;
         }
