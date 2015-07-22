@@ -17,6 +17,15 @@
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 
+static inline bool IsHostBigEndian(void) {
+	union {
+		uint32_t i;
+		char c[sizeof(uint32_t)];
+	} bint = { 0x01020304 };
+
+	return bint.c[0] == 1;
+}
+
 static inline std::string exec_get_output(std::string cmd) {
 	FILE* pipe = popen(cmd.c_str(), "r");
 	if (!pipe)
