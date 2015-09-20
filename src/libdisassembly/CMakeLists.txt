@@ -23,7 +23,7 @@ add_library(
 set_target_properties(
 	disassembly
 	PROPERTIES 
-	COMPILE_FLAGS "-std=c++11 -Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable"
+	COMPILE_FLAGS "-std=c++11 -Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable -Wno-int-to-void-pointer-cast"
 )
 
 # Set target specific include directories.
