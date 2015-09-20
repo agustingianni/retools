@@ -9,6 +9,9 @@ add_subdirectory(src/libdisassembly)
 # add_subdirectory(src/libemulation)
 # add_subdirectory(src/libsymbolic)
 
+# Build the tools.
+add_subdirectory(src/tools)
+
 project(retools)
 
 add_executable(

@@ -38,5 +38,4 @@ target_include_directories(
 target_link_libraries(
 	disassembly
 	capstone
-	darm
 )
