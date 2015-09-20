@@ -13,7 +13,7 @@ import struct
 import re
 import sys
 
-ANDROID_TOOLCHAIN_PATH = "/Users/anon/android-toolchain/bin/"
+ANDROID_TOOLCHAIN_PATH = "/Users/anon/android/toolchain/bin"
 COMPILER = os.path.join(ANDROID_TOOLCHAIN_PATH, "arm-linux-androideabi-gcc")
 DISASSEMBLER = os.path.join(ANDROID_TOOLCHAIN_PATH, "arm-linux-androideabi-objdump")
 

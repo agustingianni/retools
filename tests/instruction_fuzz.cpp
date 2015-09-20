@@ -1,5 +1,5 @@
-#include <libdisassembly/arm/ARMDisassembler.h>
-#include <libdisassembly/arm/gen/ARMDecodingTable.h>
+#include <arm/ARMDisassembler.h>
+#include <arm/gen/ARMDecodingTable.h>
 #include <iostream>
 #include <random>
 #include <limits>
@@ -8,10 +8,10 @@
 #include <cstdio>
 #include <boost/algorithm/string.hpp>
 
-#include "utilities/Utilities.h"
+#include "Utilities.h"
 
 extern "C" {
-#include <darm/darm.h>
+#include <darm.h>
 }
 
 #include <capstone/capstone.h>
@@ -56,7 +56,7 @@ string capstone_disassemble(uint32_t op_code, cs_mode mode) {
 
 	cs_open(CS_ARCH_ARM, mode, &handle);
 	{
-		count = cs_disasm_ex(handle, (unsigned char *) &op_code, sizeof(op_code), 0, 0, &insn);
+		count = cs_disasm(handle, (unsigned char *) &op_code, sizeof(op_code), 0, 0, &insn);
 		if (count) {
 			ret = string(insn[0].mnemonic) + " " + string(insn[0].op_str);
 			cs_free(insn, count);
@@ -231,7 +231,7 @@ void gen_shit(unsigned i, unsigned j) {
 	cs_open(CS_ARCH_ARM, CS_MODE_ARM, &handle);
 	{
 		for(unsigned opcode = i; opcode < j; opcode += 1) {
-			count = cs_disasm_ex(handle, (unsigned char *) &opcode, sizeof(opcode), 0, 0, &insn);
+			count = cs_disasm(handle, (unsigned char *) &opcode, sizeof(opcode), 0, 0, &insn);
 			if (count) {
 				// Capstones disassembly.
 				dis_caps = string(insn[0].mnemonic) + " " + string(insn[0].op_str);

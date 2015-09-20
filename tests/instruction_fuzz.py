@@ -5,7 +5,7 @@ import subprocess
 from pprint import pprint
 
 PATH_BUILD_DIR = os.path.abspath("../build/")
-PATH_INSTRUCTION_FUZZ_BIN = os.path.join(PATH_BUILD_DIR, "instruction_fuzz")
+PATH_INSTRUCTION_FUZZ_BIN = os.path.join(PATH_BUILD_DIR, "tests/instruction_fuzz")
 PATH_TESTS_JSON = os.path.join(PATH_BUILD_DIR, "tests.json")
 
 def test_instruction_fuzz(number, start, finish, mode, out_file):
@@ -141,6 +141,8 @@ def process_instruction_fuzz_tests(in_file, start, end):
 
         results = test["results"]
 
+        print "Testing entry %4d for '%-30s' with encoding %s 0x%.8x, 0x%.8x" % (i, name, encoding, mask, value)
+
         if name in ["BFC", "BFI", "CDP, CDP2", "POP (ARM)", "PUSH", "STC, STC2",
             "LDC, LDC2 (immediate)", "LDC, LDC2 (literal)", "ADD (SP plus immediate)",
             "ADR", "POP (Thumb)"]:
@@ -148,6 +150,7 @@ def process_instruction_fuzz_tests(in_file, start, end):
 
         printed_header = False
         n_errors = 0
+
         for result in results:
             retools = result["reto"]
             darm = result["darm"]
@@ -162,6 +165,7 @@ def process_instruction_fuzz_tests(in_file, start, end):
                 continue
 
             if not ret:
+                n_errors += 1
                 if not printed_header:
                     printed_header = True
                     print "Entry %d for '%s' with encoding %s 0x%.8x, 0x%.8x" % (i, name, encoding, mask, value)
@@ -170,12 +174,11 @@ def process_instruction_fuzz_tests(in_file, start, end):
                 print "opcode: 0x%.8x %40s" % (opcode, capstone)
                 print
 
-
     json_data.close()
 
-n = 100
-start = 369
-end = start + 1
+n = int(sys.argv[1])
+start = int(sys.argv[2])
+end = int(sys.argv[3])
 mode = 1
 
 test_instruction_fuzz(n, start, end, mode, PATH_TESTS_JSON)
