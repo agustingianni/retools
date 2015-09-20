@@ -681,8 +681,18 @@ std::string S_str(const ARMInstruction *ins) {
     return ins->setflags ? "S" : "";
 }
 
+bool is_conditional_thumb(const ARMInstruction *ins) {
+    switch (ins->id) {
+    case b:
+    case cbnz_cbz:
+        return true;
+    }
+
+    return false;
+}
+
 std::string c_str(const ARMInstruction *ins) {
-    if (EncodingIsThumb(ins->encoding))
+    if (EncodingIsThumb(ins->encoding) && !is_conditional_thumb(ins))
         return "";
 
     return ins->cond != COND_AL ? ARMCondCodeToString((cond_t) ins->cond) : "";
