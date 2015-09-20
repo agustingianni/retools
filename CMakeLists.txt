@@ -16,6 +16,9 @@ add_subdirectory(src/tools)
 # Build the bindings.
 add_subdirectory(bindings)
 
+# Build the tests.
+add_subdirectory(tests)
+
 project(retools)
 
 add_executable(
