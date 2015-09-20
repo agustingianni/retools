@@ -1,0 +1,6 @@
+Requirements:
+
+	capstone
+	CMake
+	boost
+	boost-python
