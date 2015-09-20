@@ -12,35 +12,41 @@
 #include <mach-o/nlist.h>
 #include <mach-o/stab.h>
 
-#include <mach-o/fat.h>
-
 #include "AbstractBinary.h"
+#include "ThreadState.h"
 
 #include <string>
+
+class MachoBinaryVisitor;
 
 std::string LoadCommandName(unsigned cmd);
 
 // Macros to generate the private accessors to the mach-o header fields.
-#define GET_HEADER_VALUE(field) (is32()) ? m_header.header_32.field : m_header.header_64.field
+#define GET_HEADER_VALUE(field) (is32()) ? m_header.header_32->field : m_header.header_64->field
 #define DEFINE_HEADER_ACCESSOR(type, field) type field() const { return GET_HEADER_VALUE(field); }
 
 template<typename T> struct Traits;
 template<> struct Traits<section> {
 	typedef uint32_t pointer_t;
-	const static unsigned pointer_size = sizeof(pointer_t);
 };
 
 template<> struct Traits<section_64> {
 	typedef uint64_t pointer_t;
-	const static unsigned pointer_size = sizeof(pointer_t);
 };
 
 class MachoBinary: public AbstractBinary {
 private:
     union {
-        mach_header header_32;
-        mach_header_64 header_64;
+        mach_header *header_32;
+        mach_header_64 *header_64;
     } m_header;
+
+	union {
+		thread_state_x86_32 x86_32;
+		thread_state_x86_64 x86_64;
+		thread_state_arm_32 arm_32;
+		thread_state_arm_64 arm_64;
+	} m_thread_state;
 
     // Methods to access the correct version of the fields in the mach-o header.
     DEFINE_HEADER_ACCESSOR(uint32_t, magic)
@@ -52,24 +58,35 @@ private:
     DEFINE_HEADER_ACCESSOR(uint32_t, flags)
 
     size_t mach_header_size() const {
-        return is32() ? sizeof(m_header.header_32) : sizeof(m_header.header_64);
+        return is32() ? sizeof(*m_header.header_32) : sizeof(*m_header.header_64);
     }
 
-    struct load_command *get_load_command(unsigned i);
-
+    struct load_command *get_load_command(unsigned i) const;
     bool parse_load_commands();
+    bool parse_load_commands_();
 
-    bool parse_data_in_code(struct load_command *lc);
-    bool parse_function_starts(struct load_command *lc);
-
+    // Segment parsers.
+    template<typename Segment_t, typename Section_t> bool parse_segment(struct load_command *lc);
     template<typename T> bool parse_routines(struct load_command *lc);
     template<typename T> bool parse_encryption_info(struct load_command *lc);
+    bool parse_data_in_code(struct load_command *lc);
+    bool parse_function_starts(struct load_command *lc);
+    bool parse_symtab(struct load_command *lc);
+    bool parse_dysymtab(struct load_command *lc);
+    bool parse_thread(struct load_command *lc);
+    bool parse_id_dylib(struct load_command *lc);
+    bool parse_dylib(struct load_command *lc);
+    bool parse_main(struct load_command *lc);
+    bool parse_unixthread(struct load_command *lc);
+    bool parse_dyld_info(struct load_command *lc);
+    bool parse_dyld_info_exports(const uint8_t *start, const uint8_t *end);
+    bool parse_dyld_info_rebase(const uint8_t *start, const uint8_t *end);
+    bool parse_dyld_info_binding(const uint8_t *start, const uint8_t *end);
+    bool parse_dyld_info_weak_binding(const uint8_t *start, const uint8_t *end);
+    bool parse_dyld_info_lazy_binding(const uint8_t *start, const uint8_t *end);
 
-    // Segment and section parsers.
-	template<typename Segment_t, typename Section_t> bool parse_segment(struct load_command *lc);
-	template<typename Section_t> bool parse_section(Section_t *lc);
-
-    // Section parsers.
+    // Section parsers, 'parse_section' is the main dispatcher..
+    template<typename Section_t> bool parse_section(Section_t *lc);
 	template<typename Section_t> bool parse_regular_section(Section_t *lc);
 	template<typename Section_t> bool parse_data_cfstring(Section_t *lc);
 	template<typename Section_t> bool parse_data_const(Section_t *lc);
@@ -136,8 +153,6 @@ private:
     template<typename Section_t> bool parse_text_eh_frame(Section_t *lc);
     template<typename Section_t> bool parse_text_gcc_except_tab(Section_t *lc);
     template<typename Section_t> bool parse_text_unwind_info(Section_t *lc);
-    
-
     template<typename Section_t> bool parse_cstring_literals_section(Section_t *lc);
     template<typename Section_t> bool parse_4byte_literals(Section_t *lc);
     template<typename Section_t> bool parse_8byte_literals(Section_t *lc);
@@ -151,22 +166,6 @@ private:
     template<typename Section_t> bool parse_interposing(Section_t *lc);
     template<typename Section_t> bool parse_lazy_dylib_symbol_pointers(Section_t *lc);
     template<typename Section_t> bool parse_thread_local_init_function_pointers(Section_t *lc);
-
-
-    bool parse_symtab(struct load_command *lc);
-    bool parse_dysymtab(struct load_command *lc);
-    bool parse_thread(struct load_command *lc);
-    bool parse_id_dylib(struct load_command *lc);
-    bool parse_dylib(struct load_command *lc);
-    bool parse_main(struct load_command *lc);
-    bool parse_unixthread(struct load_command *lc);
-
-    bool parse_dyld_info(struct load_command *lc);
-    bool parse_dyld_info_exports(const uint8_t *start, const uint8_t *end);
-    bool parse_dyld_info_rebase(const uint8_t *start, const uint8_t *end);
-    bool parse_dyld_info_binding(const uint8_t *start, const uint8_t *end);
-    bool parse_dyld_info_weak_binding(const uint8_t *start, const uint8_t *end);
-    bool parse_dyld_info_lazy_binding(const uint8_t *start, const uint8_t *end);
 
     template <typename T> void add_segment(T *);
     template <typename T> void add_section(T *);
@@ -195,8 +194,15 @@ private:
     std::vector<section_64> m_sections_64;
     std::vector<std::string> m_imported_libs;
 
+    MachoBinaryVisitor *m_visitor;
+
 public:
-    bool init();
+	virtual ~MachoBinary() = default;
+	MachoBinary(MachoBinaryVisitor *visitor) :
+			m_visitor(visitor) {
+	}
+
+    bool init() override;
 };
 
 #endif /* SRC_LIBBINARY_MACHO_MACHOBINARY_H_ */

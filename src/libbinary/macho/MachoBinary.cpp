@@ -5,14 +5,19 @@
  *      Author: anon
  */
 
-#include "macho/MachoBinary.h"
-#include "debug.h"
-
+#include <sstream>
+#include <iomanip>
 #include <cassert>
 #include <string>
 #include <cstring>
 #include <vector>
 #include <queue>
+
+#include "macho/Swap.h"
+#include "macho/MachoBinary.h"
+#include "macho/MachoBinaryVisitor.h"
+
+#include "debug.h"
 
 using namespace std;
 
@@ -195,7 +200,7 @@ string LoadCommandName(unsigned cmd) {
         case LC_LINKER_OPTIMIZATION_HINT:
             return "LC_LINKER_OPTIMIZATION_HINT";
         default:
-            return "LC_UNKNOWN";
+            return "LC_UNKNOWN (" + std::to_string(cmd) + ")";
     }
 }
 
@@ -203,9 +208,11 @@ bool MachoBinary::init() {
     m_symbol_table = nullptr;
     m_string_table = nullptr;
 
-    struct mach_header *tmp_header = m_data->offset<struct mach_header>(0);
-    if (!tmp_header)
+    struct mach_header *tmp_header = m_data->offset<mach_header>(0);
+    if (!tmp_header) {
+    	LOG_ERR("Could not get a reference to the mach_header");
         return false;
+    }
 
     // Parse the address space size and the endianness.
     switch (tmp_header->magic) {
@@ -237,11 +244,15 @@ bool MachoBinary::init() {
     // Set the binary format.
     m_binary_format = BinaryFormat::MACHO;
 
-    // Read the header.
+    // Read the header and swap it if needed.
     if (is32()) {
-        m_header.header_32 = *m_data->offset<struct mach_header>(0);
+        m_header.header_32 = m_data->offset<mach_header>(0);
+        swap_if(needs_swap(), m_header.header_32);
+        m_visitor->handle_mach_header(*m_header.header_32);
     } else {
-        m_header.header_64 = *m_data->offset<struct mach_header_64>(0);
+        m_header.header_64 = m_data->offset<mach_header_64>(0);
+        swap_if(needs_swap(), m_header.header_64);
+        m_visitor->handle_mach_header(*m_header.header_64);
     }
 
     // Get the kind of mach-o file.
@@ -286,22 +297,23 @@ bool MachoBinary::init() {
 
     // Load information from the load commands.
     if (!parse_load_commands()) {
+    	LOG_ERR("Failed to parse the load commands");
         return false;
     }
 
     return true;
 }
 
-struct load_command *MachoBinary::get_load_command(unsigned idx) {
+struct load_command *MachoBinary::get_load_command(unsigned idx) const {
     // The first load command is past the mach-o header.
-    struct load_command *lc = m_data->offset<struct load_command>(mach_header_size());
+    struct load_command *lc = m_data->offset<load_command>(mach_header_size());
     if (!lc || idx >= ncmds())
         return nullptr;
 
     // Skip all the load commands up to the one we want.
     for (unsigned i = 0; i < idx; ++i) {
         // Get the next load command.
-        lc = m_data->pointer<struct load_command>(reinterpret_cast<char *>(lc) + lc->cmdsize);
+        lc = m_data->pointer<load_command>(reinterpret_cast<char *>(lc) + lc->cmdsize);
         if (!lc)
             return nullptr;
     }
@@ -319,11 +331,18 @@ static struct nlist_64 nlist_to_64(const struct nlist &n) {
     return tmp;
 }
 
-bool MachoBinary::parse_load_commands() {
-    // Get the section size align mask.
-    unsigned align_mask = is32() ? 3 : 7;
+#define HANDLE_LOAD_COMMAND(type, handler) \
+do { \
+	if (auto cmd = m_data->pointer<type>(cur_lc)) { \
+		auto swapped_cmd = *cmd; \
+		swap_if(needs_swap(), &swapped_cmd); \
+		ret = m_visitor->handler(swapped_cmd); \
+	} \
+} while(0);
 
-    // Order is important so we need these load commands to be parsed before the rest.
+bool MachoBinary::parse_load_commands() {
+	unsigned align_mask = is32() ? 3 : 7;
+
     for (unsigned i = 0; i < ncmds(); ++i) {
         struct load_command *cur_lc = get_load_command(i);
         if (!cur_lc) {
@@ -336,8 +355,233 @@ bool MachoBinary::parse_load_commands() {
             continue;
         }
 
+        LOG_DEBUG("Parsing command (%s) %d of %d", LoadCommandName(cur_lc->cmd).c_str(), i, ncmds());
+
+        bool ret = false;
+        switch (cur_lc->cmd) {
+            case LC_DATA_IN_CODE:
+            	HANDLE_LOAD_COMMAND(linkedit_data_command, handle_data_in_code);
+                break;
+
+            case LC_FUNCTION_STARTS:
+            	HANDLE_LOAD_COMMAND(linkedit_data_command, handle_function_starts);
+            	break;
+
+            case LC_ROUTINES:
+            	HANDLE_LOAD_COMMAND(routines_command, handle_routines);
+                break;
+
+            case LC_ROUTINES_64:
+            	HANDLE_LOAD_COMMAND(routines_command_64, handle_routines);
+            	break;
+
+            case LC_SEGMENT:
+            	HANDLE_LOAD_COMMAND(segment_command, handle_segment);
+                break;
+
+            case LC_SEGMENT_64:
+            	HANDLE_LOAD_COMMAND(segment_command_64, handle_segment);
+                break;
+
+            case LC_SYMTAB:
+            	HANDLE_LOAD_COMMAND(symtab_command, handle_symtab);
+                break;
+
+            case LC_DYSYMTAB:
+            	HANDLE_LOAD_COMMAND(dysymtab_command, handle_dysymtab);
+            	break;
+
+            case LC_ID_DYLIB:
+            	HANDLE_LOAD_COMMAND(dylib_command, handle_id_dylib);
+            	break;
+
+            case LC_LOAD_DYLIB:
+            	HANDLE_LOAD_COMMAND(dylib_command, handle_load_dylib);
+            	break;
+
+            case LC_REEXPORT_DYLIB:
+            	HANDLE_LOAD_COMMAND(dylib_command, handle_reexport_dylib);
+            	break;
+
+            case LC_LAZY_LOAD_DYLIB:
+            	HANDLE_LOAD_COMMAND(load_command, handle_lazy_load_dylib);
+            	break;
+
+            case LC_LOAD_WEAK_DYLIB:
+            	HANDLE_LOAD_COMMAND(dylib_command, handle_load_weak_dylib);
+            	break;
+
+            case LC_LOAD_UPWARD_DYLIB:
+            	HANDLE_LOAD_COMMAND(load_command, handle_load_upward_dylib);
+            	break;
+
+            case LC_MAIN:
+            	HANDLE_LOAD_COMMAND(entry_point_command, handle_main);
+            	break;
+
+            case LC_THREAD:
+            	HANDLE_LOAD_COMMAND(thread_command, handle_thread);
+            	break;
+
+            case LC_UNIXTHREAD:
+            	HANDLE_LOAD_COMMAND(thread_command, handle_unixthread);
+                break;
+
+            case LC_DYLD_INFO:
+            	HANDLE_LOAD_COMMAND(dyld_info_command, handle_dyld_info);
+            	break;
+
+            case LC_DYLD_INFO_ONLY:
+            	HANDLE_LOAD_COMMAND(dyld_info_command, handle_dyld_info_only);
+                break;
+
+            case LC_ENCRYPTION_INFO:
+            	HANDLE_LOAD_COMMAND(encryption_info_command, handle_encryption_info);
+                break;
+
+            case LC_ENCRYPTION_INFO_64:
+            	HANDLE_LOAD_COMMAND(encryption_info_command_64, handle_encryption_info);
+                break;
+
+            case LC_CODE_SIGNATURE:
+            	HANDLE_LOAD_COMMAND(linkedit_data_command, handle_code_signature);
+                break;
+
+            case LC_DYLD_ENVIRONMENT:
+            	HANDLE_LOAD_COMMAND(dylinker_command, handle_dyld_environment);
+            	break;
+
+            case LC_DYLIB_CODE_SIGN_DRS:
+            	HANDLE_LOAD_COMMAND(linkedit_data_command, handle_dylib_code_sign_drs);
+                break;
+
+            case LC_IDENT:
+            	HANDLE_LOAD_COMMAND(ident_command, handle_ident);
+                break;
+
+            case LC_IDFVMLIB:
+            	HANDLE_LOAD_COMMAND(fvmlib_command, handle_idfvmlib);
+                break;
+
+            case LC_ID_DYLINKER:
+            	HANDLE_LOAD_COMMAND(dylinker_command, handle_id_dylinker);
+                break;
+
+            case LC_LINKER_OPTIMIZATION_HINT:
+            	HANDLE_LOAD_COMMAND(linkedit_data_command, handle_linker_optimization_hint);
+                break;
+
+            case LC_LINKER_OPTION:
+            	HANDLE_LOAD_COMMAND(linker_option_command, handle_linker_option);
+                break;
+
+            case LC_LOADFVMLIB:
+            	HANDLE_LOAD_COMMAND(fvmlib_command, handle_loadfvmlib);
+                break;
+
+            case LC_LOAD_DYLINKER:
+            	HANDLE_LOAD_COMMAND(dylinker_command, handle_load_dylinker);
+                break;
+
+            case LC_PREBIND_CKSUM:
+            	HANDLE_LOAD_COMMAND(prebind_cksum_command, handle_prebind_cksum);
+                break;
+
+            case LC_PREBOUND_DYLIB:
+            	HANDLE_LOAD_COMMAND(prebound_dylib_command, handle_prebound_dylib);
+                break;
+
+            case LC_PREPAGE:
+            	HANDLE_LOAD_COMMAND(load_command, handle_prepage);
+                break;
+
+            case LC_RPATH:
+            	HANDLE_LOAD_COMMAND(rpath_command, handle_rpath);
+                break;
+
+            case LC_SEGMENT_SPLIT_INFO:
+            	HANDLE_LOAD_COMMAND(linkedit_data_command, handle_segment_split_info);
+                break;
+
+            case LC_SOURCE_VERSION:
+            	HANDLE_LOAD_COMMAND(source_version_command, handle_source_version);
+                break;
+
+            case LC_SUB_CLIENT:
+            	HANDLE_LOAD_COMMAND(sub_client_command, handle_sub_client);
+                break;
+
+            case LC_SUB_FRAMEWORK:
+            	HANDLE_LOAD_COMMAND(sub_framework_command, handle_sub_framework);
+                break;
+
+            case LC_SUB_LIBRARY:
+            	HANDLE_LOAD_COMMAND(sub_library_command, handle_sub_library);
+                break;
+
+            case LC_SUB_UMBRELLA:
+            	HANDLE_LOAD_COMMAND(sub_umbrella_command, handle_sub_umbrella);
+                break;
+
+            case LC_SYMSEG:
+            	HANDLE_LOAD_COMMAND(symseg_command, handle_symseg);
+                break;
+
+            case LC_TWOLEVEL_HINTS:
+            	HANDLE_LOAD_COMMAND(twolevel_hints_command, handle_twolevel_hints);
+                break;
+
+            case LC_UUID:
+            	HANDLE_LOAD_COMMAND(uuid_command, handle_uuid);
+                break;
+
+            case LC_VERSION_MIN_IPHONEOS:
+            	HANDLE_LOAD_COMMAND(version_min_command, handle_version_min_iphoneos);
+                break;
+
+            case LC_VERSION_MIN_MACOSX:
+            	HANDLE_LOAD_COMMAND(version_min_command, handle_version_min_macosx);
+                break;
+
+            default:
+                LOG_INFO("Load command `%s` is not supported", LoadCommandName(cur_lc->cmd).c_str());
+                break;
+        }
+
+        if (!ret) {
+        	LOG_ERR("Failed to parse command (%s)", LoadCommandName(cur_lc->cmd).c_str());
+        }
+    }
+
+	return true;
+}
+
+bool MachoBinary::parse_load_commands_() {
+    // Get the section size align mask.
+    unsigned align_mask = is32() ? 3 : 7;
+
+    // Order is important so we need these load commands to be parsed before the rest.
+    for (unsigned i = 0; i < ncmds(); ++i) {
+        struct load_command *cur_lc = get_load_command(i);
+        if (!cur_lc) {
+            LOG_ERR("Could not get command %d, skipping", i);
+            continue;
+        }
+
+        // Make a copy since we don't want to swap the load command twice.
+        struct load_command temp = *cur_lc;
+
+        // Swap load command if necessary.
+        swap_if(needs_swap(), &temp);
+
+        // Verify alignment requirements.
+        if ((cur_lc->cmdsize & align_mask) != 0) {
+            LOG_WARN("Load command %u has an unaligned size, skipping", i);
+            continue;
+        }
+
         if (cur_lc->cmd == LC_SYMTAB) {
-            auto cmd = m_data->pointer<struct symtab_command>(cur_lc);
+            auto cmd = m_data->pointer<symtab_command>(cur_lc);
 
             // Save a reference to the symbol table.
             m_symbol_table_size = cmd->nsyms;
@@ -368,7 +612,7 @@ bool MachoBinary::parse_load_commands() {
         }
 
         if (cur_lc->cmd == LC_DYSYMTAB) {
-            m_dysymtab_command = m_data->pointer<struct dysymtab_command>(cur_lc);
+            m_dysymtab_command = m_data->pointer<dysymtab_command>(cur_lc);
             if (!m_dysymtab_command) {
                 LOG_ERR("Dynamic symbol table is outside the binary mapped file.");
                 continue;
@@ -376,172 +620,184 @@ bool MachoBinary::parse_load_commands() {
         }
     }
 
-
-    // For each load command.
     for (unsigned i = 0; i < ncmds(); ++i) {
-        // Get the 'i'th load command.
         struct load_command *cur_lc = get_load_command(i);
         if (!cur_lc) {
             LOG_ERR("Could not get command %d", i);
             continue;
         }
 
-        // Check the size of the load command.
         if ((cur_lc->cmdsize & align_mask) != 0) {
             LOG_WARN("Load command %u has an unaligned size, skipping", i);
             continue;
         }
 
+        bool parsed = false;
         LOG_DEBUG("Parsing command (%s) %d of %d", LoadCommandName(cur_lc->cmd).c_str(), i, ncmds());
 
         switch (cur_lc->cmd) {
             case LC_DATA_IN_CODE:
-                // Table of data start addresses inside code segments.
-                if (!parse_data_in_code(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_data_in_code(cur_lc);
                 break;
+
             case LC_FUNCTION_STARTS:
-                // Compressed table of function start addresses.
-                if (!parse_function_starts(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_function_starts(cur_lc);
                 break;
+
             case LC_ROUTINES:
-                // Describes the location of the shared library initialization function.
-                if (!parse_routines<routines_command>(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_routines<routines_command>(cur_lc);
                 break;
+
             case LC_ROUTINES_64:
-                // Describes the location of the shared library initialization function.
-                if (!parse_routines<routines_command_64>(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_routines<routines_command_64>(cur_lc);
                 break;
+
             case LC_SEGMENT:
-                // Check that we have a valid 32 bit segment.
                 if (!is32()) {
                     LOG_WARN("Found a 32 bit segment on a 64 bit binary (results may be wrong)");
-                    continue;
+                    break;
                 }
 
-                // Defines a segment of this file to be mapped into the address space.
-                if (!parse_segment<segment_command, section>(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_segment<segment_command, section>(cur_lc);
                 break;
+
             case LC_SEGMENT_64:
-                // Check that we have a valid 64 bit segment.
                 if (!is64()) {
                     LOG_WARN("Found a 64 bit segment on a 32 bit binary (results may be wrong)");
-                    continue;
+                    break;
                 }
 
-                // Defines a 64-bit segment of this file to be mapped into the address space.
-                if (!parse_segment<segment_command_64, section_64>(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_segment<segment_command_64, section_64>(cur_lc);
                 break;
+
             case LC_SYMTAB:
-                // Specifies the symbol table for this file.
-                if (!parse_symtab(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_symtab(cur_lc);
                 break;
+
             case LC_DYSYMTAB:
-                // Specifies additional symbol table information used by the dynamic linker.
-                if (!parse_dysymtab(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
+                parsed = parse_dysymtab(cur_lc);
 
                 break;
             case LC_ID_DYLIB:
-                // For a shared library, this segments identifies the the name of the library.
-                if (!parse_id_dylib(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_id_dylib(cur_lc);
                 break;
 
+            case LC_LOAD_DYLIB:
+            case LC_REEXPORT_DYLIB:
             case LC_LAZY_LOAD_DYLIB:
-            case LC_LOAD_DYLIB:         // Regular dynamic library.
-            case LC_LOAD_WEAK_DYLIB:    // Dynamic library that may be missing.
-            case LC_LOAD_UPWARD_DYLIB:  // Used for handling mutually dependent libraries.
-            case LC_REEXPORT_DYLIB:     // This is worth looking. Used to replace pre-existing library.
-                // Defines the name of a dynamic shared library that this file links against.
-                if (!parse_dylib(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+            case LC_LOAD_WEAK_DYLIB:
+            case LC_LOAD_UPWARD_DYLIB:
+                parsed = parse_dylib(cur_lc);
                 break;
+
             case LC_MAIN:
-                // Replacement for LC_UNIXTHREAD.
-                if (!parse_main(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_main(cur_lc);
                 break;
+
             case LC_THREAD:
-                // Defines the initial thread state of the main thread of the process but does not allocate a stack.
-                if (!parse_thread(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_thread(cur_lc);
                 break;
+
             case LC_UNIXTHREAD:
-                // Defines the initial thread state of the main thread of the process and allocates a stack.
-                if (!parse_unixthread(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_unixthread(cur_lc);
                 break;
+
             case LC_DYLD_INFO:
             case LC_DYLD_INFO_ONLY:
-                // Compressed dyld information.
-                if (!parse_dyld_info(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_dyld_info(cur_lc);
                 break;
+
             case LC_ENCRYPTION_INFO:
-                if (!parse_encryption_info<encryption_info_command>(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_encryption_info<encryption_info_command>(cur_lc);
                 break;
+
             case LC_ENCRYPTION_INFO_64:
-                if (!parse_encryption_info<encryption_info_command_64>(cur_lc)) {
-                    LOG_WARN("Could not parse the load command, skipping");
-                    continue;
-                }
-
+                parsed = parse_encryption_info<encryption_info_command_64>(cur_lc);
                 break;
+
+    		case LC_CODE_SIGNATURE:
+    			break;
+
+    		case LC_DYLD_ENVIRONMENT:
+    			break;
+
+    		case LC_DYLIB_CODE_SIGN_DRS:
+    			break;
+
+    		case LC_IDENT:
+    			break;
+
+    		case LC_IDFVMLIB:
+    			break;
+
+    		case LC_ID_DYLINKER:
+    			break;
+
+    		case LC_LINKER_OPTIMIZATION_HINT:
+    			break;
+
+    		case LC_LINKER_OPTION:
+    			break;
+
+    		case LC_LOADFVMLIB:
+    			break;
+
+    		case LC_LOAD_DYLINKER:
+    			break;
+
+    		case LC_PREBIND_CKSUM:
+    			break;
+
+    		case LC_PREBOUND_DYLIB:
+    			break;
+
+    		case LC_PREPAGE:
+    			break;
+
+    		case LC_RPATH:
+    			break;
+
+    		case LC_SEGMENT_SPLIT_INFO:
+    			break;
+
+    		case LC_SOURCE_VERSION:
+    			break;
+
+    		case LC_SUB_CLIENT:
+    			break;
+
+    		case LC_SUB_FRAMEWORK:
+    			break;
+
+    		case LC_SUB_LIBRARY:
+    			break;
+
+    		case LC_SUB_UMBRELLA:
+    			break;
+
+    		case LC_SYMSEG:
+    			break;
+
+    		case LC_TWOLEVEL_HINTS:
+    			break;
+
+    		case LC_UUID:
+    			break;
+
+    		case LC_VERSION_MIN_IPHONEOS:
+    			break;
+
+    		case LC_VERSION_MIN_MACOSX:
+    			break;
+
             default:
                 LOG_INFO("Load command `%s` is not supported", LoadCommandName(cur_lc->cmd).c_str());
+                parsed = false;
                 break;
+        }
+
+        if (!parsed) {
+        	LOG_INFO("Failed to parse load command `%s`", LoadCommandName(cur_lc->cmd).c_str());
         }
     }
 
@@ -549,12 +805,16 @@ bool MachoBinary::parse_load_commands() {
 }
 
 bool MachoBinary::parse_data_in_code(struct load_command *lc) {
-    struct linkedit_data_command *cmd = m_data->pointer<struct linkedit_data_command>(lc);
-    if (!cmd)
+    struct linkedit_data_command *cmd = m_data->pointer<linkedit_data_command>(lc);
+    if (!cmd) {
         return false;
+    }
 
     // The data in code information gives information about data inside a code segment.
-    struct data_in_code_entry *data = m_data->offset<struct data_in_code_entry>(cmd->dataoff, cmd->datasize);
+    struct data_in_code_entry *data = m_data->offset<data_in_code_entry>(cmd->dataoff, cmd->datasize);
+	if (!data) {
+		return false;
+	}
 
     // Get the number of entries.
     unsigned count = cmd->datasize / sizeof(*data);
@@ -584,7 +844,7 @@ bool MachoBinary::parse_data_in_code(struct load_command *lc) {
 }
 
 bool MachoBinary::parse_function_starts(struct load_command *lc) {
-    struct linkedit_data_command *cmd = m_data->pointer<struct linkedit_data_command>(lc);
+    struct linkedit_data_command *cmd = m_data->pointer<linkedit_data_command>(lc);
     if (!cmd)
         return false;
 
@@ -827,7 +1087,6 @@ template<typename Section_t> bool MachoBinary::parse_regular_section(Section_t *
     if (segname == "__HIB" && sectname == "__desc")
         handled = parse_hib_desc(lc);
 
-    // __TEXT initcode -> code but it is not marked.
     if (segname == "__TEXT" && sectname == "__ustring")
         handled = parse_ustring(lc);
 
@@ -836,7 +1095,6 @@ template<typename Section_t> bool MachoBinary::parse_regular_section(Section_t *
 
     if (segname == "__DATA" && sectname == "__gcc_except_tab") 
         handled = parse_data_gcc_except_tab(lc);
-
 
     if (segname == "__DWARF" && sectname == "__apple_names") 
         handled = parse_dwarf_apple_names(lc);
@@ -966,7 +1224,6 @@ template<typename Section_t> bool MachoBinary::parse_regular_section(Section_t *
 
     if (segname == "__TEXT" && sectname == "__unwind_info") 
         handled = parse_text_unwind_info(lc);
-
 
     return handled;
 }
@@ -1242,315 +1499,314 @@ template<typename Section_t> bool MachoBinary::parse_ustring(Section_t *lc) {
 template<typename Section_t> bool MachoBinary::parse_data_dyld(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_data_gcc_except_tab(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_apple_names(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_apple_namespac(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_apple_objc(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_apple_types(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_abbrev(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_aranges(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_frame(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_info(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_inlined(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_line(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_loc(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_macinfo(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_pubnames(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_pubtypes(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_ranges(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_dwarf_debug_str(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_ld_compact_unwind(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_cat_cls_meth(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_cat_inst_meth(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_category(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_class(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_class_ext(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_class_vars(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_cls_meth(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_cstring_object(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_image_info(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_inst_meth(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_instance_vars(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_meta_class(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_module_info(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_property(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_protocol(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_protocol_ext(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_sel_fixup(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_string_object(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_symbols(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_prelink_info_info(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_prelink_state_kernel(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_prelink_state_kexts(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_prelink_text_text(Section_t *lc) {
+    // TODO: In this section we have the contents of all the kext's loaded by the kernel.
     auto data = m_data->offset<char>(lc->offset, lc->size);
-    hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_text_eh_frame(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_text_gcc_except_tab(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_text_unwind_info(Section_t *lc) {
     auto data = m_data->offset<char>(lc->offset, lc->size);
     hexdump("SHIT", data, (uint64_t) lc->size);
-    exit(0);
+    // exit(0);
     return true;
 }
 
@@ -1768,7 +2024,7 @@ template<typename Section_t> bool MachoBinary::parse_thread_local_init_function_
 }
 
 bool MachoBinary::parse_symtab(struct load_command *lc) {
-    struct symtab_command *cmd = m_data->pointer<struct symtab_command>(lc);
+    struct symtab_command *cmd = m_data->pointer<symtab_command>(lc);
 
     if (!m_symbol_table) {
         LOG_ERR("Invalid symbol table.");
@@ -1820,7 +2076,7 @@ bool MachoBinary::parse_symtab(struct load_command *lc) {
 bool MachoBinary::parse_dysymtab(struct load_command *lc) {
     // Symbols used by the dynamic linker.
     // This is an additional segment that requires a prior symtab load command.
-    struct dysymtab_command *cmd = m_data->pointer<struct dysymtab_command>(lc);
+    struct dysymtab_command *cmd = m_data->pointer<dysymtab_command>(lc);
 
     if (!m_dysymtab_command) {
         LOG_ERR("Invalid dynamic symbol table");
@@ -1887,12 +2143,94 @@ bool MachoBinary::parse_dysymtab(struct load_command *lc) {
     return true;
 }
 
+static void debug_thread_state_arm_32(thread_state_arm_32 &ts) {
+	stringstream ss;
+	for(unsigned i = 0; i < sizeof(ts.r); i++) {
+		ss << "r" << i << " = " << (void *) ts.r[i] << " ";
+	}
+
+	ss << "sp = " << (void *) ts.sp;
+	ss << "lr = " << (void *) ts.lr;
+	ss << "pc = " << (void *) ts.pc;
+	ss << "cpsr = " << (void *) ts.cpsr;
+	ss << "far = " << (void *) ts.far;
+	ss << "esr = " << (void *) ts.esr;
+	ss << "exception = " << (void *) ts.exception;
+
+	LOG_DEBUG("Dump: %s", ss.str().c_str());
+}
+
+static void debug_thread_state_arm_64(thread_state_arm_64 &ts) {
+	stringstream ss;
+	for(unsigned i = 0; i < sizeof(ts.x); i++) {
+		ss << "r" << i << " = " << (void *) ts.x[i] << " ";
+	}
+
+	ss << "fp = " << (void *) ts.fp;
+	ss << "lr = " << (void *) ts.lr;
+	ss << "sp = " << (void *) ts.sp;
+	ss << "pc = " << (void *) ts.pc;
+	ss << "cpsr = " << (void *) ts.cpsr;
+	ss << "reserved = " << (void *) ts.reserved;
+	ss << "far = " << (void *) ts.far;
+	ss << "esr = " << (void *) ts.esr;
+	ss << "exception = " << (void *) ts.exception;
+
+	LOG_DEBUG("Dump: %s", ss.str().c_str());
+}
+
+static void debug_thread_state_x86_32(thread_state_x86_32 &ts) {
+	stringstream ss;
+	ss << "eax = " << (void *) ts.eax;
+	ss << "ebx = " << (void *) ts.ebx;
+	ss << "ecx = " << (void *) ts.ecx;
+	ss << "edx = " << (void *) ts.edx;
+	ss << "edi = " << (void *) ts.edi;
+	ss << "esi = " << (void *) ts.esi;
+	ss << "ebp = " << (void *) ts.ebp;
+	ss << "esp = " << (void *) ts.esp;
+	ss << "ss = " << (void *) ts.ss;
+	ss << "eflags = " << (void *) ts.eflags;
+	ss << "eip = " << (void *) ts.eip;
+	ss << "cs = " << (void *) ts.cs;
+	ss << "ds = " << (void *) ts.ds;
+	ss << "es = " << (void *) ts.es;
+	ss << "fs = " << (void *) ts.fs;
+	ss << "gs = " << (void *) ts.gs;
+	LOG_DEBUG("Dump: %s", ss.str().c_str());
+}
+
+static void debug_thread_state_x86_64(thread_state_x86_64 &ts) {
+	stringstream ss;
+	ss << "rax = " << (void *) ts.rax;
+	ss << "rbx = " << (void *) ts.rbx;
+	ss << "rcx = " << (void *) ts.rcx;
+	ss << "rdx = " << (void *) ts.rdx;
+	ss << "rdi = " << (void *) ts.rdi;
+	ss << "rsi = " << (void *) ts.rsi;
+	ss << "rbp = " << (void *) ts.rbp;
+	ss << "rsp = " << (void *) ts.rsp;
+	ss << "r8 = " << (void *) ts.r8;
+	ss << "r9 = " << (void *) ts.r9;
+	ss << "r10 = " << (void *) ts.r10;
+	ss << "r11 = " << (void *) ts.r11;
+	ss << "r12 = " << (void *) ts.r12;
+	ss << "r13 = " << (void *) ts.r13;
+	ss << "r14 = " << (void *) ts.r14;
+	ss << "r15 = " << (void *) ts.r15;
+	ss << "rip = " << (void *) ts.rip;
+	ss << "rflags = " << (void *) ts.rflags;
+	ss << "cs = " << (void *) ts.cs;
+	ss << "fs = " << (void *) ts.fs;
+	ss << "gs = " << (void *) ts.gs;
+	LOG_DEBUG("Dump: %s", ss.str().c_str());
+}
+
 bool MachoBinary::parse_thread(struct load_command *lc) {
-    struct thread_command *cmd = m_data->pointer<struct thread_command>(lc);
+    struct thread_command *cmd = m_data->pointer<thread_command>(lc);
 
     // Skip to the contents.
-    uint32_t *contents = m_data->pointer<uint32_t>(cmd + 1);
-    assert(contents == reinterpret_cast<uint32_t*>(cmd + 1));
+    uint32_t *contents = m_data->pointer<uint32_t>(cmd + 1, sizeof(uint32_t) * 2);
 
     // After the thread_command we will find two uint32_t's.
     uint32_t flavor = contents[0];
@@ -1900,12 +2238,40 @@ bool MachoBinary::parse_thread(struct load_command *lc) {
 
     LOG_DEBUG("flavor = 0x%.8x count = 0x%.8x", flavor, count);
 
-    // After these we will have the arch specific thread information.
+	switch (cputype()) {
+	case CPU_TYPE_ARM:
+		LOG_DEBUG("sizeof(m_thread_state.arm_32) = %lu", sizeof(m_thread_state.arm_32));
+		m_thread_state.arm_32 = *m_data->pointer<thread_state_arm_32>(&contents[2]);
+		debug_thread_state_arm_32(m_thread_state.arm_32);
+		break;
+
+	case CPU_TYPE_ARM64:
+		LOG_DEBUG("sizeof(m_thread_state.arm_64) = %lu", sizeof(m_thread_state.arm_64));
+		m_thread_state.arm_64 = *m_data->pointer<thread_state_arm_64>(&contents[2]);
+		debug_thread_state_arm_64(m_thread_state.arm_64);
+		break;
+
+	case CPU_TYPE_X86:
+		LOG_DEBUG("sizeof(m_thread_state.x86_32) = %lu", sizeof(m_thread_state.x86_32));
+		m_thread_state.x86_32 = *m_data->pointer<thread_state_x86_32>(&contents[2]);
+		debug_thread_state_x86_32(m_thread_state.x86_32);
+		break;
+
+	case CPU_TYPE_X86_64:
+		LOG_DEBUG("sizeof(m_thread_state.x86_64) = %lu", sizeof(m_thread_state.x86_64));
+		m_thread_state.x86_64 = *m_data->pointer<thread_state_x86_64>(&contents[2]);
+		debug_thread_state_x86_64(m_thread_state.x86_64);
+		break;
+
+	default:
+		break;
+	}
+
     return true;
 }
 
 bool MachoBinary::parse_id_dylib(struct load_command *lc) {
-    struct dylib_command *cmd = m_data->pointer<struct dylib_command>(lc);
+    struct dylib_command *cmd = m_data->pointer<dylib_command>(lc);
 
     // Get the name of the this library.
     char *name = m_data->pointer<char>(reinterpret_cast<char *>(cmd) + cmd->dylib.name.offset);
@@ -1917,7 +2283,7 @@ bool MachoBinary::parse_id_dylib(struct load_command *lc) {
 }
 
 bool MachoBinary::parse_dylib(struct load_command *lc) {
-    struct dylib_command *cmd = m_data->pointer<struct dylib_command>(lc);
+    struct dylib_command *cmd = m_data->pointer<dylib_command>(lc);
 
     // Get the name of the imported library.
     std::string name = m_data->pointer<char>(reinterpret_cast<char *>(cmd) + cmd->dylib.name.offset);
@@ -1936,7 +2302,7 @@ bool MachoBinary::parse_dylib(struct load_command *lc) {
 }
 
 bool MachoBinary::parse_main(struct load_command *lc) {
-    struct entry_point_command *cmd = m_data->pointer<struct entry_point_command>(lc);
+    struct entry_point_command *cmd = m_data->pointer<entry_point_command>(lc);
 
     LOG_DEBUG("entryoff=0x%.16llx stacksize=0x%.16llx", cmd->entryoff, cmd->stacksize);
 
@@ -1944,7 +2310,7 @@ bool MachoBinary::parse_main(struct load_command *lc) {
 }
 
 bool MachoBinary::parse_unixthread(struct load_command *lc) {
-    struct thread_command *cmd = m_data->pointer<struct thread_command>(lc);
+    struct thread_command *cmd = m_data->pointer<thread_command>(lc);
 
     // Skip to the contents.
     uint32_t *contents = m_data->pointer<uint32_t>(cmd + 1);
@@ -2111,7 +2477,7 @@ bool MachoBinary::parse_dyld_info_exports(const uint8_t *export_start, const uin
     return true;
 }
 
-std::string rebaseTypeName(uint8_t type) {
+static std::string rebaseTypeName(uint8_t type) {
     switch (type) {
     case REBASE_TYPE_POINTER:
         return "pointer";
@@ -2124,7 +2490,7 @@ std::string rebaseTypeName(uint8_t type) {
     return "!!unknown!!";
 }
 
-std::string bindTypeName(uint8_t type) {
+static std::string bindTypeName(uint8_t type) {
     switch (type) {
     case BIND_TYPE_POINTER:
         return "pointer";
@@ -2610,7 +2976,7 @@ bool MachoBinary::parse_dyld_info_lazy_binding(const uint8_t *start, const uint8
 }
 
 bool MachoBinary::parse_dyld_info(struct load_command *lc) {
-    struct dyld_info_command *cmd = m_data->pointer<struct dyld_info_command>(lc);
+    struct dyld_info_command *cmd = m_data->pointer<dyld_info_command>(lc);
 
     LOG_DEBUG("Rebase information: rebase_off = 0x%.8x rebase_size = 0x%.8x", cmd->rebase_off, cmd->rebase_size);
     LOG_DEBUG("Binding information: bind_off = 0x%.8x bind_size = 0x%.8x", cmd->bind_off, cmd->bind_size);
