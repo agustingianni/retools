@@ -1,3 +1,18 @@
+- Implement the interface of the libbiary as a visitor provider.
+
+  Initially we are going to create to things that can be visited:
+  
+    - Segments
+    - Sections
+    
+  We should give the clients a way to access the raw data of the mach-o
+  binary so they can parse the specific and custom parts of the binary.
+  
+  Thing about how the client will use the string and symbol tables.
+  
+  Try to do as little as possible inside the library and left the
+  specifics to the client.
+
 Implement a way to read fat binaries. A tentative solution would be something like:
 
 	vector<AbstractBinary> binaries = AbstractBinary::load(file_path);
@@ -5,6 +20,33 @@ Implement a way to read fat binaries. A tentative solution would be something li
 		// ...
 	}
 	
-	
 parse_thread
 parse_unixthread
+
+- Make the swap of mach-o structures non destructive. We need to
+  work on copies of the desired structures.
+
+What is a mach-o parser? The answer to this question should drive our implementation efforts.
+We need to divide what is that we need to decode in the mach-o parser and what we need to
+provide to the clients. The client can be anything, but in our case it will be
+a disassembler, intrumentation framework, etc.
+
+We have two options:
+
+	- Make the mach-o parser interpret things and return generic stuff like symbols etc.
+	
+	- Make the mach-o parser just parse and return the fundamental building blocks of
+	  a mach-o file for the client to utilize.
+	 
+	 
+I think that the first approach will make the library less flexible and in the end it will
+tend to be bloated since the requirements of each of the unknown clients would end up in the
+code of the library.
+
+The second approach is the more flexible and has no inner knowledge about the clients.
+One immediate consequence is that the generic view of the binary will be lost and each of
+the clients would need to know the binary that they are dealing with. This is not a problem
+but will lead to more "complex" code.
+
+We can still prepare a proxy class that will do the translation to a more generic representation
+of a binary that we can use but that will be the choice of the client.
