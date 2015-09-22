@@ -47,17 +47,17 @@ def __compare__(retools, capstone, darm):
     for match in pattern.findall(retools):
         a = "#%s" % match
         b = "#0x%x" % int(match)
-        retools = retools.replace(a, b)
+        retools = retools.replace(a, b, 1)
 
     for match in pattern.findall(capstone):
         a = "#%s" % match
         b = "#0x%x" % int(match)
-        capstone = capstone.replace(a, b)
+        capstone = capstone.replace(a, b, 1)
 
     for match in pattern.findall(darm):
         a = "#%s" % int(match)
         b = "#0x%x" % int(match)
-        darm = darm.replace(a, b)
+        darm = darm.replace(a, b, 1)
 
     # Replace all the negative hex values for positive hex values.
     pattern = re.compile(ur'#(-0x[1-9a-f][0-9a-f]*)')
@@ -97,6 +97,14 @@ def __compare__(retools, capstone, darm):
     retools = re.sub(ur'#0x0\b', "#0", retools)
     capstone = re.sub(ur'#0x0\b', "#0", capstone)
     darm = re.sub(ur'#0x0\b', "#0", darm)
+
+    # From 'ldrsbt r5, [r0, #0]' -> ldrsbt r5, [r0]
+    retools = re.sub(ur', #0]', "]", retools)
+    capstone = re.sub(ur', #0]', "]", capstone)
+
+    # #-0x0 -> #-0
+    retools = re.sub(ur'#-0x0', "#-0", retools)
+    capstone = re.sub(ur'#-0x0', "#-0", capstone)
 
     # Normalize the wide operator.
     try:
@@ -143,13 +151,18 @@ def process_instruction_fuzz_tests(in_file, start, end):
 
         print "Testing entry %4d for '%-30s' with encoding %s 0x%.8x, 0x%.8x" % (i, name, encoding, mask, value)
 
+        n_errors = 0
+        n_ok = 0
+        n_skip = 0
+
         if name in ["BFC", "BFI", "CDP, CDP2", "POP (ARM)", "PUSH", "STC, STC2",
             "LDC, LDC2 (immediate)", "LDC, LDC2 (literal)", "ADD (SP plus immediate)",
             "ADR", "POP (Thumb)"]:
+            print "  n_ok=%d n_error=%d n_skip=%d (skipped)" % (n_ok, n_errors, n_skip)
+            print
             continue
 
         printed_header = False
-        n_errors = 0
 
         for result in results:
             retools = result["reto"]
@@ -162,6 +175,7 @@ def process_instruction_fuzz_tests(in_file, start, end):
 
             # If retools says that this is unpredictable, it certainly is.
             if retools in ["unpredictableinstruction", "undefinedinstruction", "unknown"]:
+                n_skip += 1
                 continue
 
             if not ret:
@@ -170,9 +184,15 @@ def process_instruction_fuzz_tests(in_file, start, end):
                     printed_header = True
                     print "Entry %d for '%s' with encoding %s 0x%.8x, 0x%.8x" % (i, name, encoding, mask, value)
 
-                print "opcode: 0x%.8x %40s %s" % (opcode, retools, result["decoder"])
-                print "opcode: 0x%.8x %40s" % (opcode, capstone)
-                print
+                if n_errors < 10:
+                    print "  opcode: 0x%.8x %40s %s" % (opcode, retools, result["decoder"])
+                    print "  opcode: 0x%.8x %40s" % (opcode, capstone)
+                    print
+            else:
+                n_ok += 1
+
+        print "  n_ok=%d n_error=%d n_skip=%d" % (n_ok, n_errors, n_skip)
+        print
 
     json_data.close()
 
@@ -183,4 +203,3 @@ mode = 1
 
 test_instruction_fuzz(n, start, end, mode, PATH_TESTS_JSON)
 process_instruction_fuzz_tests(PATH_TESTS_JSON, start, end)
-
