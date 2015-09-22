@@ -367,7 +367,7 @@ instructions = [
     "name" : "B",
     "encoding" : "T2",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "B<c> #<label>",
+    "format" : "B #<label>",
     "pattern" : "11100 imm11#11",
     "decoder" : """imm32 = SignExtend(imm11:'0', 32);
     if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
