@@ -1748,7 +1748,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
 
     reg2string["shift_n"] = "integer_to_string(ins->shift_n, ins->shift_n >= 10).c_str()"
     reg2string["saturate_to"] = "integer_to_string(ins->saturate_to, false).c_str()"
-    reg2string["label"] = "integer_to_string(ins->imm32 + ((ins->ins_size == eSize16) ? 4 : 8)).c_str()"
+    reg2string["label"] = "integer_to_string(ins->imm32 + (EncodingIsThumb(ins->encoding) ? 4 : 8)).c_str()"
 
     reg2string["lsb"] = "integer_to_string(ins->lsbit, ins->lsbit >= 10).c_str()"
     reg2string["width"] = "integer_to_string(ins->msbit - ins->lsbit + 1, ins->msbit - ins->lsbit + 1 >= 10).c_str()"
