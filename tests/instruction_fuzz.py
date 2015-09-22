@@ -98,11 +98,15 @@ def __compare__(retools, capstone, darm):
     capstone = re.sub(ur'#0x0\b', "#0", capstone)
     darm = re.sub(ur'#0x0\b', "#0", darm)
 
-    # From 'ldrsbt r5, [r0, #0]' -> ldrsbt r5, [r0]
+    # From 'ldrsbt r5, [r0, #0]' -> 'ldrsbt r5, [r0]'
     retools = re.sub(ur', #0]', "]", retools)
     capstone = re.sub(ur', #0]', "]", capstone)
 
-    # #-0x0 -> #-0
+    # From 'strb r8, [r3, #-0]' -> 'strb r8, [r3]'
+    retools = re.sub(ur', #-0]', "]", retools)
+    capstone = re.sub(ur', #-0]', "]", capstone)
+
+    # From '#-0x0' -> '#-0'
     retools = re.sub(ur'#-0x0', "#-0", retools)
     capstone = re.sub(ur'#-0x0', "#-0", capstone)
 
