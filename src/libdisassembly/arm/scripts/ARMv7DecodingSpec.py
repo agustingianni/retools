@@ -384,7 +384,7 @@ instructions = [
     "name" : "B",
     "encoding" : "T4",
     "version" : "ARMv6T2, ARMv7",
-    "format" : "B<c>.W #<label>",
+    "format" : "B.W #<label>",
     "pattern" : "11110 S#1 imm10#10 10 J1#1 1 J2#1 imm11#11",
     "decoder" : """I1 = NOT(J1 EOR S); I2 = NOT(J2 EOR S); imm32 = SignExtend(S:I1:I2:imm10:imm11:'0', 32);
     if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
