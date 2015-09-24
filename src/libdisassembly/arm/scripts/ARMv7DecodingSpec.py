@@ -1072,8 +1072,7 @@ instructions = [
     "version" : "ARMv5TEAll, ARMv6All, ARMv7",
     "format" : "PLD{W} [<Rn>, #+/-<imm32>]",
     "pattern" : "11110101 U#1 R#1 01 Rn#4 1111 imm12#12",
-    "decoder" : """if Rn == '1111' then SEE PLD (literal);
-    n = UInt(Rn); imm32 = ZeroExtend(imm12, 32); add = (U == '1'); is_pldw = (R == '0');"""
+    "decoder" : """n = UInt(Rn); imm32 = ZeroExtend(imm12, 32); add = (U == '1'); is_pldw = (R == '0');"""
 } , {
     "name" : "PLD (literal)",
     "encoding" : "A1",
