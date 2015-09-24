@@ -4297,12 +4297,21 @@ if mask == '0000' then UNPREDICTABLE;"""
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = UInt(rotate:'000');
     if d == 15 || m == 15 then UNPREDICTABLE;"""
 } , {
-    "name" : "TBB, TBH",
+    "name" : "TBB",
     "encoding" : "T1",
     "version" : "ARMv6T2, ARMv7",
-    "format" : "TBB<c> [<Rn>, <Rm>]:TBH<c> [<Rn>, <Rm>, LSL #1]",
-    "pattern" : "1 1 1 0 1 0 0 0 1 1 0 1 Rn#4 1 1 1 1 0 0 0 0 0 0 0 H#1 Rm#4",
-    "decoder" : """n = UInt(Rn); m = UInt(Rm); is_tbh = (H == '1');
+    "format" : "TBB<c> [<Rn>, <Rm>]",
+    "pattern" : "1 1 1 0 1 0 0 0 1 1 0 1 Rn#4 1 1 1 1 0 0 0 0 0 0 0 0 Rm#4",
+    "decoder" : """n = UInt(Rn); m = UInt(Rm);
+    if n == 13 || m IN {13,15} then UNPREDICTABLE;
+    if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
+} , {
+    "name" : "TBH",
+    "encoding" : "T1",
+    "version" : "ARMv6T2, ARMv7",
+    "format" : "TBH<c> [<Rn>, <Rm>, LSL #1]",
+    "pattern" : "1 1 1 0 1 0 0 0 1 1 0 1 Rn#4 1 1 1 1 0 0 0 0 0 0 0 1 Rm#4",
+    "decoder" : """n = UInt(Rn); m = UInt(Rm);
     if n == 13 || m IN {13,15} then UNPREDICTABLE;
     if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
 } , {
