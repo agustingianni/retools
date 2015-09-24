@@ -6,7 +6,6 @@ import string
 import re
 
 from pyparsing import *
-from pyasn1.codec.der import decoder
 from string import letters
 from collections import namedtuple
 
@@ -437,7 +436,7 @@ class Visitor(object):
         return r
 
 
-from pydot import Dot, Node, Edge
+# from pydot import Dot, Node, Edge
 
 def create_node(node):
     import uuid
