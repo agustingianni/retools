@@ -4110,7 +4110,7 @@ if mask == '0000' then UNPREDICTABLE;"""
     "name" : "SUB (SP minus immediate)",
     "encoding" : "T1",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "SUB<c> SP, SP, #<imm32>",
+    "format" : "SUB<c> SP, #<imm32>",
     "pattern" : "1 0 1 1 0 0 0 0 1 imm7#7",
     "decoder" : """d = 13; setflags = FALSE; imm32 = ZeroExtend(imm7:'00', 32);"""
 } , {
