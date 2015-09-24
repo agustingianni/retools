@@ -4,3 +4,4 @@ Requirements:
 	CMake
 	boost
 	boost-python
+    pyparsing
