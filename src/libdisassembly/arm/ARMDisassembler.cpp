@@ -23,33 +23,6 @@ namespace Disassembler {
 	}
 
 	std::shared_ptr<ARMInstruction> ARMDisassembler::disassemble(uint32_t op_code, ARMMode mode) {
-		// // Unconditional instructions.
-		// if (opcode & 0xf0000000 == 0xf0000000) {
-		// 	// If the cond field is 0b1111, the instruction can only be
-		// 	// executed unconditionally, see Unconditional instructions
-		// 	// on page A5-214.
-		// 	// Includes Advanced SIMD instructions, see Chapter A7
-		// 	// Advanced SIMD and Floating-point Instruction Encoding.
-
-		// }
-
-	 //    if ((instr & 0x0c000000) == 0x0c000000) {
-	 //        disassemble_coprocessor_instr(instr, cond_name, cond);
-	 //    }
-
-	 //    if (buf_pos == 0) {
-	 //        if      (cond == 15)                         disassemble_unconditional_instr((uint32_t)addr, instr);
-	 //        else if ((instr & 0x0c000000) == 0x00000000) disassemble_misc_instr(instr, cond_name);
-	 //        else if ((instr & 0x0e000010) == 0x06000010) disassemble_media_instr(instr, cond_name);
-	 //        else if ((instr & 0x0c000000) == 0x04000000) disassemble_load_store_instr(instr, cond_name);
-	 //        else if ((instr & 0x0c000000) == 0x08000000) disassemble_branch_and_block_data_transfer((uint32_t)addr, instr, cond_name);
-	 //        else if ((instr & 0x0c000000) == 0x0c000000) disassemble_supervisor_and_ext_load_store(instr, cond_name);
-	 //    }
-
-	 //    if (buf_pos == 0 && (instr & 0x0c000000) == 0x00000000) {
-	 //        disassemble_data_instr(instr, cond_name);
-	 //    }
-
 		return m_decoder->decode(op_code, mode);
 	}
 
