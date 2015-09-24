@@ -1597,7 +1597,7 @@ def InstructionFormatParser():
     ParserElement.setDefaultWhitespaceChars("")
 
     # We do allow whitespaces.
-    valid_chars = oneOf(list(alphanums + "[]_!., ^"))
+    valid_chars = oneOf(list(alphanums + "[]_!., ^#"))
     string_token = Combine(OneOrMore(valid_chars))
 
     # Do not allow whitespaces.
