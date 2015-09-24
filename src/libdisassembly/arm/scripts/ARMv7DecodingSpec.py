@@ -1767,8 +1767,7 @@ instructions = [
     "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "LSL{S}<c> <Rd>, <Rm>, #<imm32>",
     "pattern" : "cond#4 0001101 S#1 0000 Rd#4 imm5#5 000 Rm#4",
-    "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
-    if imm5 == '00000' then SEE MOV (register, ARM);
+    "decoder" : """if imm5 == '00000' then SEE MOV (register, ARM);
     d = UInt(Rd); m = UInt(Rm); setflags = (S == '1');
     (-, shift_n) = DecodeImmShift('00', imm5); imm32 = shift_n;"""
 } , {
