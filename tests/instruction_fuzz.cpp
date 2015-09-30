@@ -68,6 +68,7 @@ string capstone_disassemble(uint32_t op_code, cs_mode mode) {
 }
 
 string darm_disassemble(uint32_t opcode, unsigned mode) {
+	return "AVOID";
 	string ret = "INVALID";
 	darm_t d;
 	darm_str_t str;

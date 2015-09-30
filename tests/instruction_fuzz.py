@@ -96,7 +96,10 @@ def __compare__(retools, capstone, darm):
     # Replace single zeros.
     retools = re.sub(ur'#0x0\b', "#0", retools)
     capstone = re.sub(ur'#0x0\b', "#0", capstone)
-    darm = re.sub(ur'#0x0\b', "#0", darm)
+
+    # From '#-0x0' -> '#-0'
+    retools = re.sub(ur'#-0x0', "#-0", retools)
+    capstone = re.sub(ur'#-0x0', "#-0", capstone)
 
     # From 'ldrsbt r5, [r0, #0]' -> 'ldrsbt r5, [r0]'
     retools = re.sub(ur', #0]', "]", retools)
@@ -106,9 +109,13 @@ def __compare__(retools, capstone, darm):
     retools = re.sub(ur', #-0]', "]", retools)
     capstone = re.sub(ur', #-0]', "]", capstone)
 
-    # From '#-0x0' -> '#-0'
-    retools = re.sub(ur'#-0x0', "#-0", retools)
-    capstone = re.sub(ur'#-0x0', "#-0", capstone)
+    # ldmia -> ldm
+    retools = re.sub(ur'ldmia', "ldm", retools)
+    capstone = re.sub(ur'ldmia', "ldm", capstone)
+
+    # stmia -> stm
+    retools = re.sub(ur'stmia', "stm", retools)
+    capstone = re.sub(ur'stmia', "stm", capstone)
 
     # Normalize the wide operator.
     try:
@@ -203,7 +210,8 @@ def process_instruction_fuzz_tests(in_file, start, end):
 n = int(sys.argv[1])
 start = int(sys.argv[2])
 end = int(sys.argv[3])
-mode = 1
+mode = 0
 
+print "Testing instructions from %d to %d, %d times" % (start, end, n)
 test_instruction_fuzz(n, start, end, mode, PATH_TESTS_JSON)
 process_instruction_fuzz_tests(PATH_TESTS_JSON, start, end)
