@@ -5187,7 +5187,7 @@ SYSm = m:m1;"""
     "encoding" : "A1",
     "version" : "ARMv7VE",
     "format" : "MRS<c> <Rd>, <banked_reg>",
-    "pattern" : "cond#4 00010 R#1 10 m1#4 1111001 m#1 0000 Rd#4",
+    "pattern" : "cond#4 00010 R#1 00 m1#4 Rd#4 001 m#1 00000000",
     "decoder" : """d = UInt(Rd); read_spsr = (R == '1'); if d == 15 then UNPREDICTABLE;
 SYSm = m:m1;"""
 } , {
