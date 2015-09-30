@@ -574,6 +574,51 @@ instructions = [
     "decoder" : """m = UInt(Rm);
     if m == 15 then UNPREDICTABLE;"""
 } , {
+    "name" : "CPS (Thumb)",
+    "encoding" : "T1",
+    "version" : "ARMv6All, ARMv7",
+    "format" : "CPS<effect> <iflags>",
+    "pattern" : "10110110011 im#1 0 A#1 I#1 F#1",
+    "decoder" : """if A:I:F == '000' then UNPREDICTABLE;
+enable = (im == '0');
+disable = (im == '1');
+changemode = FALSE;
+affectA = (A == '1');
+affectI = (I == '1');
+affectF = (F == '1');
+if InITBlock() then UNPREDICTABLE;"""
+} , {
+    "name" : "CPS (Thumb)",
+    "encoding" : "T2",
+    "version" : "ARMv6T2, ARMv7",
+    "format" : "CPS<effect>.W <iflags>{, #<mode>}",
+    "pattern" : "111100111010111110000 imod#2 M#1 A#1 I#1 F#1 mode#5",
+    "decoder" : """if imod == '00' && M == '0' then SEE "Hint instructions";
+if mode != '00000' && M == '0' then UNPREDICTABLE;
+if (imod<1> == '1' && A:I:F == '000') || (imod<1> == '0' && A:I:F != '000') then UNPREDICTABLE;
+enable = (imod == '10');
+disable = (imod == '11');
+changemode = (M == '1');
+affectA = (A == '1');
+affectI = (I == '1');
+affectF = (F == '1');
+if imod == '01' || InITBlock() then UNPREDICTABLE;"""
+} , {
+    "name" : "CPS (ARM)",
+    "encoding" : "A1",
+    "version" : "ARMv6All, ARMv7",
+    "format" : "CPS<effect> <iflags>{, #<mode>}",
+    "pattern" : "111100010000 imod#2 M#1 00000000 A#1 I#1 F#1 0 mode#5",
+    "decoder" : """if mode != '00000' && M == '0' then UNPREDICTABLE;
+if (imod<1> == '1' && A:I:F == '000') || (imod<1> == '0' && A:I:F != '000') then UNPREDICTABLE;
+enable = (imod == '10');
+disable = (imod == '11');
+changemode = (M == '1');
+affectA = (A == '1');
+affectI = (I == '1');
+affectF = (F == '1');
+if (imod == '00' && M == '0') || imod == '01' then UNPREDICTABLE;"""    
+} , {
     "name" : "CBNZ, CBZ",
     "encoding" : "T1",
     "version" : "ARMv6T2, ARMv7",
@@ -871,6 +916,31 @@ instructions = [
     "decoder" : """if mask == '0000' then SEE "Related encodings";
     if firstcond == '1111' || (firstcond == '1110' && BitCount(mask) != 1) then UNPREDICTABLE;
     if InITBlock() then UNPREDICTABLE;"""
+} , {
+    "name" : "RFE",
+    "encoding" : "T1",
+    "version" : "ARMv6T2, ARMv7",
+    "format" : "RFEDB<c> <Rn>{!}",
+    "pattern" : "1110100000 W#1 1 Rn#4 1100000000000000",
+    "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then UNPREDICTABLE;
+n = UInt(Rn); wback = (W == '1'); increment = FALSE; wordhigher = FALSE; if n == 15 then UNPREDICTABLE;
+if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
+} , {
+    "name" : "RFE",
+    "encoding" : "T2",
+    "version" : "ARMv6T2, ARMv7",
+    "format" : "RFE{IA}<c> <Rn>{!}",
+    "pattern" : "1110100110 W#1 1 Rn#4 1100000000000000",
+    "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then UNPREDICTABLE;
+n = UInt(Rn); wback = (W == '1'); increment = TRUE; wordhigher = FALSE; if n == 15 then UNPREDICTABLE;
+if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
+} , {
+    "name" : "RFE",
+    "encoding" : "A1",
+    "version" : "ARMv6All, ARMv7",
+    "format" : "RFE<amode> <Rn>{!}",
+    "pattern" : "1111100 P#1 U#1 0 W#1 1 Rn#4 0000101000000000",
+    "decoder" : """n = UInt(Rn); wback = (W == '1'); inc = (U == '1'); wordhigher = (P == U); if n == 15 then UNPREDICTABLE;"""
 } , {
     "name" : "LDC, LDC2 (immediate)",
     "encoding" : "T1",
@@ -4987,6 +5057,208 @@ if mask == '0000' then UNPREDICTABLE;"""
     "pattern" : "cond#4 0 1 1 0 1 1 1 1 1 1 1 1 Rd#4 rotate#2 0 0 0 1 1 1 Rm#4",
     "decoder" : """d = UInt(Rd); m = UInt(Rm); rotation = UInt(rotate:'000');
     if d == 15 || m == 15 then UNPREDICTABLE;"""
+} , {
+    "name" : "WFE",
+    "encoding" : "T1",
+    "version" : "ARMv7",
+    "format" : "WFE<c>",
+    "pattern" : "1 0 1 1 1 1 1 1 0 0 1 0 0 0 0 0",
+    "decoder" : """NOP();"""
+} , {
+    "name" : "WFE",
+    "encoding" : "T2",
+    "version" : "ARMv7",
+    "format" : "WFE<c>.W",
+    "pattern" : "1 1 1 1 0 0 1 1 1 0 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0",
+    "decoder" : """NOP();"""
+} , {
+    "name" : "WFE",
+    "encoding" : "A1",
+    "version" : "ARMv6K, ARMv7",
+    "format" : "WFE<c>",
+    "pattern" : "cond#4 0 0 1 1 0 0 1 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 0",
+    "decoder" : """NOP();"""
+} , {
+    "name" : "WFI",
+    "encoding" : "T1",
+    "version" : "ARMv7",
+    "format" : "WFI<c>",
+    "pattern" : "1 0 1 1 1 1 1 1 0 0 1 1 0 0 0 0",
+    "decoder" : """NOP();"""
+} , {
+    "name" : "WFI",
+    "encoding" : "T2",
+    "version" : "ARMv7",
+    "format" : "WFI<c>.W",
+    "pattern" : "1 1 1 1 0 0 1 1 1 0 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1",
+    "decoder" : """NOP();"""
+} , {
+    "name" : "WFI",
+    "encoding" : "A1",
+    "version" : "ARMv6K, ARMv7",
+    "format" : "WFI<c>",
+    "pattern" : "cond#4 0 0 1 1 0 0 1 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1",
+    "decoder" : """NOP();"""
+} , {
+    "name" : "YIELD",
+    "encoding" : "T1",
+    "version" : "ARMv7",
+    "format" : "YIELD<c>",
+    "pattern" : "1 0 1 1 1 1 1 1 0 0 0 1 0 0 0 0",
+    "decoder" : """NOP();"""
+} , {
+    "name" : "YIELD",
+    "encoding" : "T2",
+    "version" : "ARMv7",
+    "format" : "YIELD<c>.W",
+    "pattern" : "1 1 1 1 0 0 1 1 1 0 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1",
+    "decoder" : """NOP();"""
+} , {
+    "name" : "YIELD",
+    "encoding" : "A1",
+    "version" : "ARMv6K, ARMv7",
+    "format" : "YIELD<c>",
+    "pattern" : "cond#4 0011001000001111000000000001",
+    "decoder" : """NOP();"""
+} , {
+    "name" : "ERET",
+    "encoding" : "T1",
+    "version" : "ARMv6T2, ARMv7VE",
+    "format" : "ERET",
+    "pattern" : "111100111101111010001111 imm8#8",
+    "decoder" : """if imm8 != '00000000' then SEE SUBS PC, LR and related instructions;"""
+} , {
+    "name" : "ERET",
+    "encoding" : "A1",
+    "version" : "ARMv7VE",
+    "format" : "ERET",
+    "pattern" : "cond#4 0001011000000000000001101110",
+    "decoder" : """NOP();"""
+} , {
+    "name" : "HVC",
+    "encoding" : "T1",
+    "version" : "ARMv7VE",
+    "format" : "HVC #<imm32>",
+    "pattern" : "111101111110 imm4#4 1000 imm12#12",
+    "decoder" : """if InITBlock() then UNPREDICTABLE;
+imm32 = imm4:imm12;"""
+} , {
+    "name" : "HVC",
+    "encoding" : "A1",
+    "version" : "ARMv7VE",
+    "format" : "HVC #<imm32>",
+    "pattern" : "cond#4 00010100 imm12#12 0111 imm4#4",
+    "decoder" : """if cond != '1110' then UNPREDICTABLE;
+imm32 = imm12:imm4;"""
+} , {
+    "name" : "LDM (exception return)",
+    "encoding" : "A1",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
+    "format" : "LDM<amode><c> <Rn>{!}, <registers_with_pc> ^",
+    "pattern" : "cond#4 100 P#1 U#1 1 W#1 1 Rn#4 1 register_list#15",
+    "decoder" : """n = UInt(Rn);
+registers = register_list;
+wback = (W == '1');
+increment = (U == '1');
+wordhigher = (P == U);
+if n == 15 then UNPREDICTABLE;
+if wback && registers<n> == '1' && ArchVersion() >= 7 then UNPREDICTABLE;"""
+} , {
+    "name" : "LDM (User registers)",
+    "encoding" : "A1",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
+    "format" : "LDM<amode><c> <Rn>, <registers_without_pc> ^",
+    "pattern" : "cond#4 100 P#1 U#1 101 Rn#4 0 register_list#15",
+    "decoder" : """n = UInt(Rn);
+registers = register_list;
+increment = (U == '1');
+wordhigher = (P == U);
+if n == 15 || BitCount(registers) < 1 then UNPREDICTABLE;"""
+} , {
+    "name" : "MRS (Banked register)",
+    "encoding" : "T1",
+    "version" : "ARMv7VE",
+    "format" : "MRS<c> <Rd>, <banked_reg>",
+    "pattern" : "11110011111 R#1 m1#4 1000 Rd#4 001 m#1 0000",
+    "decoder" : """d = UInt(Rd); read_spsr = (R == '1'); if d IN {13,15} then UNPREDICTABLE;
+SYSm = m:m1;"""
+} , {
+    "name" : "MRS (Banked register)",
+    "encoding" : "A1",
+    "version" : "ARMv7VE",
+    "format" : "MRS<c> <Rd>, <banked_reg>",
+    "pattern" : "cond#4 00010 R#1 10 m1#4 1111001 m#1 0000 Rd#4",
+    "decoder" : """d = UInt(Rd); read_spsr = (R == '1'); if d == 15 then UNPREDICTABLE;
+SYSm = m:m1;"""
+} , {
+    "name" : "SMC (previously SMI)",
+    "encoding" : "T1",
+    "version" : "ARMSecurityExtension",
+    "format" : "SMC<c> #<imm32>",
+    "pattern" : "111101111111 imm4#4 1000000000000000",
+    "decoder" : """imm32 = ZeroExtend(imm4, 32); if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
+} , {
+    "name" : "SMC (previously SMI)",
+    "encoding" : "T2",
+    "version" : "ARMSecurityExtension",
+    "format" : "SMC<c> #<imm32>",
+    "pattern" : "cond#4 000101100000000000000111 imm4#4",
+    "decoder" : """imm32 = ZeroExtend(imm4, 32);"""
+} , {
+    "name" : "SRS, Thumb",
+    "encoding" : "T1",
+    "version" : "ARMv6T2, ARMv7",
+    "format" : "SRSDB<c> SP{!}, #<mode>",
+    "pattern" : "1110100000 W#1 0110111000000000 mode#5",
+    "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then UNPREDICTABLE;
+wback = (W == '1'); increment = FALSE; wordhigher = FALSE;"""
+} , {
+    "name" : "SRS, Thumb",
+    "encoding" : "T2",
+    "version" : "ARMv6T2, ARMv7",
+    "format" : "SRS{IA}<c> SP{!}, #<mode>",
+    "pattern" : "1110100110 W#1 0110111000000000 mode#5",
+    "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then UNPREDICTABLE;
+wback = (W == '1'); increment = TRUE; wordhigher = FALSE;"""
+} , {
+    "name" : "SRS, ARM",
+    "encoding" : "A1",
+    "version" : "ARMv6All, ARMv7",
+    "format" : "SRS<amode> SP{!}, #<mode>",
+    "pattern" : "1111100 P#1 U#1 1 W#1 0110100000101000 mode#5",
+    "decoder" : """wback = (W == '1'); inc = (U == '1'); wordhigher = (P == U);"""
+} , {
+    "name" : "STM (User registers)",
+    "encoding" : "A1",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
+    "format" : "STM<amode><c> <Rn>, <registers> ^",
+    "pattern" : "cond#4 100 P#1 U#1 100 Rn#4 register_list#16",
+    "decoder" : """n = UInt(Rn); registers = register_list; increment = (U == '1'); wordhigher = (P == U); if n == 15 || BitCount(registers) < 1 then UNPREDICTABLE;"""
+} , {
+    "name" : "SUBS PC, LR and related instructions, Thumb",
+    "encoding" : "T1",
+    "version" : "ARMv6T2, ARMv7",
+    "format" : "SUBS<c> PC, LR, #<imm32>",
+    "pattern" : "111100111101111010001111 imm8#8",
+    "decoder" : """if IsZero(imm8) then SEE ERET;
+if CurrentInstrSet() == InstrSet_ThumbEE then UNPREDICTABLE;
+if CurrentModeIsHyp() then UNDEFINED;
+n = 14; imm32 = ZeroExtend(imm8, 32);
+if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
+} , {
+    "name" : "SUBS PC, LR and related instructions, ARM",
+    "encoding" : "A1",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
+    "format" : "CUSTOM",
+    "pattern" : "cond#4 001 opcode_#4 1 Rn#4 1111 imm12#12",
+    "decoder" : """n = UInt(Rn); imm32 = ARMExpandImm(imm12); register_form = FALSE;"""
+} , {
+    "name" : "SUBS PC, LR and related instructions, ARM",
+    "encoding" : "A2",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
+    "format" : "CUSTOM",
+    "pattern" : "cond#4 000 opcode_#4 1 Rn#4 1111 imm5#5 type#2 0 Rm#4",
+    "decoder" : """n = UInt(Rn); m = UInt(Rm); register_form = TRUE; (shift_t, shift_n) = DecodeImmShift(type, imm5);"""
 } , {
     "name" : "VABA, VABAL",
     "encoding" : "T1",
@@ -9263,276 +9535,4 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     if Q == '1' && (Vd<0> == '1' || Vm<0> == '1') then UNDEFINED;
     quadword_operation = (Q == '1'); esize = 8 << UInt(size);
     d = UInt(D:Vd); m = UInt(M:Vm);"""
-} , {
-    "name" : "WFE",
-    "encoding" : "T1",
-    "version" : "ARMv7",
-    "format" : "WFE<c>",
-    "pattern" : "1 0 1 1 1 1 1 1 0 0 1 0 0 0 0 0",
-    "decoder" : """NOP();"""
-} , {
-    "name" : "WFE",
-    "encoding" : "T2",
-    "version" : "ARMv7",
-    "format" : "WFE<c>.W",
-    "pattern" : "1 1 1 1 0 0 1 1 1 0 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0",
-    "decoder" : """NOP();"""
-} , {
-    "name" : "WFE",
-    "encoding" : "A1",
-    "version" : "ARMv6K, ARMv7",
-    "format" : "WFE<c>",
-    "pattern" : "cond#4 0 0 1 1 0 0 1 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 0",
-    "decoder" : """NOP();"""
-} , {
-    "name" : "WFI",
-    "encoding" : "T1",
-    "version" : "ARMv7",
-    "format" : "WFI<c>",
-    "pattern" : "1 0 1 1 1 1 1 1 0 0 1 1 0 0 0 0",
-    "decoder" : """NOP();"""
-} , {
-    "name" : "WFI",
-    "encoding" : "T2",
-    "version" : "ARMv7",
-    "format" : "WFI<c>.W",
-    "pattern" : "1 1 1 1 0 0 1 1 1 0 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1",
-    "decoder" : """NOP();"""
-} , {
-    "name" : "WFI",
-    "encoding" : "A1",
-    "version" : "ARMv6K, ARMv7",
-    "format" : "WFI<c>",
-    "pattern" : "cond#4 0 0 1 1 0 0 1 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1",
-    "decoder" : """NOP();"""
-} , {
-    "name" : "YIELD",
-    "encoding" : "T1",
-    "version" : "ARMv7",
-    "format" : "YIELD<c>",
-    "pattern" : "1 0 1 1 1 1 1 1 0 0 0 1 0 0 0 0",
-    "decoder" : """NOP();"""
-} , {
-    "name" : "YIELD",
-    "encoding" : "T2",
-    "version" : "ARMv7",
-    "format" : "YIELD<c>.W",
-    "pattern" : "1 1 1 1 0 0 1 1 1 0 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1",
-    "decoder" : """NOP();"""
-} , {
-    "name" : "YIELD",
-    "encoding" : "A1",
-    "version" : "ARMv6K, ARMv7",
-    "format" : "YIELD<c>",
-    "pattern" : "cond#4 0011001000001111000000000001",
-    "decoder" : """NOP();"""
-} , {
-    "name" : "CPS (Thumb)",
-    "encoding" : "T1",
-    "version" : "ARMv6All, ARMv7",
-    "format" : "CPS<effect> <iflags>",
-    "pattern" : "10110110011 im#1 0 A#1 I#1 F#1",
-    "decoder" : """if A:I:F == '000' then UNPREDICTABLE;
-enable = (im == '0');
-disable = (im == '1');
-changemode = FALSE;
-affectA = (A == '1');
-affectI = (I == '1');
-affectF = (F == '1');
-if InITBlock() then UNPREDICTABLE;"""
-} , {
-    "name" : "CPS (Thumb)",
-    "encoding" : "T2",
-    "version" : "ARMv6T2, ARMv7",
-    "format" : "CPS<effect>.W <iflags>{, #<mode>}",
-    "pattern" : "111100111010111110000 imod#2 M#1 A#1 I#1 F#1 mode#5",
-    "decoder" : """if imod == '00' && M == '0' then SEE "Hint instructions";
-if mode != '00000' && M == '0' then UNPREDICTABLE;
-if (imod<1> == '1' && A:I:F == '000') || (imod<1> == '0' && A:I:F != '000') then UNPREDICTABLE;
-enable = (imod == '10');
-disable = (imod == '11');
-changemode = (M == '1');
-affectA = (A == '1');
-affectI = (I == '1');
-affectF = (F == '1');
-if imod == '01' || InITBlock() then UNPREDICTABLE;"""
-} , {
-    "name" : "CPS (ARM)",
-    "encoding" : "A1",
-    "version" : "ARMv6All, ARMv7",
-    "format" : "CPS<effect> <iflags>{, #<mode>}",
-    "pattern" : "111100010000 imod#2 M#1 00000000 A#1 I#1 F#1 0 mode#5",
-    "decoder" : """if mode != '00000' && M == '0' then UNPREDICTABLE;
-if (imod<1> == '1' && A:I:F == '000') || (imod<1> == '0' && A:I:F != '000') then UNPREDICTABLE;
-enable = (imod == '10');
-disable = (imod == '11');
-changemode = (M == '1');
-affectA = (A == '1');
-affectI = (I == '1');
-affectF = (F == '1');
-if (imod == '00' && M == '0') || imod == '01' then UNPREDICTABLE;"""
-} , {
-    "name" : "ERET",
-    "encoding" : "T1",
-    "version" : "ARMv6T2, ARMv7VE",
-    "format" : "ERET",
-    "pattern" : "111100111101111010001111 imm8#8",
-    "decoder" : """if imm8 != '00000000' then SEE SUBS PC, LR and related instructions;"""
-} , {
-    "name" : "ERET",
-    "encoding" : "A1",
-    "version" : "ARMv7VE",
-    "format" : "ERET",
-    "pattern" : "cond#4 0001011000000000000001101110",
-    "decoder" : """NOP();"""
-} , {
-    "name" : "HVC",
-    "encoding" : "T1",
-    "version" : "ARMv7VE",
-    "format" : "HVC #<imm32>",
-    "pattern" : "111101111110 imm4#4 1000 imm12#12",
-    "decoder" : """if InITBlock() then UNPREDICTABLE;
-imm32 = imm4:imm12;"""
-} , {
-    "name" : "HVC",
-    "encoding" : "A1",
-    "version" : "ARMv7VE",
-    "format" : "HVC #<imm32>",
-    "pattern" : "cond#4 00010100 imm12#12 0111 imm4#4",
-    "decoder" : """if cond != '1110' then UNPREDICTABLE;
-imm32 = imm12:imm4;"""
-} , {
-    "name" : "LDM (exception return)",
-    "encoding" : "A1",
-    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "LDM<amode><c> <Rn>{!}, <registers_with_pc> ^",
-    "pattern" : "cond#4 100 P#1 U#1 1 W#1 1 Rn#4 1 register_list#15",
-    "decoder" : """n = UInt(Rn);
-registers = register_list;
-wback = (W == '1');
-increment = (U == '1');
-wordhigher = (P == U);
-if n == 15 then UNPREDICTABLE;
-if wback && registers<n> == '1' && ArchVersion() >= 7 then UNPREDICTABLE;"""
-} , {
-    "name" : "LDM (User registers)",
-    "encoding" : "A1",
-    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "LDM<amode><c> <Rn>, <registers_without_pc> ^",
-    "pattern" : "cond#4 100 P#1 U#1 101 Rn#4 0 register_list#15",
-    "decoder" : """n = UInt(Rn);
-registers = register_list;
-increment = (U == '1');
-wordhigher = (P == U);
-if n == 15 || BitCount(registers) < 1 then UNPREDICTABLE;"""
-} , {
-    "name" : "MRS (Banked register)",
-    "encoding" : "T1",
-    "version" : "ARMv7VE",
-    "format" : "MRS<c> <Rd>, <banked_reg>",
-    "pattern" : "11110011111 R#1 m1#4 1000 Rd#4 001 m#1 0000",
-    "decoder" : """d = UInt(Rd); read_spsr = (R == '1'); if d IN {13,15} then UNPREDICTABLE;
-SYSm = m:m1;"""
-} , {
-    "name" : "MRS (Banked register)",
-    "encoding" : "A1",
-    "version" : "ARMv7VE",
-    "format" : "MRS<c> <Rd>, <banked_reg>",
-    "pattern" : "cond#4 00010 R#1 10 m1#4 1111001 m#1 0000 Rd#4",
-    "decoder" : """d = UInt(Rd); read_spsr = (R == '1'); if d == 15 then UNPREDICTABLE;
-SYSm = m:m1;"""
-} , {
-    "name" : "RFE",
-    "encoding" : "T1",
-    "version" : "ARMv6T2, ARMv7",
-    "format" : "RFEDB<c> <Rn>{!}",
-    "pattern" : "1110100000 W#1 1 Rn#4 1100000000000000",
-    "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then UNPREDICTABLE;
-n = UInt(Rn); wback = (W == '1'); increment = FALSE; wordhigher = FALSE; if n == 15 then UNPREDICTABLE;
-if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
-} , {
-    "name" : "RFE",
-    "encoding" : "T2",
-    "version" : "ARMv6T2, ARMv7",
-    "format" : "RFE{IA}<c> <Rn>{!}",
-    "pattern" : "1110100110 W#1 1 Rn#4 1100000000000000",
-    "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then UNPREDICTABLE;
-n = UInt(Rn); wback = (W == '1'); increment = TRUE; wordhigher = FALSE; if n == 15 then UNPREDICTABLE;
-if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
-} , {
-    "name" : "RFE",
-    "encoding" : "A1",
-    "version" : "ARMv6All, ARMv7",
-    "format" : "RFE<amode> <Rn>{!}",
-    "pattern" : "1111100 P#1 U#1 0 W#1 1 Rn#4 0000101000000000",
-    "decoder" : """n = UInt(Rn); wback = (W == '1'); inc = (U == '1'); wordhigher = (P == U); if n == 15 then UNPREDICTABLE;"""
-} , {
-    "name" : "SMC (previously SMI)",
-    "encoding" : "T1",
-    "version" : "ARMSecurityExtension",
-    "format" : "SMC<c> #<imm32>",
-    "pattern" : "111101111111 imm4#4 1000000000000000",
-    "decoder" : """imm32 = ZeroExtend(imm4, 32); if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
-} , {
-    "name" : "SMC (previously SMI)",
-    "encoding" : "T2",
-    "version" : "ARMSecurityExtension",
-    "format" : "SMC<c> #<imm32>",
-    "pattern" : "cond#4 000101100000000000000111 imm4#4",
-    "decoder" : """imm32 = ZeroExtend(imm4, 32);"""
-} , {
-    "name" : "SRS, Thumb",
-    "encoding" : "T1",
-    "version" : "ARMv6T2, ARMv7",
-    "format" : "SRSDB<c> SP{!}, #<mode>",
-    "pattern" : "1110100000 W#1 0110111000000000 mode#5",
-    "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then UNPREDICTABLE;
-wback = (W == '1'); increment = FALSE; wordhigher = FALSE;"""
-} , {
-    "name" : "SRS, Thumb",
-    "encoding" : "T2",
-    "version" : "ARMv6T2, ARMv7",
-    "format" : "SRS{IA}<c> SP{!}, #<mode>",
-    "pattern" : "1110100110 W#1 0110111000000000 mode#5",
-    "decoder" : """if CurrentInstrSet() == InstrSet_ThumbEE then UNPREDICTABLE;
-wback = (W == '1'); increment = TRUE; wordhigher = FALSE;"""
-} , {
-    "name" : "SRS, ARM",
-    "encoding" : "A1",
-    "version" : "ARMv6All, ARMv7",
-    "format" : "SRS<amode> SP{!}, #<mode>",
-    "pattern" : "1111100 P#1 U#1 1 W#1 0110100000101000 mode#5",
-    "decoder" : """wback = (W == '1'); inc = (U == '1'); wordhigher = (P == U);"""
-} , {
-    "name" : "STM (User registers)",
-    "encoding" : "A1",
-    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "STM<amode><c> <Rn>, <registers> ^",
-    "pattern" : "cond#4 100 P#1 U#1 100 Rn#4 register_list#16",
-    "decoder" : """n = UInt(Rn); registers = register_list; increment = (U == '1'); wordhigher = (P == U); if n == 15 || BitCount(registers) < 1 then UNPREDICTABLE;"""
-} , {
-    "name" : "SUBS PC, LR and related instructions, Thumb",
-    "encoding" : "T1",
-    "version" : "ARMv6T2, ARMv7",
-    "format" : "SUBS<c> PC, LR, #<imm32>",
-    "pattern" : "111100111101111010001111 imm8#8",
-    "decoder" : """if IsZero(imm8) then SEE ERET;
-if CurrentInstrSet() == InstrSet_ThumbEE then UNPREDICTABLE;
-if CurrentModeIsHyp() then UNDEFINED;
-n = 14; imm32 = ZeroExtend(imm8, 32);
-if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
-} , {
-    "name" : "SUBS PC, LR and related instructions, ARM",
-    "encoding" : "A1",
-    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
-    "pattern" : "cond#4 001 opcode_#4 1 Rn#4 1111 imm12#12",
-    "decoder" : """n = UInt(Rn); imm32 = ARMExpandImm(imm12); register_form = FALSE;"""
-} , {
-    "name" : "SUBS PC, LR and related instructions, ARM",
-    "encoding" : "A2",
-    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
-    "pattern" : "cond#4 000 opcode_#4 1 Rn#4 1111 imm5#5 type#2 0 Rm#4",
-    "decoder" : """n = UInt(Rn); m = UInt(Rm); register_form = TRUE; (shift_t, shift_n) = DecodeImmShift(type, imm5);"""
 } , ]
