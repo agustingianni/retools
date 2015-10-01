@@ -312,11 +312,17 @@ class Case(BaseNode):
 
 
 class Undefined(BaseNode):
+    def __init__(self):
+        self.reason = ""
+
     def __str__(self):
         return "Undefined"
 
 
 class Unpredictable(BaseNode):
+    def __init__(self):
+        self.reason = ""
+
     def __str__(self):
         return "Unpredictable"
 
@@ -1097,6 +1103,10 @@ class CPPTranslatorVisitor(TranslatorVisitor):
 
     def accept_If(self, node):
         def hint(condition, statements):
+            # Set the reason why Undefined or Unpredictable instructions are "skipped".
+            if type(statements[0]) in [Undefined, Unpredictable]:
+                statements[0].reason = condition
+
             if len(statements) == 1 and type(statements[0]) in [Undefined, Unpredictable, See]:
                 return "unlikely(%s)" % condition
 
@@ -1186,11 +1196,11 @@ class CPPTranslatorVisitor(TranslatorVisitor):
 
     def accept_Undefined(self, node):
         self.set_type(node, ("unknown", None))
-        return "return shared_ptr<ARMInstruction>(new UndefinedInstruction());"
+        return """return shared_ptr<ARMInstruction>(new UndefinedInstruction("Reason: %s"));""" % node.reason
 
     def accept_Unpredictable(self, node):
         self.set_type(node, ("unknown", None))
-        return "return shared_ptr<ARMInstruction>(new UnpredictableInstruction());"
+        return """return shared_ptr<ARMInstruction>(new UnpredictableInstruction("Reason: %s"));""" % node.reason
 
     def accept_See(self, node):
         self.set_type(node, ("unknown", None))

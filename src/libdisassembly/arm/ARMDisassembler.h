@@ -573,16 +573,28 @@ namespace Disassembler {
 	};
 
 	class UnpredictableInstruction: public ARMInstruction {
+		private:
+			std::string m_reason;
+
 		public:
+			UnpredictableInstruction(std::string reason) : m_reason(reason) {
+			} 
+
 			std::string toString() override {
-				return "UnpredictableInstruction";
+				return "UnpredictableInstruction: " + m_reason;
 			}
 	};
 
 	class UndefinedInstruction: public ARMInstruction {
+		private:
+			std::string m_reason;
+
 		public:
+			UndefinedInstruction(std::string reason) : m_reason(reason) {
+			} 
+
 			std::string toString() override {
-				return "UndefinedInstruction";
+				return "UndefinedInstruction: " + m_reason;
 			}
 	};
 
@@ -609,7 +621,7 @@ namespace Disassembler {
 
 	class ARMDisassembler {
 		public:
-			ARMDisassembler(ARMVariants variant = ARMv7);
+			ARMDisassembler(ARMVariants variant = ARMvAll);
 			std::shared_ptr<ARMInstruction> disassemble(uint32_t opcode, ARMMode mode = ARMMode_ARM);
 
 		private:
