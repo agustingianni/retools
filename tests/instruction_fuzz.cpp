@@ -89,7 +89,7 @@ string darm_disassemble(uint32_t opcode, unsigned mode) {
 }
 
 string retools_disassemble(uint32_t opcode, unsigned mode, string &decoder) {
-	ARMDisassembler dis((ARMVariants) ((int) ARMv7 | (int) AdvancedSIMD));
+	ARMDisassembler dis(ARMvAll);
 	shared_ptr<ARMInstruction> ins = dis.disassemble(opcode, mode == 0 ? ARMMode_ARM : ARMMode_Thumb);
 	decoder = ins->m_decoded_by;
 	return ins->toString();
