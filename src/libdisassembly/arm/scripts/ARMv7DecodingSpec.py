@@ -1159,6 +1159,30 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "decoder" : """n = UInt(Rn); m = UInt(Rm); add = (U == '1'); is_pldw = (R == '0'); (shift_t, shift_n) = DecodeImmShift(type, imm5);
     if m == 15 || (n == 15 && is_pldw) then UNPREDICTABLE;"""
 } , {
+    "name" : "PLI (register)",
+    "encoding" : "T1",
+    "version" : "ARMv7",
+    "format" : "PLI<c> [<Rn>, <Rm>{, LSL #<shift_n>}]",
+    "pattern" : "111110010001 Rn#4 1111000000 imm2#2 Rm#4",
+    "decoder" : """if Rn == '1111' then SEE PLI (immediate, literal);
+    n = UInt(Rn); m = UInt(Rm); add = TRUE; (shift_t, shift_n) = (SRType_LSL, UInt(imm2));
+    if m IN {13,15} then UNPREDICTABLE;"""
+} , {
+    "name" : "PLI (register)",
+    "encoding" : "A1",
+    "version" : "ARMv7",
+    "format" : "PLI [<Rn>, +/-<Rm>{, <shift>}]",
+    "pattern" : "11110110 U#1 101 Rn#4 1111 imm5#5 type#2 0 Rm#4",
+    "decoder" : """n = UInt(Rn); m = UInt(Rm); add = (U == '1'); (shift_t, shift_n) = DecodeImmShift(type, imm5);
+    if m == 15 then UNPREDICTABLE;"""
+} , {
+    "name" : "PLI (immediate, literal)",
+    "encoding" : "A1",
+    "version" : "ARMv7",
+    "format" : "PLI [<Rn>, #+/-<imm32>]",
+    "pattern" : "11110100 U#1 101 Rn#4 1111 imm12#12",
+    "decoder" : """n = UInt(Rn); imm32 = ZeroExtend(imm12, 32); add = (U == '1');"""    
+} , {
     "name" : "LDR (immediate, ARM)",
     "encoding" : "A1",
     "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
@@ -2466,30 +2490,6 @@ if mask == '0000' then UNPREDICTABLE;"""
     "format" : "PLI<c> [pc, #+/-<imm32>]",
     "pattern" : "11111001 U#1 00111111111 imm12#12",
     "decoder" : """n = 15; imm32 = ZeroExtend(imm12, 32); add = (U == '1');"""
-} , {
-    "name" : "PLI (immediate, literal)",
-    "encoding" : "A1",
-    "version" : "ARMv7",
-    "format" : "PLI [<Rn>, #+/-<imm32>]",
-    "pattern" : "11110100 U#1 101 Rn#4 1111 imm12#12",
-    "decoder" : """n = UInt(Rn); imm32 = ZeroExtend(imm12, 32); add = (U == '1');"""
-} , {
-    "name" : "PLI (register)",
-    "encoding" : "T1",
-    "version" : "ARMv7",
-    "format" : "PLI<c> [<Rn>, <Rm>{, LSL #<shift_n>}]",
-    "pattern" : "111110010001 Rn#4 1111000000 imm2#2 Rm#4",
-    "decoder" : """if Rn == '1111' then SEE PLI (immediate, literal);
-    n = UInt(Rn); m = UInt(Rm); add = TRUE; (shift_t, shift_n) = (SRType_LSL, UInt(imm2));
-    if m IN {13,15} then UNPREDICTABLE;"""
-} , {
-    "name" : "PLI (register)",
-    "encoding" : "A1",
-    "version" : "ARMv7",
-    "format" : "PLI [<Rn>, +/-<Rm>{, <shift>}]",
-    "pattern" : "11110110 U#1 101 Rn#4 1111 imm5#5 type#2 0 Rm#4",
-    "decoder" : """n = UInt(Rn); m = UInt(Rm); add = (U == '1'); (shift_t, shift_n) = DecodeImmShift(type, imm5);
-    if m == 15 then UNPREDICTABLE;"""
 } , {
     "name" : "POP (Thumb)",
     "encoding" : "T1",
