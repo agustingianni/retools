@@ -581,7 +581,7 @@ instructions = [
     "name" : "CPS (Thumb)",
     "encoding" : "T1",
     "version" : "ARMv6All, ARMv7",
-    "format" : "CPS<effect> <iflags>",
+    "format" : "CUSTOM",
     "pattern" : "10110110011 im#1 0 A#1 I#1 F#1",
     "decoder" : """if A:I:F == '000' then UNPREDICTABLE;
 enable = (im == '0');
@@ -595,7 +595,7 @@ if InITBlock() then UNPREDICTABLE;"""
     "name" : "CPS (Thumb)",
     "encoding" : "T2",
     "version" : "ARMv6T2, ARMv7",
-    "format" : "CPS<effect>.W <iflags>{, #<mode>}",
+    "format" : "CUSTOM",
     "pattern" : "111100111010111110000 imod#2 M#1 A#1 I#1 F#1 mode#5",
     "decoder" : """if imod == '00' && M == '0' then SEE "Hint instructions";
 if mode != '00000' && M == '0' then UNPREDICTABLE;
@@ -611,7 +611,7 @@ if imod == '01' || InITBlock() then UNPREDICTABLE;"""
     "name" : "CPS (ARM)",
     "encoding" : "A1",
     "version" : "ARMv6All, ARMv7",
-    "format" : "CPS<effect> <iflags>{, #<mode>}",
+    "format" : "CUSTOM",
     "pattern" : "111100010000 imod#2 M#1 00000000 A#1 I#1 F#1 0 mode#5",
     "decoder" : """if mode != '00000' && M == '0' then UNPREDICTABLE;
 if (imod<1> == '1' && A:I:F == '000') || (imod<1> == '0' && A:I:F != '000') then UNPREDICTABLE;
