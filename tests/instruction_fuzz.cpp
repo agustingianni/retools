@@ -67,24 +67,28 @@ string capstone_disassemble(uint32_t op_code, cs_mode mode) {
 	return ret;
 }
 
+struct InvalidChar {
+    bool operator()(char c) const {
+        return !isprint((unsigned)c);
+    }
+};
+
 string darm_disassemble(uint32_t opcode, unsigned mode) {
-	return "AVOID";
 	string ret = "INVALID";
 	darm_t d;
 	darm_str_t str;
 
 	if (mode == 0) {
 		if (darm_armv7_disasm(&d, opcode) != -1) {
-			darm_str(&d, &str);
-			ret = string(str.total);
+			ret = darm_str(&d, &str) < 0 ? "INVALID" : string(str.total);
 		}
 	} else {
 		if (darm_thumb2_disasm(&d, opcode & 0xffff, opcode >> 16) != -1) {
-			darm_str(&d, &str);
-			ret = string(str.total);
+			ret = darm_str(&d, &str) < 0 ? "INVALID" : string(str.total);
 		}
 	}
 
+	ret.erase(std::remove_if(ret.begin(), ret.end(), InvalidChar()), ret.end());
 	return ret;
 }
 
