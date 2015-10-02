@@ -427,9 +427,10 @@ to_string_cpp = \
 #include "Utilities.h"
 
 using namespace Disassembler;
+using namespace std;
 
-std::string banked_reg(const ARMInstruction *ins) {
-    std::string tmp = "UNPREDICTABLE";
+string banked_reg(const ARMInstruction *ins) {
+    string tmp = "UNPREDICTABLE";
     if (ins->read_spsr == 0) {
         switch(ins->SYSm) {
             case 0: // 0b0
@@ -546,11 +547,11 @@ std::string banked_reg(const ARMInstruction *ins) {
     return tmp;
 }
 
-std::string effect_str(const ARMInstruction *ins) {
+string effect_str(const ARMInstruction *ins) {
     return ins->enable ? "IE" : "ID";
 }
 
-std::string align_str(const ARMInstruction *ins) {
+string align_str(const ARMInstruction *ins) {
     switch(ins->id) {
         case vld1_multiple_single_elements:         // VLD1 (multiple single elements)
         case vld2_multiple_2_element_structures:    // VLD2 (multiple 2-element structures)
@@ -564,12 +565,7 @@ std::string align_str(const ARMInstruction *ins) {
             }
 
         case vld1_single_element_to_one_lane:   // VLD1 (single element to one lane)
-            return std::to_string(ins->alignment);
-            // switch(ins->size) {
-            //     case 1:  return ":0x10";
-            //     case 2:  return ":0x20";
-            //     default: return  "";
-            // }
+            return to_string(ins->alignment);
 
         case vld1_single_element_to_all_lanes:  // VLD1 (single element to all lanes)
             switch(ins->size) {
@@ -625,7 +621,7 @@ std::string align_str(const ARMInstruction *ins) {
     return "missing_id_align_str";
 }
 
-std::string list_str(const ARMInstruction *ins) {
+string list_str(const ARMInstruction *ins) {
     switch(ins->id) {
         case vldm:
             if (ins->single_regs) {
@@ -637,101 +633,101 @@ std::string list_str(const ARMInstruction *ins) {
         case vld3_multiple_3_element_structures:
             switch(ins->type) {
                 case 4:
-                    return "{D" + std::to_string(ins->d) +
-                        ", D" + std::to_string(ins->d + 1) +
-                        ", D" + std::to_string(ins->d + 2) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
+                        ", D" + to_string(ins->d + 2) +
                         "}";
                 case 5:
-                    return "{D" + std::to_string(ins->d) +
-                        ", D" + std::to_string(ins->d + 2) +
-                        ", D" + std::to_string(ins->d + 4) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 2) +
+                        ", D" + to_string(ins->d + 4) +
                         "}";
                 default:
-                    return "INVALID:" + std::to_string(ins->type);
+                    return "INVALID:" + to_string(ins->type);
             }
             break;
 
         case vld3_single_3_element_structure_to_one_lane:
-            return "{D" + std::to_string(ins->d) + "["  + std::to_string(ins->index) + "], " +
-                    "D" + std::to_string(ins->d + ins->inc) + "["  + std::to_string(ins->index) + "], " +
-                    "D" + std::to_string(ins->d + ins->inc * 2) + "["  + std::to_string(ins->index) + "]" + "}";
+            return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "], " +
+                    "D" + to_string(ins->d + ins->inc) + "["  + to_string(ins->index) + "], " +
+                    "D" + to_string(ins->d + ins->inc * 2) + "["  + to_string(ins->index) + "]" + "}";
 
         case vld3_single_3_element_structure_to_all_lanes:
-            return "{D" + std::to_string(ins->d) + "[], " +
-                    "D" + std::to_string(ins->d + ins->inc) + "[], " +
-                    "D" + std::to_string(ins->d + ins->inc * 2) + "[]" + "}";
+            return "{D" + to_string(ins->d) + "[], " +
+                    "D" + to_string(ins->d + ins->inc) + "[], " +
+                    "D" + to_string(ins->d + ins->inc * 2) + "[]" + "}";
 
         case vld4_multiple_4_element_structures:
-            return "{D" + std::to_string(ins->d) + ", " +
-                    "D" + std::to_string(ins->d + ins->inc) + ", " +
-                    "D" + std::to_string(ins->d + ins->inc * 2) + ", " +
-                    "D" + std::to_string(ins->d + ins->inc * 3) + "}";
+            return "{D" + to_string(ins->d) + ", " +
+                    "D" + to_string(ins->d + ins->inc) + ", " +
+                    "D" + to_string(ins->d + ins->inc * 2) + ", " +
+                    "D" + to_string(ins->d + ins->inc * 3) + "}";
 
         case vld4_single_4_element_structure_to_one_lane:
-            return "{D" + std::to_string(ins->d) + "["  + std::to_string(ins->index) + "], " +
-                    "D" + std::to_string(ins->d + ins->inc) + "["  + std::to_string(ins->index) + "], " +
-                    "D" + std::to_string(ins->d + ins->inc * 2) + "["  + std::to_string(ins->index) + "], " +
-                    "D" + std::to_string(ins->d + ins->inc * 3) + "["  + std::to_string(ins->index) + "]" + "}";
+            return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "], " +
+                    "D" + to_string(ins->d + ins->inc) + "["  + to_string(ins->index) + "], " +
+                    "D" + to_string(ins->d + ins->inc * 2) + "["  + to_string(ins->index) + "], " +
+                    "D" + to_string(ins->d + ins->inc * 3) + "["  + to_string(ins->index) + "]" + "}";
 
         case vld4_single_4_element_structure_to_all_lanes:
-            return "{D" + std::to_string(ins->d) + "[], " +
-                    "D" + std::to_string(ins->d + ins->inc) + "[], " +
-                    "D" + std::to_string(ins->d + ins->inc * 2) + "[], " +
-                    "D" + std::to_string(ins->d + ins->inc * 3) + "[]" + "}";
+            return "{D" + to_string(ins->d) + "[], " +
+                    "D" + to_string(ins->d + ins->inc) + "[], " +
+                    "D" + to_string(ins->d + ins->inc * 2) + "[], " +
+                    "D" + to_string(ins->d + ins->inc * 3) + "[]" + "}";
 
         case vld2_single_2_element_structure_to_all_lanes:
-            return "{D" + std::to_string(ins->d) + "[], D" + std::to_string(ins->d + ins->inc) + "[]}";
+            return "{D" + to_string(ins->d) + "[], D" + to_string(ins->d + ins->inc) + "[]}";
 
         case vld2_single_2_element_structure_to_one_lane:
-            return "{D" + std::to_string(ins->d) + ", D" + std::to_string(ins->d + ins->inc) + "}";
+            return "{D" + to_string(ins->d) + ", D" + to_string(ins->d + ins->inc) + "}";
 
         case vld2_multiple_2_element_structures:
             switch(ins->type) {
                 case 8:
-                    return "{D" + std::to_string(ins->d) +
-                        ", D" + std::to_string(ins->d + 1) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
                         "}";
                 case 9:
-                    return "{D" + std::to_string(ins->d) +
-                        ", D" + std::to_string(ins->d + 2) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 2) +
                         "}";
                 case 3:
-                    return "{D" + std::to_string(ins->d) +
-                        ", D" + std::to_string(ins->d + 1) +
-                        ", D" + std::to_string(ins->d + 2) +
-                        ", D" + std::to_string(ins->d + 3) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
+                        ", D" + to_string(ins->d + 2) +
+                        ", D" + to_string(ins->d + 3) +
                         "}";
                 default:
-                    return "INVALID:" + std::to_string(ins->type);
+                    return "INVALID:" + to_string(ins->type);
             }
             break;
 
         case vld1_single_element_to_all_lanes:
             if (ins->T) {
-                return "{D" + std::to_string(ins->d) + "[]}";
+                return "{D" + to_string(ins->d) + "[]}";
             }
-            return "{D" + std::to_string(ins->d) + "[], " "{D" + std::to_string(ins->d + 1) + "}";
+            return "{D" + to_string(ins->d) + "[], " "{D" + to_string(ins->d + 1) + "}";
 
         case vld1_single_element_to_one_lane:
-            return "{D" + std::to_string(ins->d) + "["  + std::to_string(ins->index) + "]}";
+            return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "]}";
 
         case vld1_multiple_single_elements:
             switch(ins->type) {
                 case 7:
-                    return "{D" + std::to_string(ins->d) + "}";
+                    return "{D" + to_string(ins->d) + "}";
                 case 10:
-                    return "{D" + std::to_string(ins->d) +
-                        ", D" + std::to_string(ins->d + 1) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
                         "}";
                 case 6:
-                    return "{D" + std::to_string(ins->d) +
-                        ", D" + std::to_string(ins->d + 1) +
-                        ", D" + std::to_string(ins->d + 2) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
+                        ", D" + to_string(ins->d + 2) +
                         "}";
                 case 2:
-                    return "{D" + std::to_string(ins->d) +
-                        ", D" + std::to_string(ins->d + 1) +
-                        ", D" + std::to_string(ins->d + 3) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
+                        ", D" + to_string(ins->d + 3) +
                         "}";
                 default:
                     return "INVALID";
@@ -740,19 +736,19 @@ std::string list_str(const ARMInstruction *ins) {
         case vtbl_vtbx:
             switch(ins->length - 1) {
                 case 0:
-                    return "{D" + std::to_string(ins->n) + "}";
+                    return "{D" + to_string(ins->n) + "}";
                 case 1:
-                    return "{D" + std::to_string(ins->n) +
-                        ", D" + std::to_string(ins->n + 1) + "}";
+                    return "{D" + to_string(ins->n) +
+                        ", D" + to_string(ins->n + 1) + "}";
                 case 2:
-                    return "{D" + std::to_string(ins->n) +
-                    ", D" + std::to_string(ins->n + 1) +
-                    ", D" + std::to_string(ins->n + 2) + "}";
+                    return "{D" + to_string(ins->n) +
+                    ", D" + to_string(ins->n + 1) +
+                    ", D" + to_string(ins->n + 2) + "}";
                 case 3:
-                    return "{D" + std::to_string(ins->n) +
-                    ", D" + std::to_string(ins->n + 1) +
-                    ", D" + std::to_string(ins->n + 2) +
-                    ", D" + std::to_string(ins->n + 3) + "}";
+                    return "{D" + to_string(ins->n) +
+                    ", D" + to_string(ins->n + 1) +
+                    ", D" + to_string(ins->n + 2) +
+                    ", D" + to_string(ins->n + 3) + "}";
                 default:
                     return "INVALID";
             }
@@ -760,16 +756,16 @@ std::string list_str(const ARMInstruction *ins) {
 
     unsigned first_reg = first_reg = ins->d;
     unsigned n_regs = ins->imm32 >> 2;
-    std::string reg_type = "S";
+    string reg_type = "S";
 
     if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
         n_regs /= 2;
         reg_type = "D";
     }
 
-    std::string acum;
+    string acum;
     for(unsigned i = first_reg; i < first_reg + n_regs; ++i) {
-        acum += reg_type + std::to_string(i);
+        acum += reg_type + to_string(i);
         if (i != (first_reg + n_regs - 1))
             acum += ", ";
     }
@@ -777,7 +773,7 @@ std::string list_str(const ARMInstruction *ins) {
     return "{" + acum + "}";
 }
 
-std::string amode_str(const ARMInstruction *ins) {
+string amode_str(const ARMInstruction *ins) {
     if (ins->P == 0 && ins->U == 0) return "DA";
     else if (ins->P == 1 && ins->U == 0) return "DB";
     else if (ins->P == 0 && ins->U == 1) return "IA";
@@ -785,19 +781,19 @@ std::string amode_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-std::string IA_str(const ARMInstruction *ins) {
+string IA_str(const ARMInstruction *ins) {
     return ins->increment ? "IA" : "DB";
 }
 
-std::string iflags_str(const ARMInstruction *ins) {
-    std::string out;
+string iflags_str(const ARMInstruction *ins) {
+    string out;
     if (ins->affectA) out += "A";
     if (ins->affectI) out += "I";
     if (ins->affectF) out += "F";
     return out;
 }
 
-std::string S_str(const ARMInstruction *ins) {
+string S_str(const ARMInstruction *ins) {
     return ins->setflags ? "S" : "";
 }
 
@@ -811,42 +807,42 @@ bool is_conditional_thumb(const ARMInstruction *ins) {
     return false;
 }
 
-std::string c_str(const ARMInstruction *ins) {
+string c_str(const ARMInstruction *ins) {
     if (EncodingIsThumb(ins->encoding) && !is_conditional_thumb(ins))
         return "";
 
     return ins->cond != COND_AL ? ARMCondCodeToString((cond_t) ins->cond) : "";
 }
 
-std::string B_str(const ARMInstruction *ins) {
+string B_str(const ARMInstruction *ins) {
     return ins->B ? "B" : "";
 }
 
-std::string N_str(const ARMInstruction *ins) {
+string N_str(const ARMInstruction *ins) {
     return ins->nonzero ? "N" : "";
 }
 
-std::string W_str(const ARMInstruction *ins) {
+string W_str(const ARMInstruction *ins) {
     return ins->is_pldw ? "W" : "";
 }
 
-std::string x_str(const ARMInstruction *ins) {
+string x_str(const ARMInstruction *ins) {
     return ins->n_high ? "T" : "B";
 }
 
-std::string y_str(const ARMInstruction *ins) {
+string y_str(const ARMInstruction *ins) {
     return ins->m_high ? "T" : "B";
 }
 
-std::string X_str(const ARMInstruction *ins) {
+string X_str(const ARMInstruction *ins) {
     return ins->m_swap ? "X" : "";
 }
 
-std::string R_str(const ARMInstruction *ins) {
+string R_str(const ARMInstruction *ins) {
     return ins->round ? "R" : "";
 }
 
-std::string mode_str(const ARMInstruction *ins) {
+string mode_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vldm: // VLDM
         case vstm: // VSTM
@@ -864,7 +860,7 @@ std::string mode_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-std::string op_str(const ARMInstruction *ins) {
+string op_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vpmax_vpmin_floating_point: // VPMAX, VPMIN (floating-point)
         case vpmax_vpmin_integer: // VPMAX, VPMIN (integer)
@@ -881,20 +877,20 @@ std::string op_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-std::string dt_str(const ARMInstruction *ins) {
+string dt_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vrsqrte:
-            return ((ins->floating_point) ? "F" : "U") + std::to_string(ins->esize);
+            return ((ins->floating_point) ? "F" : "U") + to_string(ins->esize);
 
         case vrhadd:
-            return (ins->unsigned_ ? "U" : "S") + std::to_string(ins->esize);
+            return (ins->unsigned_ ? "U" : "S") + to_string(ins->esize);
 
         case vrecpe:
             return (ins->floating_point) ? "F32" : "U32";
 
         case vpadal:
         case vpaddl:
-            return (ins->unsigned_ ? "U" : "S") + std::to_string(ins->esize);
+            return (ins->unsigned_ ? "U" : "S") + to_string(ins->esize);
 
         case vmla_vmlal_vmls_vmlsl_integer:
             if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
@@ -923,10 +919,10 @@ std::string dt_str(const ARMInstruction *ins) {
             }
         case vmla_vmlal_vmls_vmlsl_by_scalar:
             if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
-                return (ins->floating_point ? "F" : "I") + std::string(ins->size == 1 ? "16" : "32");
+                return (ins->floating_point ? "F" : "I") + string(ins->size == 1 ? "16" : "32");
             }
 
-            return (ins->unsigned_ ? "U" : "S") + std::string(ins->size == 1 ? "16" : "32");
+            return (ins->unsigned_ ? "U" : "S") + string(ins->size == 1 ? "16" : "32");
 
         case vmax_vmin_integer:
         case vhadd_vhsub:
@@ -962,26 +958,26 @@ std::string dt_str(const ARMInstruction *ins) {
                 default: return "INVALID";
             }
         case vqadd:
-            return (ins->unsigned_ ? "U" : "S") + std::to_string(ins->esize);
+            return (ins->unsigned_ ? "U" : "S") + to_string(ins->esize);
 
         case vceq_immediate_0:
-            return (ins->floating_point ? "F" : "I") + std::to_string(ins->esize);
+            return (ins->floating_point ? "F" : "I") + to_string(ins->esize);
         case vcgt_immediate_0:
         case vcle_immediate_0:
         case vclt_immediate_0:
         case vcge_immediate_0:
-            return (ins->floating_point ? "F" : "S") + std::to_string(ins->esize);
+            return (ins->floating_point ? "F" : "S") + to_string(ins->esize);
 
         case vcgt_register:
         case vcge_register:
             if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
-                return (ins->U ? "U" : "S") + std::to_string(ins->esize);
+                return (ins->U ? "U" : "S") + to_string(ins->esize);
             }
 
             return "F32";
 
         case vceq_register: // VCEQ (register)
-            return (ins->int_operation ? "I" : "F") + std::to_string(ins->esize);
+            return (ins->int_operation ? "I" : "F") + to_string(ins->esize);
 
         case vbic_immediate:
         case vmov_immediate:
@@ -1033,7 +1029,7 @@ std::string dt_str(const ARMInstruction *ins) {
         case vneg:
         case vabs: // VABS
             if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
-                return (ins->floating_point ? "F" : "S") + std::to_string(ins->esize);
+                return (ins->floating_point ? "F" : "S") + to_string(ins->esize);
             }
             return ins->dp_operation ? "F64" : "F32";
         case vaddhn: // VADDHN
@@ -1063,7 +1059,7 @@ std::string dt_str(const ARMInstruction *ins) {
 
             break;
         case vmovl: // VMOVL
-            return (ins->unsigned_ ? "U" : "S") + std::to_string(ins->esize);
+            return (ins->unsigned_ ? "U" : "S") + to_string(ins->esize);
 
         case vmovn: // VMOVN
             switch (ins->size) {
@@ -1080,17 +1076,17 @@ std::string dt_str(const ARMInstruction *ins) {
             break;
         case vmul_vmull_by_scalar: // VMUL, VMULL (by scalar)
             if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
-                return (ins->floating_point ? "F" : "I") + std::to_string(ins->esize);
+                return (ins->floating_point ? "F" : "I") + to_string(ins->esize);
             }
 
-            return (ins->unsigned_ ? "U" : "S") + std::to_string(ins->esize);
+            return (ins->unsigned_ ? "U" : "S") + to_string(ins->esize);
 
         case vmul_vmull_integer_and_polynomial: // VMUL, VMULL (integer and polynomial)
             if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
-                return (ins->polynomial ? "P" : "I") + std::to_string(ins->esize);
+                return (ins->polynomial ? "P" : "I") + to_string(ins->esize);
             }
 
-            return (ins->polynomial ? "P" : (ins->unsigned_ ? "U" : "S")) + std::to_string(ins->esize);
+            return (ins->polynomial ? "P" : (ins->unsigned_ ? "U" : "S")) + to_string(ins->esize);
 
         case vpadd_integer: // VPADD (integer)
             switch (ins->size) {
@@ -1177,7 +1173,7 @@ std::string dt_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-std::string U_str(const ARMInstruction *ins) {
+string U_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vqmovn_vqmovun: // VQMOVN, VQMOVUN
             return ins->op == 1 ? "U" : "";
@@ -1192,7 +1188,7 @@ std::string U_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-std::string size_str(const ARMInstruction *ins) {
+string size_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vst1_multiple_single_elements:
         case vst2_multiple_2_element_structures:
@@ -1211,7 +1207,7 @@ std::string size_str(const ARMInstruction *ins) {
         case vrev16_vrev32_vrev64:
         case vqsub:
         case vqshl_vqshlu_immediate:
-            return std::to_string(ins->esize);
+            return to_string(ins->esize);
 
         case vld1_single_element_to_one_lane:
         case vld1_single_element_to_all_lanes:
@@ -1269,7 +1265,7 @@ std::string size_str(const ARMInstruction *ins) {
 
             break;
         case vshll: // VSHLL
-            return std::to_string(ins->esize);
+            return to_string(ins->esize);
         case vqrshrn_vqrshrun: // VQRSHRN, VQRSHRUN
         case vqshrn_vqshrun: // VQSHRN, VQSHRUN
         case vrshrn: // VRSHRN
@@ -1285,7 +1281,7 @@ std::string size_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-std::string type_str(const ARMInstruction *ins) {
+string type_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case vqshl_vqshlu_immediate:
             return ins->src_unsigned ? "U" : "S";
@@ -1341,7 +1337,7 @@ std::string type_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-std::string regular_reg_str(unsigned reg) {
+string regular_reg_str(unsigned reg) {
     switch (reg) {
         case 0:
             return "r0";
@@ -1382,7 +1378,7 @@ std::string regular_reg_str(unsigned reg) {
     return "INVALID";
 }
 
-std::string coproc_str(unsigned coproc) {
+string coproc_str(unsigned coproc) {
     switch (coproc) {
         case 0:
             return "p0";
@@ -1423,7 +1419,7 @@ std::string coproc_str(unsigned coproc) {
     return "INVALID";
 }
 
-std::string shift_type_str(unsigned shift) {
+string shift_type_str(unsigned shift) {
     switch (shift) {
         case 0:
             return "LSL";
@@ -1442,7 +1438,7 @@ std::string shift_type_str(unsigned shift) {
     return "INVALID";
 }
 
-std::string coproc_reg_str(unsigned coproc) {
+string coproc_reg_str(unsigned coproc) {
     switch (coproc) {
         case 0:
             return "c0";
@@ -1483,7 +1479,7 @@ std::string coproc_reg_str(unsigned coproc) {
     return "INVALID";
 }
 
-std::string quad_reg_str(unsigned coproc) {
+string quad_reg_str(unsigned coproc) {
     switch (coproc) {
         case 0:
             return "q0";
@@ -1524,7 +1520,7 @@ std::string quad_reg_str(unsigned coproc) {
     return "INVALID";
 }
 
-std::string double_reg_str(unsigned coproc) {
+string double_reg_str(unsigned coproc) {
     switch (coproc) {
         case 0:
             return "d0";
@@ -1597,7 +1593,7 @@ std::string double_reg_str(unsigned coproc) {
     return "INVALID";
 }
 
-std::string simple_reg_str(unsigned coproc) {
+string simple_reg_str(unsigned coproc) {
     switch (coproc) {
         case 0:
             return "s0";
@@ -1670,7 +1666,7 @@ std::string simple_reg_str(unsigned coproc) {
     return "INVALID";
 }
 
-std::string option_str(const ARMInstruction *ins) {
+string option_str(const ARMInstruction *ins) {
     switch (ins->id) {
         case dbg:
             return integer_to_string(ins->option, ins->option >= 10);
@@ -1713,12 +1709,12 @@ std::string option_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-std::string endian_specifier_str(unsigned endian) {
+string endian_specifier_str(unsigned endian) {
     return endian ? "BE" : "LE";
 }
 
-std::string spec_reg_str(const ARMInstruction *ins) {
-    std::string t;
+string spec_reg_str(const ARMInstruction *ins) {
+    string t;
 
     switch(ins->id) {
         case vmrs:
@@ -1728,7 +1724,7 @@ std::string spec_reg_str(const ARMInstruction *ins) {
                 case 6: return "MVFR1";
                 case 7: return "MVFR0";
                 case 8: return "FPEXC";
-                default: return "VFP_CUSTOM_REG_" + std::to_string(ins->reg);
+                default: return "VFP_CUSTOM_REG_" + to_string(ins->reg);
             }
             break;
         case vmsr:
@@ -1736,7 +1732,7 @@ std::string spec_reg_str(const ARMInstruction *ins) {
                 case 0: return "FPSID";
                 case 1: return "FPSCR";
                 case 8: return "FPEXC";
-                default: return "VFP_CUSTOM_REG_" + std::to_string(ins->reg);
+                default: return "VFP_CUSTOM_REG_" + to_string(ins->reg);
             }
             break;
         case mrs:
@@ -1766,29 +1762,29 @@ std::string spec_reg_str(const ARMInstruction *ins) {
     return "INVALID";
 }
 
-std::string registers_str(unsigned registers) {
-    std::string regs;
+string registers_str(unsigned registers) {
+    string regs;
     bool f = false;
     for (unsigned i = 0; i < 32; i++) {
         if (get_bit(registers, i)) {
             regs += i && f ? ", " : "";
             f = true;
-            regs += std::string(regular_reg_str(i));
+            regs += string(regular_reg_str(i));
         }
     }
 
     return "{" + regs + "}";
 }
 
-std::string shift_str(unsigned shift_t, unsigned shift_n) {
+string shift_str(unsigned shift_t, unsigned shift_n) {
     if (shift_t == Disassembler::SRType_RRX && shift_n == 1)
-        return std::string(shift_type_str(shift_t));
+        return string(shift_type_str(shift_t));
 
-    std::string shift = std::string(shift_type_str(shift_t)) + " #" + integer_to_string(shift_n, false);
+    string shift = string(shift_type_str(shift_t)) + " #" + integer_to_string(shift_n, false);
     return shift;
 }
 
-std::string rotation_str(unsigned rotation) {
+string rotation_str(unsigned rotation) {
     switch(rotation) {
         case 0:
             return "";
@@ -1803,8 +1799,8 @@ std::string rotation_str(unsigned rotation) {
     return "INVALID";
 }
 
-std::string R0_R14_APSR_nzcv(const ARMInstruction *ins) {
-    return ins->t == 15 ? std::string("apsr_nzcv") : regular_reg_str(ins->t);
+string R0_R14_APSR_nzcv(const ARMInstruction *ins) {
+    return ins->t == 15 ? string("apsr_nzcv") : regular_reg_str(ins->t);
 }
 
 '''
@@ -1905,9 +1901,9 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
 
     reg2string["list"] = "list_str(ins).c_str()"
 
-    reg2string["Dd[x]"] = "(double_reg_str(ins->d) + \"[\" + std::to_string(ins->index) + \"]\").c_str()"
-    reg2string["Dn[x]"] = "(double_reg_str(ins->n) + \"[\" + std::to_string(ins->index) + \"]\").c_str()"
-    reg2string["Dm[x]"] = "(double_reg_str(ins->m) + \"[\" + std::to_string(ins->index) + \"]\").c_str()"
+    reg2string["Dd[x]"] = "(double_reg_str(ins->d) + \"[\" + to_string(ins->index) + \"]\").c_str()"
+    reg2string["Dn[x]"] = "(double_reg_str(ins->n) + \"[\" + to_string(ins->index) + \"]\").c_str()"
+    reg2string["Dm[x]"] = "(double_reg_str(ins->m) + \"[\" + to_string(ins->index) + \"]\").c_str()"
 
     # reg2string["Dd[x]"] = "\"TODO_Dd[x]\""
     # reg2string["Dn[x]"] = "\"TODO_Dn[x]\""
@@ -1949,10 +1945,10 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                 op_args = r[1]
 
             # Write the header with the common structures.
-            fd.write("std::string %s_to_string(const ARMInstruction *ins) {\n" % instruction_decoder_name(instruction))
-            fd.write("    char op_name[128], op_args[128];\n")
+            fd.write("string %s_to_string(const ARMInstruction *ins) {\n" % instruction_decoder_name(instruction))
             fd.write("    // DEBUG: %s\n" % format)
-            fd.write("    int ret = snprintf(op_name, sizeof(op_name),\n")
+            fd.write("    char op_name[128], op_args[128];\n")
+            fd.write("    snprintf(op_name, sizeof(op_name),\n")
             fd.write("            \"%s%s\"" % (op_name.name[0], "%s" * (len(op_name.name) - 1)))
 
             # Skip the last comma if the name has no variable pieces.
@@ -1986,15 +1982,14 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                 fd.write("\n")
 
             fd.write("    );\n\n")
-            fd.write("    assert(ret >= 0);\n")
 
             # Skip the rest if there are no arguments to the instruction.
             if not len(op_args.name):
-                fd.write("    return std::string(op_name);\n")
+                fd.write("    return string(op_name);\n")
                 fd.write("}\n\n")
                 continue
 
-            fd.write("    ret = snprintf(op_args, sizeof(op_args),\n")
+            fd.write("    snprintf(op_args, sizeof(op_args),\n")
 
             format_string = ""
             vars = []
@@ -2052,8 +2047,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                 fd.write("\n")
 
             fd.write("    );\n\n")
-            fd.write("    assert(ret >= 0);\n")
-            fd.write("    return std::string(op_name) + std::string(op_args);\n")
+            fd.write("    return string(op_name) + string(op_args);\n")
             fd.write("}\n\n")
 
     # Create the header file.
@@ -2107,8 +2101,7 @@ def create_to_string_custom(to_string_custom_name_h, to_string_custom_name_cpp):
             fd.write("// Instruction: %s\n// Encoding: %s\n" % (instruction["name"], instruction["encoding"]))
             fd.write("std::string %s_to_string(const Disassembler::ARMInstruction *ins) {\n" % instruction_decoder_name(instruction))
             fd.write("    char buffer[64];\n")
-            fd.write("    int ret = snprintf(buffer, sizeof(buffer), \"TODO_%s_%s\");\n" % (instruction_id_name(instruction), instruction["encoding"]))
-            fd.write("    assert(ret >= 0);\n")
+            fd.write("    snprintf(buffer, sizeof(buffer), \"TODO_%s_%s\");\n" % (instruction_id_name(instruction), instruction["encoding"]))
             fd.write("\n")
             fd.write("    return std::string(buffer);\n")
             fd.write("}\n")
