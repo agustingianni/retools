@@ -428,6 +428,124 @@ to_string_cpp = \
 
 using namespace Disassembler;
 
+std::string banked_reg(const ARMInstruction *ins) {
+    std::string tmp = "UNPREDICTABLE";
+    if (ins->read_spsr == 0) {
+        switch(ins->SYSm) {
+            case 0: // 0b0
+                tmp = "R8_usr";
+                break;
+            case 1: // 0b1
+                tmp = "R9_usr";
+                break;
+            case 2: // 0b10
+                tmp = "R10_usr";
+                break;
+            case 3: // 0b11
+                tmp = "R11_usr";
+                break;
+            case 4: // 0b100
+                tmp = "R12_usr";
+                break;
+            case 5: // 0b101
+                tmp = "SP_usr";
+                break;
+            case 6: // 0b110
+                tmp = "LR_usr";
+                break;                
+            case 8: // 0b1000
+                tmp = "R8_fiq";
+                break;
+            case 9: // 0b1001
+                tmp = "R9_fiq";
+                break;
+            case 10: // 0b1010
+                tmp = "R10_fiq";
+                break;
+            case 11: // 0b1011
+                tmp = "R11_fiq";
+                break;
+            case 12: // 0b1100
+                tmp = "R12_fiq";
+                break;
+            case 13: // 0b1101
+                tmp = "SP_fiq";
+                break;
+            case 14: // 0b1110
+                tmp = "LR_fiq";
+                break;
+            case 16: // 0b10000
+                tmp = "LR_irq";
+                break;
+            case 17: // 0b10001
+                tmp = "SP_irq";
+                break;
+            case 18: // 0b10010
+                tmp = "LR_svc";
+                break;
+            case 19: // 0b10011
+                tmp = "SP_svc";
+                break;
+            case 20: // 0b10100
+                tmp = "LR_abt";
+                break;
+            case 21: // 0b10101
+                tmp = "SP_abt";
+                break;
+            case 22: // 0b10110
+                tmp = "LR_und";
+                break;
+            case 23: // 0b10111
+                tmp = "SP_und";
+                break;
+            case 28: // 0b11100
+                tmp = "LR_mon";
+                break;
+            case 29: // 0b11101
+                tmp = "SP_mon";
+                break;
+            case 30: // 0b11110
+                tmp = "ELR_hyp";
+                break;
+            case 31: // 0b11111
+                tmp = "SP_hyp";
+                break;
+            default:
+                tmp = "UNPREDICTABLE";
+                break;
+        }
+    } else {
+        switch(ins->SYSm) {
+                case 14: // 0b01110
+                    tmp = "SPSR_fiq";
+                    break;
+                case 16: // 0b10000
+                    tmp = "SPSR_irq";
+                    break;
+                case 18: // 0b10010
+                    tmp = "SPSR_svc";
+                    break;
+                case 20: // 0b10100
+                    tmp = "SPSR_abt";
+                    break;
+                case 22: // 0b10110
+                    tmp = "SPSR_und";
+                    break;
+                case 28: // 0b11100
+                    tmp = "SPSR_mon";
+                    break;
+                case 30: // 0b11110
+                    tmp = "SPSR_hyp";
+                    break;
+                default:
+                    tmp = "UNPREDICTABLE";
+                    break;
+        }
+    }
+
+    return tmp;
+}
+
 std::string effect_str(const ARMInstruction *ins) {
     return ins->enable ? "IE" : "ID";
 }
@@ -1803,7 +1921,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
 
     reg2string["R0_R14_APSR_nzcv"] = "R0_R14_APSR_nzcv(ins).c_str()"
 
-    reg2string["banked_reg"] = "\"TODO_banked_reg\""
+    reg2string["banked_reg"] = "banked_reg(ins).c_str()"
 
     # Create the implementation file.
     with open(to_string_name_cpp, "w") as fd:
