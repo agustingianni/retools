@@ -404,7 +404,6 @@ namespace Disassembler {
 		public:
 			static std::shared_ptr<ARMInstruction> create() {
 				std::shared_ptr<ARMInstruction> ins(new ARMInstruction());
-				// memset(reinterpret_cast<void *>(&ins), 0, sizeof(ARMInstruction));
 				return ins;
 			}
 
@@ -578,6 +577,7 @@ namespace Disassembler {
 
 		public:
 			UnpredictableInstruction(std::string reason) : m_reason(reason) {
+				m_skip = false;
 			} 
 
 			std::string toString() override {
@@ -591,6 +591,7 @@ namespace Disassembler {
 
 		public:
 			UndefinedInstruction(std::string reason) : m_reason(reason) {
+				m_skip = false;
 			} 
 
 			std::string toString() override {
