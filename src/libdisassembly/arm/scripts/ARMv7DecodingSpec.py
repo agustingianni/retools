@@ -395,7 +395,8 @@ instructions = [
     "format" : "BFC<c> <Rd>, #<lsb>, #<width>",
     "pattern" : "11110011011011110 imm3#3 Rd#4 imm2#2 0 msb#5",
     "decoder" : """d = UInt(Rd); msbit = UInt(msb); lsbit = UInt(imm3:imm2);
-    if d IN {13,15} then UNPREDICTABLE; if msbit < lsbit then UNPREDICTABLE;"""
+    if d IN {13,15} then UNPREDICTABLE;
+    if msbit < lsbit then UNPREDICTABLE;"""
 } , {
     "name" : "BFC",
     "encoding" : "A1",
@@ -403,7 +404,8 @@ instructions = [
     "format" : "BFC<c> <Rd>, #<lsb>, #<width>",
     "pattern" : "cond#4 0111110 msb#5 Rd#4 lsb#5 0011111",
     "decoder" : """d = UInt(Rd); msbit = UInt(msb); lsbit = UInt(lsb);
-    if d == 15 then UNPREDICTABLE; if msbit < lsbit then UNPREDICTABLE;"""
+    if d == 15 then UNPREDICTABLE;
+    if msbit < lsbit then UNPREDICTABLE;"""
 } , {
     "name" : "BFI",
     "encoding" : "T1",
@@ -412,7 +414,8 @@ instructions = [
     "pattern" : "111100110110 Rn#4 0 imm3#3 Rd#4 imm2#2 0 msb#5",
     "decoder" : """if Rn == '1111' then SEE BFC;
     d = UInt(Rd); n = UInt(Rn); msbit = UInt(msb); lsbit = UInt(imm3:imm2);
-    if d IN {13,15} || n == 13 then UNPREDICTABLE; if msbit < lsbit then UNPREDICTABLE;"""
+    if d IN {13,15} || n == 13 then UNPREDICTABLE;
+    if msbit < lsbit then UNPREDICTABLE;"""
 } , {
     "name" : "BFI",
     "encoding" : "A1",
@@ -421,7 +424,8 @@ instructions = [
     "pattern" : "cond#4 0111110 msb#5 Rd#4 lsb#5 001 Rn#4",
     "decoder" : """if Rn == '1111' then SEE BFC;
     d = UInt(Rd); n = UInt(Rn); msbit = UInt(msb); lsbit = UInt(lsb);
-    if d == 15 then UNPREDICTABLE; if msbit < lsbit then UNPREDICTABLE;"""
+    if d == 15 then UNPREDICTABLE;
+    if msbit < lsbit then UNPREDICTABLE;"""
 } , {
     "name" : "BIC (immediate)",
     "encoding" : "T1",
