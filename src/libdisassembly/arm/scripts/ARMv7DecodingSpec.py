@@ -152,7 +152,7 @@ instructions = [
     "name" : "ADD (SP plus immediate)",
     "encoding" : "T2",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "ADD<c> SP, SP, #<imm32>",
+    "format" : "ADD<c> SP, #<imm32>",
     "pattern" : "101100000 imm7#7",
     "decoder" : """d = 13; setflags = FALSE; imm32 = ZeroExtend(imm7:'00', 32);"""
 } , {
@@ -221,7 +221,7 @@ instructions = [
     "name" : "ADR",
     "encoding" : "T1",
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "ADR<c> <Rd>, pc, #<imm32>",
+    "format" : "ADR<c> <Rd>, #<imm32>",
     "pattern" : "10100 Rd#3 imm8#8",
     "decoder" : """d = UInt(Rd); imm32 = ZeroExtend(imm8:'00', 32); add = TRUE;"""
 } , {
@@ -236,7 +236,7 @@ instructions = [
     "name" : "ADR",
     "encoding" : "T3",
     "version" : "ARMv6T2, ARMv7",
-    "format" : "ADR<c>.W <Rd>, pc, #<imm32>",
+    "format" : "ADD<c>.W <Rd>, pc, #<imm32>",
     "pattern" : "11110 i#1 10000011110 imm3#3 Rd#4 imm8#8",
     "decoder" : """d = UInt(Rd); imm32 = ZeroExtend(i:imm3:imm8, 32); add = TRUE;
     if d IN {13,15} then UNPREDICTABLE;"""
