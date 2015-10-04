@@ -3608,18 +3608,6 @@ if mask == '0000' then UNPREDICTABLE;"""
     if n == 15 && (wback || CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
     "name" : "STC, STC2",
-    "encoding" : "A1",
-    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
-    "pattern" : "cond#4 1 1 0 P#1 U#1 D#1 W#1 0 Rn#4 CRd#4 coproc#4 imm8#8",
-    "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
-    if P == '0' && U == '0' && D == '1' && W == '0' then SEE MCRR, MCRR2;
-    if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
-    n = UInt(Rn); cp = UInt(coproc);
-    imm32 = ZeroExtend(imm8:'00', 32); index = (P == '1'); add = (U == '1'); wback = (W == '1');
-    if n == 15 && (wback || CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
-} , {
-    "name" : "STC, STC2",
     "encoding" : "T2",
     "version" : "ARMv6T2, ARMv7",
     "format" : "CUSTOM",
@@ -3639,6 +3627,18 @@ if mask == '0000' then UNPREDICTABLE;"""
     "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
     if P == '0' && U == '0' && D == '1' && W == '0' then SEE MCRR, MCRR2;
     if coproc IN "101x" then UNDEFINED;
+    n = UInt(Rn); cp = UInt(coproc);
+    imm32 = ZeroExtend(imm8:'00', 32); index = (P == '1'); add = (U == '1'); wback = (W == '1');
+    if n == 15 && (wback || CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
+} , {
+    "name" : "STC, STC2",
+    "encoding" : "A1",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
+    "format" : "CUSTOM",
+    "pattern" : "cond#4 1 1 0 P#1 U#1 D#1 W#1 0 Rn#4 CRd#4 coproc#4 imm8#8",
+    "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
+    if P == '0' && U == '0' && D == '1' && W == '0' then SEE MCRR, MCRR2;
+    if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     n = UInt(Rn); cp = UInt(coproc);
     imm32 = ZeroExtend(imm8:'00', 32); index = (P == '1'); add = (U == '1'); wback = (W == '1');
     if n == 15 && (wback || CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
