@@ -1707,7 +1707,7 @@ string option_str(const ARMInstruction *ins) {
         case ldc_ldc2_immediate:
         case ldc_ldc2_literal:
             // HACK: In this case ins->imm32 >> 2 == ins->imm8
-            return "{" + integer_to_string(ins->imm32 >> 2) + "}";
+            return "{" + integer_to_string(ins->imm32 >> 2, (ins->imm32 >> 2) >= 10) + "}";
         default:
             break;
     }
