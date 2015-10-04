@@ -629,12 +629,15 @@ string align_str(const ARMInstruction *ins) {
 
 string list_str(const ARMInstruction *ins) {
     switch(ins->id) {
-        case vldm:
-            if (ins->single_regs) {
-                return "{S...n}";
+        case vldm: {
+            // Get the value of imm8.
+            unsigned n = ins->imm32 >> 2;
+            if (!ins->single_regs) {
+                n /= 2;
             }
 
-            return "{D...n}";
+            return "{" + range(ins->d, ins->d + n, ins->single_regs ? "S" : "D") + "}";
+        }
 
         case vld3_multiple_3_element_structures:
             switch(ins->type) {
