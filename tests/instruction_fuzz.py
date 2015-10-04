@@ -31,7 +31,6 @@ def __compare__(retools, capstone, darm):
 
     # Remove ', lsl #0'
     retools = retools.replace(", lsl #0", "")
-    retools = retools.replace("adr", "add")
 
     # Normalize the register names.
     replace = [("r9", "sb"), ("r10", "sl"), ("r11", "fp"), ("r12", "ip"), ("r13", "sp"), ("r14", "ls"), ("r15", "pc")]
@@ -117,6 +116,14 @@ def __compare__(retools, capstone, darm):
     retools = re.sub(ur'stmia', "stm", retools)
     capstone = re.sub(ur'stmia', "stm", capstone)
 
+    # mvnscs -> mvnshs
+    darm = re.sub(ur'mvnscs', "mvnshs", darm)
+    darm = re.sub(ur'movscs', "movshs", darm)
+    darm = re.sub(ur'lsrscs', "lsrshs", darm)
+    darm = re.sub(ur'rorscs', "rorshs", darm)
+    darm = re.sub(ur'asrscs', "asrshs", darm)
+    darm = re.sub(ur'pushcs', "pushhs", darm)
+
     # Normalize the wide operator.
     try:
         opname_r, rest_r = retools[:retools.index(" ")], retools[retools.index(" "):]
@@ -142,10 +149,48 @@ def __compare__(retools, capstone, darm):
 
     return retools, capstone, darm
 
+def is_invalid_or_unpredictable(instruction):
+    return ("unpredictableinstruction" in instruction or "undefinedinstruction" in instruction)
+
 def process_instruction_fuzz_tests(in_file, start, end):
     json_data = open(in_file)
     data = json.load(json_data)
     i = start - 1
+
+    # These are tests that we have manually verified that are correct.
+    arm_ignored_tests = []
+    arm_ignored_tests.append("CDP, CDP2")                  # Reason: capstone fails to disassemble this.
+    arm_ignored_tests.append("ERET")                       # Reason: capstone does not disassemble this.
+    arm_ignored_tests.append("HVC")                        # Reason: capstone does not disassemble this.
+    arm_ignored_tests.append("LDR (immediate, ARM)")       # Reason: capstone fails to disassemble this.
+    arm_ignored_tests.append("LDRB (immediate, ARM)")      # Reason: capstone fails to disassemble this.
+    arm_ignored_tests.append("LDRD (immediate)")           # Reason: capstone fails to disassemble this.
+    arm_ignored_tests.append("LDRH (immediate, ARM)")      # Reason: capstone fails to disassemble this.
+    arm_ignored_tests.append("LDRSB (immediate)")          # Reason: capstone fails to disassemble this.
+    arm_ignored_tests.append("LDRSH (immediate)")          # Reason: capstone fails to disassemble this.
+    arm_ignored_tests.append("MCR, MCR2")                  # Reason: capstone fails to disassemble this.
+    arm_ignored_tests.append("MRS (Banked register)")      # Reason: capstone does not disassemble this.
+    
+    thumb_ignored_tests = []
+    thumb_ignored_tests.append("B")                        # Reason: capstone fails to disassemble this.
+    thumb_ignored_tests.append("CDP, CDP2")                # Reason: capstone fails to disassemble this.
+    thumb_ignored_tests.append("CPS (Thumb)")              # Reason: capstone fails to disassemble this.
+    thumb_ignored_tests.append("ERET")                     # Reason: capstone does not disassemble this.
+    thumb_ignored_tests.append("HVC")                      # Reason: capstone does not disassemble this.
+    thumb_ignored_tests.append("IT")                       # Reason: capstone fails to disassemble this.
+    thumb_ignored_tests.append("LDRH (immediate, Thumb)")  # Reason: capstone fails to disassemble this.
+    thumb_ignored_tests.append("LDRH (literal)")           # Reason: capstone fails to disassemble this.
+    thumb_ignored_tests.append("MRS (Banked register)")    # Reason: capstone does not disassemble this.
+    thumb_ignored_tests.append("POP (Thumb)")              # Reason: capstone represents pop as a ldr.
+    thumb_ignored_tests.append("PUSH")                     # Reason: capstone represents push as a str.
+    thumb_ignored_tests.append("SMC (previously SMI)")     # Reason: capstone does not disassemble this.
+    thumb_ignored_tests.append("SMC")                      # Reason: capstone does not disassemble this.
+    thumb_ignored_tests.append("SSAT")                     # Reason: capstone fails to disassemble this.
+    thumb_ignored_tests.append("STC, STC2")                # Reason: capstone fails to disassemble this.
+
+    ignored_tests = arm_ignored_tests
+    if data["mode"] == "THUMB":
+        ignored_tests = thumb_ignored_tests
 
     print "Checking test in %s mode" % data["mode"]
 
@@ -160,18 +205,12 @@ def process_instruction_fuzz_tests(in_file, start, end):
 
         results = test["results"]
 
-        print "Testing entry %4d for '%-30s' with encoding %s 0x%.8x, 0x%.8x" % (i, name, encoding, mask, value)
+        if name in ignored_tests:
+            continue
 
         n_errors = 0
         n_ok = 0
         n_skip = 0
-
-        if name in ["BFC", "BFI", "CDP, CDP2", "POP (ARM)", "PUSH", "STC, STC2",
-            "LDC, LDC2 (immediate)", "LDC, LDC2 (literal)", "ADD (SP plus immediate)",
-            "ADR", "POP (Thumb)"]:
-            print "  n_ok=%d n_error=%d n_skip=%d (skipped)" % (n_ok, n_errors, n_skip)
-            print
-            continue
 
         printed_header = False
 
@@ -185,8 +224,41 @@ def process_instruction_fuzz_tests(in_file, start, end):
             ret = retools == capstone or retools == darm
 
             # If retools says that this is unpredictable, it certainly is.
-            if retools in ["unpredictableinstruction", "undefinedinstruction", "unknown"]:
+            if is_invalid_or_unpredictable(retools):
+                n_ok += 1
+                continue
+
+                # Capstone agrees.
+                if capstone == "invalid":
+                    n_ok += 1
+                    continue
+
+                if not printed_header:
+                    printed_header = True
+                    print "Entry %d for '%s' with encoding %s 0x%.8x, 0x%.8x" % (i, name, encoding, mask, value)
+
                 n_skip += 1
+                print "  opcode: 0x%.8x %40s" % (opcode, retools)
+                print "  opcode: 0x%.8x %40s" % (opcode, capstone)
+                print "  opcode: 0x%.8x %40s" % (opcode, darm)
+                print
+                continue
+
+            if retools == "unknown":
+                # Capstone agrees.
+                if capstone == "invalid":
+                    n_ok += 1
+                    continue
+
+                if not printed_header:
+                    printed_header = True
+                    print "Entry %d for '%s' with encoding %s 0x%.8x, 0x%.8x" % (i, name, encoding, mask, value)
+
+                n_skip += 1
+                print "  opcode: 0x%.8x %40s" % (opcode, retools)
+                print "  opcode: 0x%.8x %40s" % (opcode, capstone)
+                print "  opcode: 0x%.8x %40s" % (opcode, darm)
+                print
                 continue
 
             if not ret:
@@ -198,19 +270,25 @@ def process_instruction_fuzz_tests(in_file, start, end):
                 if n_errors < 10:
                     print "  opcode: 0x%.8x %40s %s" % (opcode, retools, result["decoder"])
                     print "  opcode: 0x%.8x %40s" % (opcode, capstone)
+                    print "  opcode: 0x%.8x %40s" % (opcode, darm)
                     print
             else:
                 n_ok += 1
 
-        print "  n_ok=%d n_error=%d n_skip=%d" % (n_ok, n_errors, n_skip)
-        print
+        if n_errors != 0 or n_skip != 0:
+            if not printed_header:
+                printed_header = True
+                print "Entry %d for '%s' with encoding %s 0x%.8x, 0x%.8x" % (i, name, encoding, mask, value)
+
+            print "  n_ok=%d n_error=%d n_skip=%d" % (n_ok, n_errors, n_skip)
+            print
 
     json_data.close()
 
 n = int(sys.argv[1])
 start = int(sys.argv[2])
 end = int(sys.argv[3])
-mode = 0
+mode = 1
 
 print "Testing instructions from %d to %d, %d times" % (start, end, n)
 test_instruction_fuzz(n, start, end, mode, PATH_TESTS_JSON)
