@@ -627,6 +627,22 @@ string align_str(const ARMInstruction *ins) {
     return "missing_id_align_str";
 }
 
+string range(unsigned i, unsigned n, const string &pre) {
+    if (n == 0) {
+        return pre + to_string(i);
+    }
+
+    string tmp = "";
+    while (i < n - 1) {
+        tmp += pre + to_string(i) + ", ";
+        i++;
+    }
+
+    tmp += pre + to_string(i);
+
+    return tmp;
+}
+
 string list_str(const ARMInstruction *ins) {
     switch(ins->id) {
         case vldm: {
@@ -1964,7 +1980,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
             # Write the header with the common structures.
             fd.write("string %s_to_string(const ARMInstruction *ins) {\n" % instruction_decoder_name(instruction))
             fd.write("    // DEBUG: %s\n" % format)
-            fd.write("    char op_name[128], op_args[128];\n")
+            fd.write("    char op_name[256], op_args[256];\n")
             fd.write("    snprintf(op_name, sizeof(op_name),\n")
             fd.write("            \"%s%s\"" % (op_name.name[0], "%s" * (len(op_name.name) - 1)))
 
