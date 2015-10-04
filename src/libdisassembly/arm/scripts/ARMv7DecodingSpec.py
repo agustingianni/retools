@@ -1006,17 +1006,6 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     if W == '1' || (P == '0' && CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
     "name" : "LDC, LDC2 (literal)",
-    "encoding" : "A1",
-    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
-    "format" : "CUSTOM",
-    "pattern" : "cond#4 110 P#1 U#1 D#1 W#1 11111 CRd#4 coproc#4 imm8#8",
-    "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
-    if P == '0' && U == '0' && D == '1' && W == '0' then SEE MRRC, MRRC2;
-    if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
-    index = (P == '1'); add = (U == '1'); cp = UInt(coproc); imm32 = ZeroExtend(imm8:'00', 32);
-    if W == '1' || (P == '0' && CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
-} , {
-    "name" : "LDC, LDC2 (literal)",
     "encoding" : "T2",
     "version" : "ARMv6T2, ARMv7",
     "format" : "CUSTOM",
@@ -1035,6 +1024,17 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
     if P == '0' && U == '0' && D == '1' && W == '0' then SEE MRRC, MRRC2;
     if coproc IN "101x" then UNDEFINED;
+    index = (P == '1'); add = (U == '1'); cp = UInt(coproc); imm32 = ZeroExtend(imm8:'00', 32);
+    if W == '1' || (P == '0' && CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
+} , {
+    "name" : "LDC, LDC2 (literal)",
+    "encoding" : "A1",
+    "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
+    "format" : "CUSTOM",
+    "pattern" : "cond#4 110 P#1 U#1 D#1 W#1 11111 CRd#4 coproc#4 imm8#8",
+    "decoder" : """if P == '0' && U == '0' && D == '0' && W == '0' then UNDEFINED;
+    if P == '0' && U == '0' && D == '1' && W == '0' then SEE MRRC, MRRC2;
+    if coproc IN "101x" then SEE "AdvancedSIMD and Floating-point";
     index = (P == '1'); add = (U == '1'); cp = UInt(coproc); imm32 = ZeroExtend(imm8:'00', 32);
     if W == '1' || (P == '0' && CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
