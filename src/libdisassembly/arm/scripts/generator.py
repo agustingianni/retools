@@ -576,8 +576,6 @@ string align_str(const ARMInstruction *ins) {
             }
 
         case vld1_single_element_to_one_lane:   // VLD1 (single element to one lane)
-            return to_string(ins->alignment);
-
         case vld1_single_element_to_all_lanes:  // VLD1 (single element to all lanes)
             switch(ins->size) {
                 case 1:  return get_bit(ins->opcode, 4) ? ":0x10" : "";  // a
