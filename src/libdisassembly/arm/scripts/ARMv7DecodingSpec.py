@@ -5333,7 +5333,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VABD, VABDL (integer)",
     "encoding" : "T2",
     "version" : "AdvancedSIMD",
-    "format" : "VABDL<c>.<dt> <Qd>, <Dn>, <Dm>",
+    "format" : "VABDL.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vd<0> == '1' then UNDEFINED;
@@ -5344,7 +5344,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VABD, VABDL (integer)",
     "encoding" : "A2",
     "version" : "AdvancedSIMD",
-    "format" : "VABDL<c>.<dt> <Qd>, <Dn>, <Dm>",
+    "format" : "VABDL.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vd<0> == '1' then UNDEFINED;
@@ -5497,7 +5497,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VADDHN",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VADDHN<c>.<dt> <Dd>, <Qn>, <Qm>",
+    "format" : "VADDHN.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vn<0> == '1' || Vm<0> == '1' then UNDEFINED;
@@ -5506,7 +5506,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VADDHN",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VADDHN<c>.<dt> <Dd>, <Qn>, <Qm>",
+    "format" : "VADDHN.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vn<0> == '1' || Vm<0> == '1' then UNDEFINED;
@@ -6834,7 +6834,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VLDM",
     "encoding" : "T1",
     "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
-    "format" : "VLDM{mode}<c> <Rn>{!}, <list>",
+    "format" : "VLDM{mode} <Rn>{!}, <list>",
     "pattern" : "1 1 1 0 1 1 0 P#1 U#1 D#1 W#1 1 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """if P == '0' && U == '0' && W == '0' then SEE "Related encodings";
     if P == '0' && U == '1' && W == '1' && Rn == '1101' then SEE VPOP;
@@ -6864,7 +6864,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VLDM",
     "encoding" : "T2",
     "version" : "VFPv2, VFPv3, VFPv4",
-    "format" : "VLDM{mode}<c> <Rn>{!}, <list>",
+    "format" : "VLDM{mode} <Rn>{!}, <list>",
     "pattern" : "1 1 1 0 1 1 0 P#1 U#1 D#1 W#1 1 Rn#4 Vd#4 1 0 1 0 imm8#8",
     "decoder" : """if P == '0' && U == '0' && W == '0' then SEE "Related encodings";
     if P == '0' && U == '1' && W == '1' && Rn == '1101' then SEE VPOP;
@@ -6892,7 +6892,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VLDR",
     "encoding" : "T1",
     "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
-    "format" : "VLDR<c> <Dd>, [<Rn>{, #+/-<imm>}]",
+    "format" : "VLDR <Dd>, [<Rn>{, #+/-<imm>}]",
     "pattern" : "1 1 1 0 1 1 0 1 U#1 D#1 0 1 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_reg = FALSE; add = (U == '1'); imm32 = ZeroExtend(imm8:'00', 32); d = UInt(D:Vd); n = UInt(Rn);"""
 } , {
@@ -6906,7 +6906,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VLDR",
     "encoding" : "T2",
     "version" : "VFPv2, VFPv3, VFPv4",
-    "format" : "VLDR<c> <Sd>, [<Rn>{, #+/-<imm>}]",
+    "format" : "VLDR <Sd>, [<Rn>{, #+/-<imm>}]",
     "pattern" : "1 1 1 0 1 1 0 1 U#1 D#1 0 1 Rn#4 Vd#4 1 0 1 0 imm8#8",
     "decoder" : """single_reg = TRUE; add = (U == '1'); imm32 = ZeroExtend(imm8:'00', 32); d = UInt(Vd:D); n = UInt(Rn);"""
 } , {
@@ -7199,7 +7199,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VMOV (ARM core register to scalar)",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VMOV<c>.<size> <Dd[x]>, <Rt>",
+    "format" : "VMOV.<size> <Dd[x]>, <Rt>",
     "pattern" : "1 1 1 0 1 1 1 0 0 opc1#2 0 Vd#4 Rt#4 1 0 1 1 D#1 opc2#2 1 0 0 0 0",
     "decoder" : """case opc1:opc2 of
         when "1xxx" advsimd = TRUE; esize = 8; index = UInt(opc1<0>:opc2);
@@ -7227,7 +7227,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VMOV (scalar to ARM core register)",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VMOV<c>.<dt> <Rt>, <Dn[x]>",
+    "format" : "VMOV.<dt> <Rt>, <Dn[x]>",
     "pattern" : "1 1 1 0 1 1 1 0 U#1 opc1#2 1 Vn#4 Rt#4 1 0 1 1 N#1 opc2#2 1 0 0 0 0",
     "decoder" : """case U:opc1:opc2 of
         when "x1xxx" advsimd = TRUE; esize = 8; index = UInt(opc1<0>:opc2);
@@ -7313,7 +7313,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VMOVL",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VMOVL<c>.<dt> <Qd>, <Dm>",
+    "format" : "VMOVL.<dt> <Qd>, <Dm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm3#3 0 0 0 Vd#4 1 0 1 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm3 == '000' then SEE "Related encodings";
     if imm3 != '001' && imm3 != '010' && imm3 != '100' then SEE VSHLL;
@@ -7325,7 +7325,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VMOVL",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VMOVL<c>.<dt> <Qd>, <Dm>",
+    "format" : "VMOVL.<dt> <Qd>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm3#3 0 0 0 Vd#4 1 0 1 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm3 == '000' then SEE "Related encodings";
     if imm3 != '001' && imm3 != '010' && imm3 != '100' then SEE VSHLL;
@@ -7337,7 +7337,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VMOVN",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VMOVN<c>.<dt> <Dd>, <Qm>",
+    "format" : "VMOVN.<dt> <Dd>, <Qm>",
     "pattern" : "111111111 D#1 11 size#2 10 Vd#4 001000 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
     if Vm<0> == '1' then UNDEFINED;
@@ -7347,7 +7347,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VMOVN",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VMOVN<c>.<dt> <Dd>, <Qm>",
+    "format" : "VMOVN.<dt> <Dd>, <Qm>",
     "pattern" : "111100111 D#1 11 size#2 10 Vd#4 001000 M#1 0 Vm#4",
     "decoder" : """if size == '11' then UNDEFINED;
     if Vm<0> == '1' then UNDEFINED;
@@ -7357,7 +7357,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "name" : "VMRS",
     "encoding" : "T1",
     "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
-    "format" : "VMRS<c> <Rt>, <spec_reg>",
+    "format" : "VMRS <Rt>, <spec_reg>",
     "pattern" : "111011101111 reg#4 Rt#4 101000010000",
     "decoder" : """t = UInt(Rt); if t == 13 && CurrentInstrSet() != InstrSet_ARM then UNPREDICTABLE;
 if t == 15 && reg != '0001' then UNPREDICTABLE;"""
@@ -7373,7 +7373,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VMSR",
     "encoding" : "T1",
     "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
-    "format" : "VMSR<c> <spec_reg>, <Rt>",
+    "format" : "VMSR <spec_reg>, <Rt>",
     "pattern" : "111011101110 reg#4 Rt#4 101000010000",
     "decoder" : """t = UInt(Rt); if t == 15 || (t == 13 && CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE;"""
 } , {
@@ -7411,7 +7411,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VMUL, VMULL (integer and polynomial)",
     "encoding" : "T2",
     "version" : "AdvancedSIMD",
-    "format" : "VMULL<c>.<dt> <Qd>, <Dn>, <Dm>",
+    "format" : "VMULL.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 1 op#1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if op == '1' && (U != '0' || size != '00') then UNDEFINED;
@@ -7423,7 +7423,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VMUL, VMULL (integer and polynomial)",
     "encoding" : "A2",
     "version" : "AdvancedSIMD",
-    "format" : "VMULL<c>.<dt> <Qd>, <Dn>, <Dm>",
+    "format" : "VMULL.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 1 1 op#1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if op == '1' && (U != '0' || size != '00') then UNDEFINED;
@@ -7505,7 +7505,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VMUL, VMULL (by scalar)",
     "encoding" : "T2",
     "version" : "AdvancedSIMD",
-    "format" : "VMULL<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
+    "format" : "VMULL.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 0 1 0 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -7517,7 +7517,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VMUL, VMULL (by scalar)",
     "encoding" : "A2",
     "version" : "AdvancedSIMD",
-    "format" : "VMULL<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
+    "format" : "VMULL.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 size#2 Vn#4 Vd#4 1 0 1 0 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -7731,7 +7731,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPADD (integer)",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VPADD<c>.<dt> <Dd>, <Dn>, <Dm>",
+    "format" : "VPADD.<dt> <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 0 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if size == '11' || Q == '1' then UNDEFINED;
     esize = 8 << UInt(size); elements = 64 DIV esize;
@@ -7740,7 +7740,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPADD (integer)",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VPADD<c>.<dt> <Dd>, <Dn>, <Dm>",
+    "format" : "VPADD.<dt> <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 0 0 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 Q#1 M#1 1 Vm#4",
     "decoder" : """if size == '11' || Q == '1' then UNDEFINED;
     esize = 8 << UInt(size); elements = 64 DIV esize;
@@ -7749,7 +7749,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPADD (floating-point)",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VPADD<c>.F32 <Dd>, <Dn>, <Dm>",
+    "format" : "VPADD.F32 <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if sz == '1' || Q == '1' then UNDEFINED;
     esize = 32; elements = 2;
@@ -7758,7 +7758,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPADD (floating-point)",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VPADD<c>.F32 <Dd>, <Dn>, <Dm>",
+    "format" : "VPADD.F32 <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 0 sz#1 Vn#4 Vd#4 1 1 0 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if sz == '1' || Q == '1' then UNDEFINED;
     esize = 32; elements = 2;
@@ -7789,7 +7789,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPMAX, VPMIN (integer)",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VP<op><c>.<dt> <Dd>, <Dn>, <Dm>",
+    "format" : "VP<op>.<dt> <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 U#1 1 1 1 1 0 D#1 size#2 Vn#4 Vd#4 1 0 1 0 N#1 Q#1 M#1 op#1 Vm#4",
     "decoder" : """if size == '11' || Q == '1' then UNDEFINED;
     maximum = (op == '0'); unsigned_ = (U == '1');
@@ -7799,7 +7799,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPMAX, VPMIN (integer)",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VP<op><c>.<dt> <Dd>, <Dn>, <Dm>",
+    "format" : "VP<op>.<dt> <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 U#1 0 D#1 size#2 Vn#4 Vd#4 1 0 1 0 N#1 Q#1 M#1 op#1 Vm#4",
     "decoder" : """if size == '11' || Q == '1' then UNDEFINED;
     maximum = (op == '0'); unsigned_ = (U == '1');
@@ -7809,7 +7809,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPMAX, VPMIN (floating-point)",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VP<op><c>.F32 <Dd>, <Dn>, <Dm>",
+    "format" : "VP<op>.F32 <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 1 1 1 1 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if sz == '1' || Q == '1' then UNDEFINED;
     maximum = (op == '0'); esize = 32; elements = 2;
@@ -7818,7 +7818,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPMAX, VPMIN (floating-point)",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VP<op><c>.F32 <Dd>, <Dn>, <Dm>",
+    "format" : "VP<op>.F32 <Dd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 1 0 D#1 op#1 sz#1 Vn#4 Vd#4 1 1 1 1 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if sz == '1' || Q == '1' then UNDEFINED;
     maximum = (op == '0'); esize = 32; elements = 2;
@@ -7836,7 +7836,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPOP",
     "encoding" : "A1",
     "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
-    "format" : "VPOP <list>",
+    "format" : "VPOP<c> <list>",
     "pattern" : "cond#4 1 1 0 0 1 D#1 1 1 1 1 0 1 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_regs = FALSE; d = UInt(D:Vd); imm32 = ZeroExtend(imm8:'00', 32);
     regs = UInt(imm8) DIV 2;
@@ -7855,7 +7855,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPOP",
     "encoding" : "A2",
     "version" : "VFPv2, VFPv3, VFPv4",
-    "format" : "VPOP <list>",
+    "format" : "VPOP<c> <list>",
     "pattern" : "cond#4 1 1 0 0 1 D#1 1 1 1 1 0 1 Vd#4 1 0 1 0 imm8#8",
     "decoder" : """single_regs = TRUE; d = UInt(Vd:D);
     imm32 = ZeroExtend(imm8:'00', 32);
@@ -7865,7 +7865,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPUSH",
     "encoding" : "T1",
     "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
-    "format" : "VPUSH<c> <list>",
+    "format" : "VPUSH <list>",
     "pattern" : "1 1 1 0 1 1 0 1 0 D#1 1 0 1 1 0 1 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_regs = FALSE; d = UInt(D:Vd); imm32 = ZeroExtend(imm8:'00', 32);
     regs = UInt(imm8) DIV 2;
@@ -7883,7 +7883,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VPUSH",
     "encoding" : "T2",
     "version" : "VFPv2, VFPv3, VFPv4",
-    "format" : "VPUSH<c> <list>",
+    "format" : "VPUSH <list>",
     "pattern" : "1 1 1 0 1 1 0 1 0 D#1 1 0 1 1 0 1 Vd#4 1 0 1 0 imm8#8",
     "decoder" : """single_regs = TRUE; d = UInt(Vd:D);
     imm32 = ZeroExtend(imm8:'00', 32); regs = UInt(imm8);
@@ -7941,7 +7941,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQDMLAL, VQDMLSL",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VQD<op><c>.<dt> <Qd>, <Dn>, <Dm>",
+    "format" : "VQD<op>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 0 op#1 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -7952,7 +7952,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQDMLAL, VQDMLSL",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VQD<op><c>.<dt> <Qd>, <Dn>, <Dm>",
+    "format" : "VQD<op>.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 1 0 op#1 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -7963,7 +7963,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQDMLAL, VQDMLSL",
     "encoding" : "T2",
     "version" : "AdvancedSIMD",
-    "format" : "VQD<op><c>.<dt> <Qd>, <Dn>, <Dm[x]>",
+    "format" : "VQD<op>.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 op#1 1 1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -7975,7 +7975,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQDMLAL, VQDMLSL",
     "encoding" : "A2",
     "version" : "AdvancedSIMD",
-    "format" : "VQD<op><c>.<dt> <Qd>, <Dn>, <Dm[x]>",
+    "format" : "VQD<op>.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 0 op#1 1 1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -8031,7 +8031,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQDMULL",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VQDMULL<c>.<dt> <Qd>, <Dn>, <Dm>",
+    "format" : "VQDMULL.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 1 0 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -8041,7 +8041,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQDMULL",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VQDMULL<c>.<dt> <Qd>, <Dn>, <Dm>",
+    "format" : "VQDMULL.<dt> <Qd>, <Dn>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 1 1 0 1 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -8051,7 +8051,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQDMULL",
     "encoding" : "T2",
     "version" : "AdvancedSIMD",
-    "format" : "VQDMULL<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
+    "format" : "VQDMULL.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -8062,7 +8062,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQDMULL",
     "encoding" : "A2",
     "version" : "AdvancedSIMD",
-    "format" : "VQDMULL<c>.<dt> <Qd>, <Dn>, <Dm[x]>",
+    "format" : "VQDMULL.<dt> <Qd>, <Dn>, <Dm[x]>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 1 0 1 1 N#1 1 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if size == '00' || Vd<0> == '1' then UNDEFINED;
@@ -8073,7 +8073,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQMOVN, VQMOVUN",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VQMOV{U}N<c>.<type><size> <Dd>, <Qm>",
+    "format" : "VQMOV{U}N.<type><size> <Dd>, <Qm>",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 1 0 op#2 M#1 0 Vm#4",
     "decoder" : """if op == '00' then SEE VMOVN;
     if size == '11' || Vm<0> == '1' then UNDEFINED;
@@ -8084,7 +8084,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQMOVN, VQMOVUN",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VQMOV{U}N<c>.<type><size> <Dd>, <Qm>",
+    "format" : "VQMOV{U}N.<type><size> <Dd>, <Qm>",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 1 0 op#2 M#1 0 Vm#4",
     "decoder" : """if op == '00' then SEE VMOVN;
     if size == '11' || Vm<0> == '1' then UNDEFINED;
@@ -8179,7 +8179,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQRSHRN, VQRSHRUN",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VQRSHR{U}N<c>.<type><size> <Dd>, <Qm>, #<shift_amount>",
+    "format" : "VQRSHR{U}N.<type><size> <Dd>, <Qm>, #<shift_amount>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 1 0 0 op#1 0 1 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
     if U == '0' && op == '0' then SEE VRSHRN;
@@ -8194,7 +8194,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQRSHRN, VQRSHRUN",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VQRSHR{U}N<c>.<type><size> <Dd>, <Qm>, #<shift_amount>",
+    "format" : "VQRSHR{U}N.<type><size> <Dd>, <Qm>, #<shift_amount>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 1 0 0 op#1 0 1 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
     if U == '0' && op == '0' then SEE VRSHRN;
@@ -8263,7 +8263,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQSHRN, VQSHRUN",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VQSHR{U}N<c>.<type><size> <Dd>, <Qm>, #<shift_amount>",
+    "format" : "VQSHR{U}N.<type><size> <Dd>, <Qm>, #<shift_amount>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 1 0 0 op#1 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
     if U == '0' && op == '0' then SEE VSHRN;
@@ -8279,7 +8279,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VQSHRN, VQSHRUN",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VQSHR{U}N<c>.<type><size> <Dd>, <Qm>, #<shift_amount>",
+    "format" : "VQSHR{U}N.<type><size> <Dd>, <Qm>, #<shift_amount>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 1 0 0 op#1 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
     if U == '0' && op == '0' then SEE VSHRN;
@@ -8315,7 +8315,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VRADDHN",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VRADDHN<c>.<dt> <Dd>, <Qn>, <Qm>",
+    "format" : "VRADDHN.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vn<0> == '1' || Vm<0> == '1' then UNDEFINED;
@@ -8325,7 +8325,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VRADDHN",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VRADDHN<c>.<dt> <Dd>, <Qn>, <Qm>",
+    "format" : "VRADDHN.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 0 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vn<0> == '1' || Vm<0> == '1' then UNDEFINED;
@@ -8475,7 +8475,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VRSHRN",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VRSHRN<c>.I<size> <Dd>, <Qm>, #<shift_amount>",
+    "format" : "VRSHRN.I<size> <Dd>, <Qm>, #<shift_amount>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 imm6#6 Vd#4 1 0 0 0 0 1 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
     if Vm<0> == '1' then UNDEFINED;
@@ -8489,7 +8489,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VRSHRN",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VRSHRN<c>.I<size> <Dd>, <Qm>, #<shift_amount>",
+    "format" : "VRSHRN.I<size> <Dd>, <Qm>, #<shift_amount>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 imm6#6 Vd#4 1 0 0 0 0 1 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
     if Vm<0> == '1' then UNDEFINED;
@@ -8573,7 +8573,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VRSUBHN",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VRSUBHN<c>.<dt> <Dd>, <Qn>, <Qm>",
+    "format" : "VRSUBHN.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vn<0> == '1' || Vm<0> == '1' then UNDEFINED;
@@ -8583,7 +8583,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VRSUBHN",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VRSUBHN<c>.<dt> <Dd>, <Qn>, <Qm>",
+    "format" : "VRSUBHN.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vn<0> == '1' || Vm<0> == '1' then UNDEFINED;
@@ -8643,7 +8643,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSHLL",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VSHLL<c>.<type><size> <Qd>, <Dm>, #<shift_amount>",
+    "format" : "VSHLL.<type><size> <Qd>, <Dm>, #<shift_amount>",
     "pattern" : "1 1 1 U#1 1 1 1 1 1 D#1 imm6#6 Vd#4 1 0 1 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
     if Vd<0> == '1' then UNDEFINED;
@@ -8658,7 +8658,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSHLL",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VSHLL<c>.<type><size> <Qd>, <Dm>, #<shift_amount>",
+    "format" : "VSHLL.<type><size> <Qd>, <Dm>, #<shift_amount>",
     "pattern" : "1 1 1 1 0 0 1 U#1 1 D#1 imm6#6 Vd#4 1 0 1 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
     if Vd<0> == '1' then UNDEFINED;
@@ -8673,7 +8673,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSHLL",
     "encoding" : "T2",
     "version" : "AdvancedSIMD",
-    "format" : "VSHLL<c>.<type><size> <Qd>, <Dm>, #<shift_amount>",
+    "format" : "VSHLL.<type><size> <Qd>, <Dm>, #<shift_amount>",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 1 1 0 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' || Vd<0> == '1' then UNDEFINED;
     esize = 8 << UInt(size); shift_amount = esize;
@@ -8683,7 +8683,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSHLL",
     "encoding" : "A2",
     "version" : "AdvancedSIMD",
-    "format" : "VSHLL<c>.<type><size> <Qd>, <Dm>, #<shift_amount>",
+    "format" : "VSHLL.<type><size> <Qd>, <Dm>, #<shift_amount>",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 size#2 1 0 Vd#4 0 0 1 1 0 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' || Vd<0> == '1' then UNDEFINED;
     esize = 8 << UInt(size); shift_amount = esize;
@@ -8723,7 +8723,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSHRN",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VSHRN<c>.I<size> <Dd>, <Qm>, #<shift_amount>",
+    "format" : "VSHRN.I<size> <Dd>, <Qm>, #<shift_amount>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 imm6#6 Vd#4 1 0 0 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
     if Vm<0> == '1' then UNDEFINED;
@@ -8737,7 +8737,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSHRN",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VSHRN<c>.I<size> <Dd>, <Qm>, #<shift_amount>",
+    "format" : "VSHRN.I<size> <Dd>, <Qm>, #<shift_amount>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 imm6#6 Vd#4 1 0 0 0 0 0 M#1 1 Vm#4",
     "decoder" : """if imm6 IN "000xxx" then SEE "Related encodings";
     if Vm<0> == '1' then UNDEFINED;
@@ -9231,7 +9231,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSTM",
     "encoding" : "T1",
     "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
-    "format" : "VSTM{mode}<c> <Rn>{!}, <list>",
+    "format" : "VSTM{mode} <Rn>{!}, <list>",
     "pattern" : "1 1 1 0 1 1 0 P#1 U#1 D#1 W#1 0 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """if P == '0' && U == '0' && W == '0' then SEE "Related encodings";
     if P == '1' && U == '0' && W == '1' && Rn == '1101' then SEE VPUSH;
@@ -9261,7 +9261,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSTM",
     "encoding" : "T2",
     "version" : "VFPv2, VFPv3, VFPv4",
-    "format" : "VSTM{mode}<c> <Rn>{!}, <list>",
+    "format" : "VSTM{mode} <Rn>{!}, <list>",
     "pattern" : "1 1 1 0 1 1 0 P#1 U#1 D#1 W#1 0 Rn#4 Vd#4 1 0 1 0 imm8#8",
     "decoder" : """if P == '0' && U == '0' && W == '0' then SEE "Related encodings";
     if P == '1' && U == '0' && W == '1' && Rn == '1101' then SEE VPUSH;
@@ -9289,7 +9289,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSTR",
     "encoding" : "T1",
     "version" : "VFPv2, VFPv3, VFPv4, AdvancedSIMD",
-    "format" : "VSTR<c> <Dd>, [<Rn>{, #+/-<imm32>}]",
+    "format" : "VSTR <Dd>, [<Rn>{, #+/-<imm32>}]",
     "pattern" : "1 1 1 0 1 1 0 1 U#1 D#1 0 0 Rn#4 Vd#4 1 0 1 1 imm8#8",
     "decoder" : """single_reg = FALSE; add = (U == '1'); imm32 = ZeroExtend(imm8:'00', 32);
     d = UInt(D:Vd); n = UInt(Rn);
@@ -9307,7 +9307,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSTR",
     "encoding" : "T2",
     "version" : "VFPv2, VFPv3, VFPv4",
-    "format" : "VSTR<c> <Sd>, [<Rn>{, #+/-<imm32>}]",
+    "format" : "VSTR <Sd>, [<Rn>{, #+/-<imm32>}]",
     "pattern" : "1 1 1 0 1 1 0 1 U#1 D#1 0 0 Rn#4 Vd#4 1 0 1 0 imm8#8",
     "decoder" : """single_reg = TRUE; add = (U == '1'); imm32 = ZeroExtend(imm8:'00', 32);
     d = UInt(Vd:D); n = UInt(Rn);
@@ -9385,7 +9385,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSUBHN",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "VSUBHN<c>.<dt> <Dd>, <Qn>, <Qm>",
+    "format" : "VSUBHN.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 size#2 Vn#4 Vd#4 0 1 1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vn<0> == '1' || Vm<0> == '1' then UNDEFINED;
@@ -9395,7 +9395,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VSUBHN",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "VSUBHN<c>.<dt> <Dd>, <Qn>, <Qm>",
+    "format" : "VSUBHN.<dt> <Dd>, <Qn>, <Qm>",
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 size#2 Vn#4 Vd#4 0 1 1 0 N#1 0 M#1 0 Vm#4",
     "decoder" : """if size == '11' then SEE "Related encodings";
     if Vn<0> == '1' || Vm<0> == '1' then UNDEFINED;
@@ -9445,7 +9445,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VTBL, VTBX",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
-    "format" : "V<op><c>.8 <Dd>, <list>, <Dm>",
+    "format" : "V<op>.8 <Dd>, <list>, <Dm>",
     "pattern" : "1 1 1 1 1 1 1 1 1 D#1 1 1 Vn#4 Vd#4 1 0 len#2 N#1 op#1 M#1 0 Vm#4",
     "decoder" : """is_vtbl = (op == '0'); length = UInt(len)+1;
     d = UInt(D:Vd); n = UInt(N:Vn); m = UInt(M:Vm);
@@ -9454,7 +9454,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
     "name" : "VTBL, VTBX",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
-    "format" : "V<op><c>.8 <Dd>, <list>, <Dm>",
+    "format" : "V<op>.8 <Dd>, <list>, <Dm>",
     "pattern" : "1 1 1 1 0 0 1 1 1 D#1 1 1 Vn#4 Vd#4 1 0 len#2 N#1 op#1 M#1 0 Vm#4",
     "decoder" : """is_vtbl = (op == '0'); length = UInt(len)+1;
     d = UInt(D:Vd); n = UInt(N:Vn); m = UInt(M:Vm);
