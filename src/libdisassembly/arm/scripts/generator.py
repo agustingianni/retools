@@ -386,7 +386,11 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
                     body = body[:-1] + ";\n"
 
             for var in visitor.define_me:
-                fd.write("    int %s = 0;\n" % var)
+                type_ = "int"
+                if var == "imm64":
+                    type_ = "uint64_t"
+
+                fd.write("    %s %s = 0;\n" % (type, var))
 
             fd.write("\n")
             fd.write(body)
