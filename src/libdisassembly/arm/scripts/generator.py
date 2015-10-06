@@ -603,7 +603,7 @@ string align_str(const ARMInstruction *ins) {
 
         case vld3_multiple_3_element_structures:    // VLD3 (multiple 3-element structures)
             switch(get_bits(ins->opcode, 5, 4)) {
-                case 1:   return "0x40";
+                case 1:   return ":0x40";
                 default: return  "";
             }
 
@@ -757,6 +757,7 @@ string list_str(const ARMInstruction *ins) {
                 case 2:
                     return "{D" + to_string(ins->d) +
                         ", D" + to_string(ins->d + 1) +
+                        ", D" + to_string(ins->d + 2) +
                         ", D" + to_string(ins->d + 3) +
                         "}";
                 default:
