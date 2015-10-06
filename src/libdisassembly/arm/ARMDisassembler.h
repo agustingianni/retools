@@ -354,13 +354,12 @@ namespace Disassembler {
 	} ARMVariants;
 
 	typedef enum ARMVFPVersion {
-		No_VFP = 0,
-		VFPv1 = (1u << 1),
-		VFPv2 = (1u << 2),
-		VFPv3 = (1u << 3),
-		VFPv4 = (1u << 4),
-		AdvancedSIMD = (1u << 5),
-		AdvancedSIMDv2 = (1u << 6),
+		VFPv1 = 1 << 14,
+		VFPv2 = 1 << 15,
+		VFPv3 = 1 << 16,
+		VFPv4 = 1 << 17,
+		AdvancedSIMD = 1 << 18,
+		AdvancedSIMDv2 = 1 << 19,
 		VFPv1_ABOVE = (VFPv1 | VFPv2 | VFPv3 | AdvancedSIMD),
 		VFPv2_ABOVE = (VFPv2 | VFPv3 | AdvancedSIMD),
 		VFPv2v3 = (VFPv2 | VFPv3)
