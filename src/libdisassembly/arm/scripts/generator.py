@@ -568,6 +568,10 @@ string effect_str(const ARMInstruction *ins) {
 
 string align_str(const ARMInstruction *ins) {
     switch(ins->id) {
+        case vst4_multiple_4_element_structures:
+        case vst3_multiple_3_element_structures:
+        case vst1_multiple_single_elements:
+        case vst2_multiple_2_element_structures:    
         case vld1_multiple_single_elements:         // VLD1 (multiple single elements)
         case vld2_multiple_2_element_structures:    // VLD2 (multiple 2-element structures)
         case vld4_multiple_4_element_structures:    // VLD4 (multiple 4-element structures)
@@ -587,11 +591,13 @@ string align_str(const ARMInstruction *ins) {
                 default: return  "";
             }
 
+        case vst2_single_2_element_structure_from_one_lane:
+        case vst1_single_element_from_one_lane:
         case vld2_single_2_element_structure_to_one_lane:   // VLD2 (single 2-element structure to one lane)
-            switch(ins->size) {
-                case 0:  return ":0x10";
-                case 1:  return ":0x20";
-                case 2:  return ":0x40";
+            switch(ins->alignment) {
+                case 2:  return ":0x10";
+                case 4:  return ":0x20";
+                case 8:  return ":0x40";
                 default: return  "";
             }
 
@@ -609,12 +615,13 @@ string align_str(const ARMInstruction *ins) {
                 default: return  "";
             }
 
+        case vst4_single_4_element_structure_from_one_lane:
         case vld4_single_4_element_structure_to_one_lane:   // VLD4 (single 4-element structure to one lane)
-            switch(ins->size) {
-                case 0:  return ":0x20";
-                case 1:  return ":0x40";
-                case 2:  return ":0x40";
-                case 3:  return ":0x80";
+            switch(ins->alignment) {
+                case 2:  return ":0x10";
+                case 4:  return ":0x20";
+                case 8:  return ":0x40";
+                case 16: return ":0x80";
                 default: return  "";
             }
 
@@ -679,6 +686,7 @@ string list_str(const ARMInstruction *ins) {
             }
             break;
 
+        case vst3_single_3_element_structure_from_one_lane:
         case vld3_single_3_element_structure_to_one_lane:
             return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "], " +
                     "D" + to_string(ins->d + ins->inc) + "["  + to_string(ins->index) + "], " +
@@ -695,6 +703,7 @@ string list_str(const ARMInstruction *ins) {
                     "D" + to_string(ins->d + ins->inc * 2) + ", " +
                     "D" + to_string(ins->d + ins->inc * 3) + "}";
 
+        case vst4_single_4_element_structure_from_one_lane:
         case vld4_single_4_element_structure_to_one_lane:
             return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "], " +
                     "D" + to_string(ins->d + ins->inc) + "["  + to_string(ins->index) + "], " +
@@ -710,11 +719,38 @@ string list_str(const ARMInstruction *ins) {
         case vld2_single_2_element_structure_to_all_lanes:
             return "{D" + to_string(ins->d) + "[], D" + to_string(ins->d + ins->inc) + "[]}";
 
+        case vst2_single_2_element_structure_from_one_lane:
         case vld2_single_2_element_structure_to_one_lane:
-            return "{D" + to_string(ins->d) + ", D" + to_string(ins->d + ins->inc) + "}";
+            return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "], D" + to_string(ins->d + ins->inc) + "["  + to_string(ins->index) + "]}";
+
+        case vld1_single_element_to_all_lanes:
+            if (!ins->T) {
+                return "{D" + to_string(ins->d) + "[]}";
+            }
+            return "{D" + to_string(ins->d) + "[], D" + to_string(ins->d + 1) + "[]}";
+
+        case vst1_single_element_from_one_lane:
+        case vld1_single_element_to_one_lane:
+            return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "]}";
 
         case vld2_multiple_2_element_structures:
+        case vld1_multiple_single_elements:
+        case vst1_multiple_single_elements:
+        case vst4_multiple_4_element_structures:
+        case vst2_multiple_2_element_structures:
+        case vst3_multiple_3_element_structures:
             switch(ins->type) {
+                case 1:
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 2) +
+                        ", D" + to_string(ins->d + 4) +
+                        ", D" + to_string(ins->d + 6) +
+                        "}";                
+                case 5:
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 2) +
+                        ", D" + to_string(ins->d + 4) +
+                        "}";                
                 case 8:
                     return "{D" + to_string(ins->d) +
                         ", D" + to_string(ins->d + 1) +
@@ -729,33 +765,19 @@ string list_str(const ARMInstruction *ins) {
                         ", D" + to_string(ins->d + 2) +
                         ", D" + to_string(ins->d + 3) +
                         "}";
-                default:
-                    return "INVALID:" + to_string(ins->type);
-            }
-            break;
-
-        case vld1_single_element_to_all_lanes:
-            if (!ins->T) {
-                return "{D" + to_string(ins->d) + "[]}";
-            }
-            return "{D" + to_string(ins->d) + "[], D" + to_string(ins->d + 1) + "[]}";
-
-        case vld1_single_element_to_one_lane:
-            return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "]}";
-
-        case vld1_multiple_single_elements:
-            switch(ins->type) {
                 case 7:
                     return "{D" + to_string(ins->d) + "}";
                 case 10:
                     return "{D" + to_string(ins->d) +
                         ", D" + to_string(ins->d + 1) +
                         "}";
-                case 6:
+                case 4:
+                case 6:                
                     return "{D" + to_string(ins->d) +
                         ", D" + to_string(ins->d + 1) +
                         ", D" + to_string(ins->d + 2) +
                         "}";
+                case 0:
                 case 2:
                     return "{D" + to_string(ins->d) +
                         ", D" + to_string(ins->d + 1) +
@@ -763,7 +785,7 @@ string list_str(const ARMInstruction *ins) {
                         ", D" + to_string(ins->d + 3) +
                         "}";
                 default:
-                    return "INVALID";
+                    return "INVALID" + to_string(ins->type);
             }
             break;
         case vtbl_vtbx:
@@ -1223,6 +1245,9 @@ string U_str(const ARMInstruction *ins) {
 
 string size_str(const ARMInstruction *ins) {
     switch (ins->id) {
+        case vst3_single_3_element_structure_from_one_lane:
+        case vst2_single_2_element_structure_from_one_lane:
+        case vst1_single_element_from_one_lane:
         case vst1_multiple_single_elements:
         case vst2_multiple_2_element_structures:
         case vst3_multiple_3_element_structures:
@@ -1843,43 +1868,41 @@ to_string_h = '''// Warning! autogenerated file, do what you want.
 #include "arm/ARMDisassembler.h"
 
 bool is_conditional_thumb(const Disassembler::ARMInstruction *ins);
-std::string banked_reg(const Disassembler::ARMInstruction *ins);
-std::string effect_str(const Disassembler::ARMInstruction *ins);
-std::string align_str(const Disassembler::ARMInstruction *ins);
-std::string list_str(const Disassembler::ARMInstruction *ins);
-std::string amode_str(const Disassembler::ARMInstruction *ins);
-std::string IA_str(const Disassembler::ARMInstruction *ins);
-std::string iflags_str(const Disassembler::ARMInstruction *ins);
-std::string S_str(const Disassembler::ARMInstruction *ins);
-std::string c_str(const Disassembler::ARMInstruction *ins);
 std::string B_str(const Disassembler::ARMInstruction *ins);
+std::string IA_str(const Disassembler::ARMInstruction *ins);
 std::string N_str(const Disassembler::ARMInstruction *ins);
-std::string W_str(const Disassembler::ARMInstruction *ins);
-std::string x_str(const Disassembler::ARMInstruction *ins);
-std::string y_str(const Disassembler::ARMInstruction *ins);
-std::string X_str(const Disassembler::ARMInstruction *ins);
 std::string R_str(const Disassembler::ARMInstruction *ins);
+std::string S_str(const Disassembler::ARMInstruction *ins);
+std::string U_str(const Disassembler::ARMInstruction *ins);
+std::string W_str(const Disassembler::ARMInstruction *ins);
+std::string X_str(const Disassembler::ARMInstruction *ins);
+std::string align_str(const Disassembler::ARMInstruction *ins);
+std::string amode_str(const Disassembler::ARMInstruction *ins);
+std::string banked_reg(const Disassembler::ARMInstruction *ins);
+std::string c_str(const Disassembler::ARMInstruction *ins);
+std::string coproc_reg_str(unsigned coproc);
+std::string coproc_str(unsigned coproc);
+std::string double_reg_str(unsigned coproc);
+std::string dt_str(const Disassembler::ARMInstruction *ins);
+std::string effect_str(const Disassembler::ARMInstruction *ins);
+std::string endian_specifier_str(unsigned endian);
+std::string iflags_str(const Disassembler::ARMInstruction *ins);
+std::string list_str(const Disassembler::ARMInstruction *ins);
 std::string mode_str(const Disassembler::ARMInstruction *ins);
 std::string op_str(const Disassembler::ARMInstruction *ins);
-std::string dt_str(const Disassembler::ARMInstruction *ins);
-std::string U_str(const Disassembler::ARMInstruction *ins);
-std::string size_str(const Disassembler::ARMInstruction *ins);
-std::string type_str(const Disassembler::ARMInstruction *ins);
-std::string list_str(const Disassembler::ARMInstruction *ins);
-std::string align_str(const Disassembler::ARMInstruction *ins);
-std::string regular_reg_str(unsigned reg);
-std::string coproc_str(unsigned coproc);
-std::string shift_type_str(unsigned shift);
-std::string coproc_reg_str(unsigned coproc);
-std::string quad_reg_str(unsigned coproc);
-std::string double_reg_str(unsigned coproc);
-std::string simple_reg_str(unsigned coproc);
 std::string option_str(const Disassembler::ARMInstruction *ins);
-std::string endian_specifier_str(unsigned endian);
-std::string spec_reg_str(const Disassembler::ARMInstruction *ins);
+std::string quad_reg_str(unsigned coproc);
 std::string registers_str(unsigned registers);
-std::string shift_str(unsigned shift_t, unsigned shift_n);
+std::string regular_reg_str(unsigned reg);
 std::string rotation_str(unsigned rotation);
+std::string shift_str(unsigned shift_t, unsigned shift_n);
+std::string shift_type_str(unsigned shift);
+std::string simple_reg_str(unsigned coproc);
+std::string size_str(const Disassembler::ARMInstruction *ins);
+std::string spec_reg_str(const Disassembler::ARMInstruction *ins);
+std::string type_str(const Disassembler::ARMInstruction *ins);
+std::string x_str(const Disassembler::ARMInstruction *ins);
+std::string y_str(const Disassembler::ARMInstruction *ins);
 '''
 def create_to_string(to_string_name_h, to_string_name_cpp):
     import ARMv7Parser
