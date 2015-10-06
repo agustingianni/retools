@@ -390,7 +390,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
                 if var == "imm64":
                     type_ = "uint64_t"
 
-                fd.write("    %s %s = 0;\n" % (type, var))
+                fd.write("    %s %s = 0;\n" % (type_, var))
 
             fd.write("\n")
             fd.write(body)
