@@ -116,6 +116,14 @@ def __compare__(retools, capstone, darm):
     retools = re.sub(ur'stmia', "stm", retools)
     capstone = re.sub(ur'stmia', "stm", capstone)
 
+    # vldm -> fldmx
+    retools = re.sub(ur'vldm', "fldmx", retools)
+    capstone = re.sub(ur'vldm', "fldmx", capstone)
+
+    # vstm -> fstmx
+    retools = re.sub(ur'vstm', "fstmx", retools)
+    capstone = re.sub(ur'vstm', "fstmx", capstone)
+
     # mvnscs -> mvnshs
     darm = re.sub(ur'mvnscs', "mvnshs", darm)
     darm = re.sub(ur'movscs', "movshs", darm)
@@ -223,6 +231,11 @@ def process_instruction_fuzz_tests(in_file, start, end):
             retools, capstone, darm = __compare__(retools, capstone, darm)
             ret = retools == capstone or retools == darm
 
+            # VMRS et all are not disassembled by capstone.
+            if "custom_reg" in retools or "vpop" in retools or "vpush" in retools:
+                n_ok += 1
+                continue                
+
             # If retools says that this is unpredictable, it certainly is.
             if is_invalid_or_unpredictable(retools):
                 n_ok += 1
@@ -240,7 +253,6 @@ def process_instruction_fuzz_tests(in_file, start, end):
                 n_skip += 1
                 print "  opcode: 0x%.8x %40s" % (opcode, retools)
                 print "  opcode: 0x%.8x %40s" % (opcode, capstone)
-                print "  opcode: 0x%.8x %40s" % (opcode, darm)
                 print
                 continue
 
@@ -255,10 +267,11 @@ def process_instruction_fuzz_tests(in_file, start, end):
                     print "Entry %d for '%s' with encoding %s 0x%.8x, 0x%.8x" % (i, name, encoding, mask, value)
 
                 n_skip += 1
-                print "  opcode: 0x%.8x %40s" % (opcode, retools)
-                print "  opcode: 0x%.8x %40s" % (opcode, capstone)
-                print "  opcode: 0x%.8x %40s" % (opcode, darm)
-                print
+                if n_skip < 10:
+                    print "  opcode: 0x%.8x %40s" % (opcode, retools)
+                    print "  opcode: 0x%.8x %40s" % (opcode, capstone)
+                    print
+
                 continue
 
             if not ret:
@@ -267,10 +280,9 @@ def process_instruction_fuzz_tests(in_file, start, end):
                     printed_header = True
                     print "Entry %d for '%s' with encoding %s 0x%.8x, 0x%.8x" % (i, name, encoding, mask, value)
 
-                if n_errors < 10:
+                if n_errors < 20:
                     print "  opcode: 0x%.8x %40s %s" % (opcode, retools, result["decoder"])
                     print "  opcode: 0x%.8x %40s" % (opcode, capstone)
-                    print "  opcode: 0x%.8x %40s" % (opcode, darm)
                     print
             else:
                 n_ok += 1
@@ -288,7 +300,7 @@ def process_instruction_fuzz_tests(in_file, start, end):
 n = int(sys.argv[1])
 start = int(sys.argv[2])
 end = int(sys.argv[3])
-mode = 1
+mode = 0
 
 print "Testing instructions from %d to %d, %d times" % (start, end, n)
 test_instruction_fuzz(n, start, end, mode, PATH_TESTS_JSON)
