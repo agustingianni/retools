@@ -37,16 +37,16 @@ enum class BinaryFormat {
 class AbstractBinary {
 public:
 	AbstractBinary() :
-		m_size(0),
 		m_data(nullptr),
-		m_memory(nullptr),
 		m_unmap(false),
+		m_memory(nullptr),
+		m_size(0),
+		m_binary_type(BinaryType::Unknown),
 		m_address_space_size(AddressSpaceSize::Unknown),
 		m_endianness(BinaryEndianness::Unknown),
 		m_host_endianness(IsHostBigEndian() ? BinaryEndianness::BIG : BinaryEndianness::LITTLE),
 		m_binary_arch(BinaryArch::Unknown),
-		m_binary_format(BinaryFormat::Unknown),
-		m_binary_type(BinaryType::Unknown) {
+		m_binary_format(BinaryFormat::Unknown) {
 	}
 
 	virtual ~AbstractBinary() = default;
