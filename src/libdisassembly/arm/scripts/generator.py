@@ -733,10 +733,10 @@ string list_str(const ARMInstruction *ins) {
             break;
 
         case vld1_single_element_to_all_lanes:
-            if (ins->T) {
+            if (!ins->T) {
                 return "{D" + to_string(ins->d) + "[]}";
             }
-            return "{D" + to_string(ins->d) + "[], " "{D" + to_string(ins->d + 1) + "}";
+            return "{D" + to_string(ins->d) + "[], D" + to_string(ins->d + 1) + "[]}";
 
         case vld1_single_element_to_one_lane:
             return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "]}";
