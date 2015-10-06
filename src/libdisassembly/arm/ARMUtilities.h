@@ -267,20 +267,18 @@ static inline std::tuple<uint32_t, uint32_t> ThumbExpandImm_C(uint32_t imm12, ui
 }
 
 static inline uint32_t ThumbExpandImm(uint32_t opcode) {
-	// 'carry_in' argument to following function call does not affect the imm32 result.
 	uint32_t carry_in = 0;
 	return std::get<0>(ThumbExpandImm_C(opcode, carry_in));
 }
 
-/* Generate N copies of |bit| in the bottom of a ULong. */
 static uint64_t Replicate(uint64_t bit, int N) {
-	assert(bit <= 1 && N >= 1 && N < 64);
-	if (bit == 0) {
+	if (!bit)
 		return 0;
-	} else {
-		/* Careful.  This won't work for N == 64. */
-		return (1ULL << N) - 1;
-	}
+
+	if (N == 64) 
+		return 0xffffffffffffffffLL;
+
+	return (1ULL << N) - 1;
 }
 
 static uint64_t Replicate32x2(uint64_t bits32) {
@@ -298,22 +296,13 @@ static uint64_t Replicate8x8(uint64_t bits8) {
 	return Replicate16x4((bits8 << 8) | bits8);
 }
 
-static uint64_t VFPExpandImm(uint64_t imm8, int N) {
-	assert(imm8 <= 0xFF);
-	assert(N == 32 || N == 64);
-	int E = ((N == 32) ? 8 : 11) - 2; // The spec incorrectly omits the -2.
-	int F = N - E - 1;
-	uint64_t imm8_6 = (imm8 >> 6) & 1;
-	/* sign: 1 bit */
-	/* exp:  E bits */
-	/* frac: F bits */
-	uint64_t sign = (imm8 >> 7) & 1;
-	uint64_t exp = ((imm8_6 ^ 1) << (E - 1)) | Replicate(imm8_6, E - 1);
-	uint64_t frac = ((imm8 & 63) << (F - 6)) | Replicate(0, F - 6);
-	assert(sign < (1ULL << 1));
-	assert(exp < (1ULL << E));
-	assert(frac < (1ULL << F));
-	assert(1 + E + F == N);
+static uint64_t VFPExpandImm(uint64_t imm8, unsigned N) {
+	unsigned E = ((N == 32) ? 8 : 11) - 2; // E in {6, 9}
+	unsigned F = N - E - 1; // F in {25, 54}
+	uint64_t imm8_6 = (imm8 >> 6) & 1; // imm8<6>
+	uint64_t sign = (imm8 >> 7) & 1; // imm8<7>
+	uint64_t exp = ((imm8_6 ^ 1) << (E - 1)) | Replicate(imm8_6, E - 1); // NOT(imm8<6>):Replicate(imm8<6>,{5, 8})
+	uint64_t frac = ((imm8 & 0x3f) << (F - 6)) | Replicate(0, F - 6); // imm8<5:0> : Zeros({19, 48})
 	uint64_t res = (sign << (E + F)) | (exp << F) | frac;
 	return res;
 }
