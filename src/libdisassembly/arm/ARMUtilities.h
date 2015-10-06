@@ -9,33 +9,33 @@
 #define ARMUTILITIES_H_
 
 #include <tuple>
-#include <cassert>
 #include <cstdint>
+#include <cstdlib>
 
 #include "arm/ARMDisassembler.h"
 #include "Utilities.h"
 
-static inline void NOP() {
-}
-
 namespace D = Disassembler;
 
-static bool EncodingIsARM(D::ARMEncoding e) {
+inline void NOP() {
+}
+
+inline bool EncodingIsARM(D::ARMEncoding e) {
     return e == D::eEncodingA1 || e == D::eEncodingA2 || e == D::eEncodingA3 || e == D::eEncodingA4 || e == D::eEncodingA5;
 }
 
-static bool EncodingIsThumb(D::ARMEncoding e) {
+inline bool EncodingIsThumb(D::ARMEncoding e) {
     return e == D::eEncodingT1 || e == D::eEncodingT2 || e == D::eEncodingT3 || e == D::eEncodingT4 || e == D::eEncodingT5;
 }
 
 // Implementation of: (bits(N), bit) LSL_C(bits(N) x, integer shift)
-static inline uint32_t LSL_C(uint32_t x, uint32_t shift, uint32_t &carry_out) {
+inline uint32_t LSL_C(uint32_t x, uint32_t shift, uint32_t &carry_out) {
 	carry_out = shift <= 32 ? get_bit(x, 32 - shift) : 0;
 	return x << shift;
 }
 
 // Implementation of: bits(N) LSL(bits(N) x, integer shift)
-static inline uint32_t LSL(uint32_t x, uint32_t shift) {
+inline uint32_t LSL(uint32_t x, uint32_t shift) {
 	if (shift == 0)
 		return x;
 
@@ -44,13 +44,13 @@ static inline uint32_t LSL(uint32_t x, uint32_t shift) {
 }
 
 // Implementation of: (bits(N), bit) LSR_C(bits(N) x, integer shift)
-static inline uint32_t LSR_C(uint32_t value, uint32_t amount, uint32_t &carry_out) {
+inline uint32_t LSR_C(uint32_t value, uint32_t amount, uint32_t &carry_out) {
 	carry_out = amount <= 32 ? get_bit(value, amount - 1) : 0;
 	return value >> amount;
 }
 
 // Implementation of: bits(N) LSR(bits(N) x, integer shift)
-static inline uint32_t LSR(uint32_t value, uint32_t amount) {
+inline uint32_t LSR(uint32_t value, uint32_t amount) {
 	if (amount == 0)
 		return value;
 
@@ -59,7 +59,7 @@ static inline uint32_t LSR(uint32_t value, uint32_t amount) {
 }
 
 // Implementation of: (bits(N), bit) ASR_C(bits(N) x, integer shift)
-static inline uint32_t ASR_C(uint32_t value, uint32_t amount, uint32_t &carry_out) {
+inline uint32_t ASR_C(uint32_t value, uint32_t amount, uint32_t &carry_out) {
 	if (amount <= 32) {
 		carry_out = get_bit(value, amount - 1);
 		int64_t extended = SignExtend64<32>(value);
@@ -72,7 +72,7 @@ static inline uint32_t ASR_C(uint32_t value, uint32_t amount, uint32_t &carry_ou
 }
 
 // Implementation of: bits(N) ASR(bits(N) x, integer shift)
-static inline uint32_t ASR(uint32_t value, uint32_t amount) {
+inline uint32_t ASR(uint32_t value, uint32_t amount) {
 	if (amount == 0)
 		return value;
 
@@ -81,7 +81,7 @@ static inline uint32_t ASR(uint32_t value, uint32_t amount) {
 }
 
 // Implementation of: (bits(N), bit) ROR_C(bits(N) x, integer shift)
-static inline uint32_t ROR_C(uint32_t value, uint32_t amount, uint32_t &carry_out) {
+inline uint32_t ROR_C(uint32_t value, uint32_t amount, uint32_t &carry_out) {
 	if (amount == 0)
 		return value;
 
@@ -92,7 +92,7 @@ static inline uint32_t ROR_C(uint32_t value, uint32_t amount, uint32_t &carry_ou
 }
 
 // Implementation of: bits(N) ROR(bits(N) x, integer shift)
-static inline uint32_t ROR(uint32_t value, uint32_t amount) {
+inline uint32_t ROR(uint32_t value, uint32_t amount) {
 	if (amount == 0)
 		return value;
 
@@ -101,19 +101,19 @@ static inline uint32_t ROR(uint32_t value, uint32_t amount) {
 }
 
 // Implementation of: (bits(N), bit) RRX_C(bits(N) x, bit carry_in)
-static inline uint32_t RRX_C(uint32_t value, uint32_t carry_in, uint32_t &carry_out) {
+inline uint32_t RRX_C(uint32_t value, uint32_t carry_in, uint32_t &carry_out) {
 	carry_out = get_bit(value, 0);
 	return get_bit(carry_in, 0) << 31 | get_bits(value, 31, 1);
 }
 
 // Implementation of: bits(N) RRX(bits(N) x, bit carry_in)
-static inline uint32_t RRX(uint32_t value, uint32_t carry_in) {
+inline uint32_t RRX(uint32_t value, uint32_t carry_in) {
 	uint32_t unused;
 	return RRX_C(value, carry_in, unused);
 }
 
 // Implementation of: (SRType, integer) DecodeImmShift(bits(2) type, bits(5) imm5)
-static inline std::tuple<uint32_t, uint32_t> DecodeImmShift(uint32_t type, uint32_t imm5) {
+inline std::tuple<uint32_t, uint32_t> DecodeImmShift(uint32_t type, uint32_t imm5) {
 	switch (type) {
 		case 0:
 			return std::tuple<uint32_t, uint32_t>(Disassembler::SRType_LSL, imm5);
@@ -133,7 +133,7 @@ static inline std::tuple<uint32_t, uint32_t> DecodeImmShift(uint32_t type, uint3
 }
 
 // Implementation of: SRType DecodeRegShift(bits(2) type)
-static inline Disassembler::shift_t DecodeRegShift(uint32_t type) {
+inline Disassembler::shift_t DecodeRegShift(uint32_t type) {
 	switch (type) {
 		default:
 			return Disassembler::SRType_Invalid;
@@ -149,10 +149,8 @@ static inline Disassembler::shift_t DecodeRegShift(uint32_t type) {
 }
 
 // Implementation of: (bits(N), bit) Shift_C(bits(N) value, SRType type, integer amount, bit carry_in)
-static inline uint32_t Shift_C(uint32_t value, Disassembler::shift_t type, uint32_t amount, uint32_t carry_in,
+inline uint32_t Shift_C(uint32_t value, Disassembler::shift_t type, uint32_t amount, uint32_t carry_in,
 		uint32_t &carry_out) {
-	assert(!(type == Disassembler::SRType_RRX && amount != 1));
-
 	if (amount == 0) {
 		carry_out = carry_in;
 		return value;
@@ -176,20 +174,20 @@ static inline uint32_t Shift_C(uint32_t value, Disassembler::shift_t type, uint3
 			result = RRX_C(value, carry_in, carry_out);
 			break;
 		default:
-			assert(0 && "Invalid shift type.");
+			abort();
 	}
 
 	return result;
 }
 
 // Implementation of: bits(N) Shift(bits(N) value, SRType type, integer amount, bit carry_in)
-static inline uint32_t Shift(uint32_t value, Disassembler::shift_t type, uint32_t amount, uint32_t carry_in) {
+inline uint32_t Shift(uint32_t value, Disassembler::shift_t type, uint32_t amount, uint32_t carry_in) {
 	uint32_t unused;
 	return Shift_C(value, type, amount, carry_in, unused);
 }
 
 // Implementation of: (bits(32), bit) ARMExpandImm_C(bits(12) imm12, bit carry_in)
-static inline std::tuple<uint32_t, uint32_t> ARMExpandImm_C(uint32_t imm12, uint32_t carry_in) {
+inline std::tuple<uint32_t, uint32_t> ARMExpandImm_C(uint32_t imm12, uint32_t carry_in) {
 	uint32_t unrotated_value = get_bits(imm12, 7, 0);
 	uint32_t carry_out;
 	uint32_t imm32 = Shift_C(unrotated_value, Disassembler::SRType_ROR, 2 * get_bits(imm12, 11, 8), carry_in,
@@ -198,38 +196,19 @@ static inline std::tuple<uint32_t, uint32_t> ARMExpandImm_C(uint32_t imm12, uint
 }
 
 // Implementation of: bits(32) ARMExpandImm(bits(12) imm12)
-static inline uint32_t ARMExpandImm(uint32_t imm12) {
+inline uint32_t ARMExpandImm(uint32_t imm12) {
 	// APSR.C argument to following function call does not affect the imm32 result.
 	uint32_t carry_in = 0;
 	return std::get<0>(ARMExpandImm_C(imm12, carry_in));
 }
 
-static uint32_t ror(uint32_t val, uint32_t N, uint32_t shift) {
+inline uint32_t ror(uint32_t val, uint32_t N, uint32_t shift) {
 	uint32_t m = shift % N;
 	return (val >> m) | (val << (N - m));
 }
 
-// if imm12<11:10> == '00' then
-// 	case imm12<9:8> of
-// 		when '00'
-// 			imm32 = ZeroExtend(imm12<7:0>, 32);
-// 		when '01'
-// 			if imm12<7:0> == '00000000' then UNPREDICTABLE;
-// 			imm32 = '00000000' : imm12<7:0> : '00000000' : imm12<7:0>;
-// 		when '10'
-// 			if imm12<7:0> == '00000000' then UNPREDICTABLE;
-// 			imm32 = imm12<7:0> : '00000000' : imm12<7:0> : '00000000';
-// 		when '11'
-// 			if imm12<7:0> == '00000000' then UNPREDICTABLE;
-// 			imm32 = imm12<7:0> : imm12<7:0> : imm12<7:0> : imm12<7:0>; carry_out = carry_in;
-// else
-// 	unrotated_value = ZeroExtend('1':imm12<6:0>, 32);
-// 	(imm32, carry_out) = ROR_C(unrotated_value, UInt(imm12<11:7>));
-
-// return (imm32, carry_out);
-
 // (imm32, carry_out) = ThumbExpandImm_C(imm12, carry_in)
-static inline std::tuple<uint32_t, uint32_t> ThumbExpandImm_C(uint32_t imm12, uint32_t carry_in) {
+inline std::tuple<uint32_t, uint32_t> ThumbExpandImm_C(uint32_t imm12, uint32_t carry_in) {
 	uint32_t imm12_7_0 = get_bits(imm12, 7, 0);
 	uint32_t imm12_9_8 = get_bits(imm12, 9, 8);
 	uint32_t imm12_11_10 = get_bits(imm12, 11, 10);
@@ -266,12 +245,12 @@ static inline std::tuple<uint32_t, uint32_t> ThumbExpandImm_C(uint32_t imm12, ui
 	return std::tuple<uint32_t, uint32_t>(imm32, carry_out);
 }
 
-static inline uint32_t ThumbExpandImm(uint32_t opcode) {
+inline uint32_t ThumbExpandImm(uint32_t opcode) {
 	uint32_t carry_in = 0;
 	return std::get<0>(ThumbExpandImm_C(opcode, carry_in));
 }
 
-static uint64_t Replicate(uint64_t bit, int N) {
+inline uint64_t Replicate(uint64_t bit, int N) {
 	if (!bit)
 		return 0;
 
@@ -281,22 +260,19 @@ static uint64_t Replicate(uint64_t bit, int N) {
 	return (1ULL << N) - 1;
 }
 
-static uint64_t Replicate32x2(uint64_t bits32) {
-	assert(0 == (bits32 & ~0xFFFFFFFFULL));
+inline uint64_t Replicate32x2(uint64_t bits32) {
 	return (bits32 << 32) | bits32;
 }
 
-static uint64_t Replicate16x4(uint64_t bits16) {
-	assert(0 == (bits16 & ~0xFFFFULL));
+inline uint64_t Replicate16x4(uint64_t bits16) {
 	return Replicate32x2((bits16 << 16) | bits16);
 }
 
-static uint64_t Replicate8x8(uint64_t bits8) {
-	assert(0 == (bits8 & ~0xFFULL));
+inline uint64_t Replicate8x8(uint64_t bits8) {
 	return Replicate16x4((bits8 << 8) | bits8);
 }
 
-static uint64_t VFPExpandImm(uint64_t imm8, unsigned N) {
+inline uint64_t VFPExpandImm(uint64_t imm8, unsigned N) {
 	unsigned E = ((N == 32) ? 8 : 11) - 2; // E in {6, 9}
 	unsigned F = N - E - 1; // F in {25, 54}
 	uint64_t imm8_6 = (imm8 >> 6) & 1; // imm8<6>
@@ -308,7 +284,7 @@ static uint64_t VFPExpandImm(uint64_t imm8, unsigned N) {
 }
 
 // Implementation of: bits(64) AdvSIMDExpandImm(bit op, bits(4) cmode, bits(8) imm8)
-static inline uint64_t AdvSIMDExpandImm(unsigned op, unsigned cmode, unsigned imm8) {
+inline uint64_t AdvSIMDExpandImm(unsigned op, unsigned cmode, unsigned imm8) {
 	uint64_t imm64 = 0;
 	bool testimm8 = false;
 
@@ -386,7 +362,7 @@ static inline uint64_t AdvSIMDExpandImm(unsigned op, unsigned cmode, unsigned im
 			}
 			break;
 		default:
-			assert(0);
+			abort();
 	}
 
 	return imm64;
