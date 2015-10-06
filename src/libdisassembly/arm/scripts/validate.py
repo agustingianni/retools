@@ -77,4 +77,11 @@ def validate_binary_numbers():
                     print line, "// should have ", res
                     print "//", "=" * 80
 
-validate_binary_numbers()
+def validate_thumb_and_conditional():
+    from ARMv7DecodingSpec import instructions
+    for ins in instructions:
+        if "T" in ins["encoding"] and "<c>" in ins["format"] and not ("cond#4" in ins["pattern"]):
+            print ins["name"]
+            print ins["encoding"]
+            print ins["format"]
+            print "-" * 80
