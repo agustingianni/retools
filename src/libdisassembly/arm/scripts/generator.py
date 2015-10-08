@@ -363,16 +363,18 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
             for r in ret:
                 fd.write("    %s\n" % r)
 
-            fd.write("#ifdef DEBUG_DECODER\n")
-            fd.write("    std::cout << \"opcode=\" << std::hex << opcode << \" decoder=%s\" << std::endl;\n" % decoder_name)
+            # Make the disassembler print the details about an instruction when decoding.
+            if DEBUG:
+                fd.write("#ifdef DEBUG_DECODER\n")
+                fd.write("    std::cout << \"opcode=\" << std::hex << opcode << \" decoder=%s\" << std::endl;\n" % decoder_name)
 
-            # Get the names of the decoded variables.
-            decoded_vars = map(lambda y: y.split("#")[0], filter(lambda x: x.count("#"), instruction["pattern"].split()))
-            fd.write("    std::cout << ")
-            for decoded_var in decoded_vars:
-                fd.write('''"%s=" << %s << " " << ''' % (decoded_var, decoded_var))
-            fd.write("std::endl;\n")
-            fd.write("#endif\n")
+                # Get the names of the decoded variables.
+                decoded_vars = map(lambda y: y.split("#")[0], filter(lambda x: x.count("#"), instruction["pattern"].split()))
+                fd.write("    std::cout << ")
+                for decoded_var in decoded_vars:
+                    fd.write('''"%s=" << %s << " " << ''' % (decoded_var, decoded_var))
+                fd.write("std::endl;\n")
+                fd.write("#endif\n")
 
             ret = ARMv7Parser.program.parseString(decoder, parseAll=True)
             visitor = ARMv7Parser.CPPTranslatorVisitor(input_vars, decoder_name, instruction)
