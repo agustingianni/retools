@@ -12,7 +12,7 @@ from collections import namedtuple
 debug = False
 
 from ARMv7DecodingSpec import instructions
-from generator import get_mask, get_value, get_size
+from utils import get_mask, get_value, get_size
 
 def get_decoder_from_see(orig_instruction, see_msg):
     found = False
@@ -258,7 +258,7 @@ class If(BaseNode):
         self.else_statements = else_statements
 
     def __str__(self):
-        return "If: %s %s %s" % (str(self.condition), str(self.if_statements), str(self.else_statements))
+        return "If: %s %s %s" % (str(self.condition), map(str, self.if_statements), map(str, self.else_statements))
 
 
 class BitExtraction(BaseNode):
@@ -1318,6 +1318,16 @@ def decode_if(x):
     assert "then" == x[2]
     return If(x[1], map(lambda y: y[0], list(x[3:])), [])
 
+def decode_if_no_else(x):
+    assert "if" == x[0]
+    assert "then" == x[2]
+    assert "endif" == x[4]
+
+    cond, if_st = x[1], map(lambda y: y[0], x[3])
+    assert type(if_st) == type([])
+    
+    return If(cond, if_st, [])
+
 def decode_if_else(x):
     assert "if" == x[0]
     assert "then" == x[2]
@@ -1497,8 +1507,11 @@ single_line_if_statement = (IF + expr + THEN + inline_statement_list).setParseAc
 multiline_if_statement = (IF + expr + THEN + ZeroOrMore(EOL) + Group(statement_list) + ELSE + ZeroOrMore(EOL) + Group(statement_list) + ENDIF).setParseAction(
     decode_if_else)
 
+# This sucks. At this point I've continued with the grammar without caring too much.    
+multiline_if_statement_no_else = (IF + expr + THEN + ZeroOrMore(EOL) + Group(statement_list) + ENDIF).setParseAction(decode_if_no_else)
+
 # Two types of if statements.
-if_statement = single_line_if_statement ^ multiline_if_statement
+if_statement = single_line_if_statement ^ multiline_if_statement ^ multiline_if_statement_no_else
 
 # Define a case statement.
 otherwise_case = Group(OTHERWISE + Optional(EOL) + Group(statement_list))
