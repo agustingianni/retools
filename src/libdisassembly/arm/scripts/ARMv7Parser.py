@@ -84,6 +84,7 @@ DO = Keyword("do")
 REPEAT = Keyword("repeat")
 UNTIL = Keyword("until")
 FOR = Keyword("for")
+ENDFOR = Keyword("endfor")
 TO = Keyword("to")
 CASE = Keyword("case")
 ENDCASE = Keyword("endcase")
@@ -269,6 +270,15 @@ class BitExtraction(BaseNode):
     def __str__(self):
         return "BitExtraction: %s %s" % (str(self.identifier), str(self.range))
 
+class ArrayAccess(BaseNode):
+    def __init__(self, name, expr1, expr2):
+        self.name = name
+        self.expr1 = expr1
+        self.expr2 = expr2
+
+    def __str__(self):
+        return "ArrayAccess: %s %s" % (str(self.name), str(self.expr1), str(self.expr2))
+
 
 class MaskedBinary(BaseNode):
     def __init__(self, value):
@@ -402,6 +412,9 @@ class Visitor(object):
 
         elif type(node) is BitExtraction:
             r = self.accept_BitExtraction(node)
+
+        elif type(node) is ArrayAccess:
+            r = self.accept_ArrayAccess(node)
 
         elif type(node) is MaskedBinary:
             r = self.accept_MaskedBinary(node)
@@ -1345,6 +1358,17 @@ def decode_if_else(x):
 def decode_bit_extract(x):
     return BitExtraction(x[0][0], list(x[0][1:]))
 
+def decode_array_access(x):
+    if len(x[0]) == 2:
+        name, expr1 = x[0]
+        expr2 = None
+        return ArrayAccess(name, expr1, expr2)
+
+    elif len(x[0]) == 3:
+        name, expr1, expr2 = x[0]
+        return ArrayAccess(name, expr1, expr2)
+
+    print x[0]
 
 def decode_masked_base2(x):
     return MaskedBinary(x[0])
@@ -1427,15 +1451,18 @@ procedure_call_expr = Forward()
 # Forward declaration of a bit extraction call.
 bit_extract_expr = Forward()
 
+# Forward declaration of a array access expression.
+array_access_expr = Forward()
+
 # Forward declaration of an if expression.
 if_expression = Forward()
 
 # List: (a, b)
-list_elements = delimitedList(boolean ^ identifier ^ number ^ ignored ^ procedure_call_expr)
+list_elements = delimitedList(boolean ^ identifier ^ number ^ ignored ^ procedure_call_expr ^ array_access_expr)
 list_expr = (LPAR + list_elements + RPAR).setParseAction(decode_list)
 
 # Atoms are the most basic elements of expressions.
-atom = boolean ^ identifier ^ number ^ enum ^ ignored ^ procedure_call_expr ^ bit_extract_expr ^ if_expression ^ list_expr
+atom = boolean ^ identifier ^ number ^ enum ^ ignored ^ procedure_call_expr ^ bit_extract_expr ^ if_expression ^ list_expr ^ array_access_expr
 
 # Define the order of precedence.
 expr = operatorPrecedence(atom, [
@@ -1465,10 +1492,28 @@ procedure_argument = operatorPrecedence(atom, [
     (bit_eor_operator, 2, opAssoc.LEFT, decode_binary),
 ])
 
+array_index_expr = operatorPrecedence(atom, [
+    (add_sub_operator, 2, opAssoc.LEFT, decode_binary),
+    (shift_operator, 2, opAssoc.LEFT, decode_binary),
+])
+
 # Define a bit extraction expression.
 bit_extract_expr <<= Group(
-    identifier + LANGLE + (identifier ^ number) + Optional(COLON + (identifier ^ number)) + RANGLE).setParseAction(
-    decode_bit_extract)
+    (identifier ^ array_access_expr) +
+    LANGLE +
+    (identifier ^ number) +
+    Optional(COLON + (identifier ^ number)) + 
+    RANGLE
+).setParseAction(decode_bit_extract)
+
+# Define a array access expression
+array_access_expr <<= Group(
+    identifier +
+    LBRACK +
+    (identifier ^ number) +
+    Optional(COMMA + (identifier ^ number)) +
+    RBRACK
+).setParseAction(decode_array_access)
 
 # Define a procedure call.
 procedure_arguments = delimitedList(procedure_argument)
@@ -1504,8 +1549,7 @@ inline_statement_list = OneOrMore(statement)
 single_line_if_statement = (IF + expr + THEN + inline_statement_list).setParseAction(decode_if)
 
 # Parse: if <cond> then <statements> else <statements> endif
-multiline_if_statement = (IF + expr + THEN + ZeroOrMore(EOL) + Group(statement_list) + ELSE + ZeroOrMore(EOL) + Group(statement_list) + ENDIF).setParseAction(
-    decode_if_else)
+multiline_if_statement = (IF + expr + THEN + ZeroOrMore(EOL) + Group(statement_list) + ELSE + ZeroOrMore(EOL) + Group(statement_list) + ENDIF).setParseAction(decode_if_else)
 
 # This sucks. At this point I've continued with the grammar without caring too much.    
 multiline_if_statement_no_else = (IF + expr + THEN + ZeroOrMore(EOL) + Group(statement_list) + ENDIF).setParseAction(decode_if_no_else)
@@ -1519,13 +1563,13 @@ case_list = Group(OneOrMore(Group(WHEN + expr + Optional(EOL) + Group(statement_
 case_statement = (CASE + expr + OF + EOL + case_list + ENDCASE).setParseAction(decode_case)
 
 # Repeat until statement.
-repeat_until_statement = (REPEAT + statement_list + UNTIL + expr).setParseAction(decode_repeat_until)
+repeat_until_statement = (REPEAT + EOL + statement_list + UNTIL + expr).setParseAction(decode_repeat_until)
 
 # While statement.
 while_statement = (WHILE + expr + DO + statement_list).setParseAction(decode_while)
 
 # For statement.
-for_statement = (FOR + assignment_statement + TO + expr + statement_list).setParseAction(decode_for)
+for_statement = (FOR + assignment_statement + TO + expr + EOL + statement_list + ENDFOR).setParseAction(decode_for)
 
 # Collect all statements. We have two kinds, the ones that end with a semicolon and other statements that do not.
 statement <<= Group(((undefined_statement ^ unpredictable_statement ^ see_statement ^
