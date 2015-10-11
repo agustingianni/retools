@@ -12,24 +12,6 @@ def instruction_decoder_name(ins_name):
     ins_name = ins_name.rstrip("_")
     return "interpret_" + ins_name.lower()
 
-test_code = \
-"""if ConditionPassed() then
-    EncodingSpecificOperations();
-    (result, carry, overflow) = AddWithCarry(R[n], imm32, APSR.C);
-    if d == 15 then
-        ALUWritePC(result);
-    else
-        R[d] = result;
-    endif
-
-    if setflags then
-        APSR.N = result<31>;
-        APSR.Z = IsZeroBit(result);
-        APSR.C = carry;
-        APSR.V = overflow;
-    endif
-endif"""
-
 def create_interpreter(interpreter_name_h, interpreter_name_cpp):
     """
     Create ARMInterpreter.h and ARMInterpreter.cpp.
@@ -58,17 +40,12 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp):
         fd.write(header)
         i = 0
         for instruction in instructions:
-            if i < 0:
-                i += 1
-                continue
-
             ins_name = instruction["name"]
             logging.info("Doing instruction '%s'" % ins_name)
 
             fd.write("bool ARMInterpreter::%s(ARMContext &ctxt) {\n" % instruction_decoder_name(ins_name))
             
             ins_operation = instruction["operation"]
-            # ins_operation = test_code
 
             # Remove empty lines, because I suck at parsing.
             ins_operation = os.linesep.join([s for s in ins_operation.splitlines() if not re.match(r'^\s*$', s)])
@@ -76,14 +53,10 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp):
             try:
                 ret = ARMv7Parser.program.parseString(ins_operation, parseAll=True)
             except Exception, e:
-                print e
                 print "-" * 80
                 print ins_name
                 print "-" * 80
-
                 print "Error: col=%d loc=%d parserElement=%s" % (e.col, e.loc, e.parserElement)
-                print "    markInputline -> " + repr(e.markInputline())
-                print
 
                 class bcolors:
                     HEADER = '\033[95m'
@@ -107,7 +80,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp):
 
                 print "-" * 80
                 print e
-                print "# ", i, " of ", len(instructions)
+                print "# ", i, " of ", len(instructions), " to go ", len(instructions) - i
                 return False
 
             i += 1
@@ -115,8 +88,6 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp):
             fd.write("    return true;\n")
             fd.write("};\n")
             fd.write("\n")
-            
-            # return True
             
     return True
 
