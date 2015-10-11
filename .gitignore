@@ -6,4 +6,8 @@
 .settings/
 retools
 src/libdisassembly/arm/gen/
+src/libemulation/arm/gen/
 build
+retools.sublime-*
+src/libbinary/macho/testfiles/
+deps/
