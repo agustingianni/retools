@@ -271,13 +271,14 @@ class BitExtraction(BaseNode):
         return "BitExtraction: %s %s" % (str(self.identifier), str(self.range))
 
 class ArrayAccess(BaseNode):
-    def __init__(self, name, expr1, expr2):
+    def __init__(self, name, expr1, expr2, expr3):
         self.name = name
         self.expr1 = expr1
         self.expr2 = expr2
+        self.expr3 = expr3
 
     def __str__(self):
-        return "ArrayAccess: %s %s" % (str(self.name), str(self.expr1), str(self.expr2))
+        return "ArrayAccess: %s %s %s %s" % (str(self.name), str(self.expr1), str(self.expr2), str(self.expr3))
 
 
 class MaskedBinary(BaseNode):
@@ -1362,13 +1363,19 @@ def decode_array_access(x):
     if len(x[0]) == 2:
         name, expr1 = x[0]
         expr2 = None
-        return ArrayAccess(name, expr1, expr2)
+        expr3 = None
+        return ArrayAccess(name, expr1, expr2, expr3)
 
     elif len(x[0]) == 3:
         name, expr1, expr2 = x[0]
-        return ArrayAccess(name, expr1, expr2)
+        expr3 = None
+        return ArrayAccess(name, expr1, expr2, expr3)
 
-    print x[0]
+    elif len(x[0]) == 4:
+        name, expr1, expr2, expr3 = x[0]
+        return ArrayAccess(name, expr1, expr2, expr3)
+
+    print "DEBUG:", x[0], len(x[0])
 
 def decode_masked_base2(x):
     return MaskedBinary(x[0])
@@ -1378,7 +1385,7 @@ def decode_list(x):
     return List(x[0:])
 
 # Define the boolean values.
-boolean = (TRUE ^ FALSE).setParseAction(lambda x: BooleanValue(x[0] == "TRUE"))
+boolean = MatchFirst([TRUE, FALSE]).setParseAction(lambda x: BooleanValue(x[0] == "TRUE"))
 
 # An identifier is a name.
 identifier = Word(alphas + "_", alphanums + "_.").setParseAction(lambda x: Identifier(x[0]))
@@ -1430,16 +1437,16 @@ comment = cppStyleComment
 
 # Define an integer for base 2, 10 and 16 and make sure it is 32 bits long.
 base_2_masked = (QUOTE + Word("01x") + QUOTE).setParseAction(decode_masked_base2)
-base2_integer = (Literal("'") + Word("01") + Literal("'")).setParseAction(
-    lambda s, l, t: NumberValue(int(t[1], 2) & 0xffffffff, len(t[1])))
+base2_integer = (Literal("'") + Word("01") + Literal("'")).setParseAction(lambda s, l, t: NumberValue(int(t[1], 2) & 0xffffffff, len(t[1])))
 base10_integer = Word(initChars=string.digits).setParseAction(lambda s, l, t: NumberValue(int(t[0]) & 0xffffffff))
 base16_integer = Regex("0x[a-fA-F0-9]+").setParseAction(lambda s, l, t: NumberValue(int(t[0], 16) & 0xffffffff))
 
 # Join all the supported numbers.
-number = (base2_integer ^ base10_integer ^ base16_integer ^ base_2_masked)
+number = MatchFirst([base16_integer, base2_integer, base10_integer, base_2_masked])
 
 # Enumeration ::= {var0, 1, 2} | "01x"
-enum_elements = delimitedList(identifier ^ number)
+enum_atom = MatchFirst([identifier, number])
+enum_elements = delimitedList(enum_atom)
 enum = Group(LBRACE + enum_elements + RBRACE).setParseAction(lambda x: Enumeration(x[0][:])) ^ base_2_masked
 
 # Ignore '-' value.
@@ -1458,11 +1465,12 @@ array_access_expr = Forward()
 if_expression = Forward()
 
 # List: (a, b)
-list_elements = delimitedList(boolean ^ identifier ^ number ^ ignored ^ procedure_call_expr ^ array_access_expr)
+list_atom = MatchFirst([ignored, procedure_call_expr, array_access_expr, boolean, identifier, number])
+list_elements = delimitedList(list_atom)
 list_expr = (LPAR + list_elements + RPAR).setParseAction(decode_list)
 
 # Atoms are the most basic elements of expressions.
-atom = boolean ^ identifier ^ number ^ enum ^ ignored ^ procedure_call_expr ^ bit_extract_expr ^ if_expression ^ list_expr ^ array_access_expr
+atom = MatchFirst([procedure_call_expr,bit_extract_expr,if_expression,list_expr,array_access_expr,boolean,identifier,number,enum,ignored])
 
 # Define the order of precedence.
 expr = operatorPrecedence(atom, [
@@ -1475,6 +1483,7 @@ expr = operatorPrecedence(atom, [
     (lt_lte_gt_gte_operator, 2, opAssoc.LEFT, decode_binary),
     (eq_neq_operator, 2, opAssoc.LEFT, decode_binary),
     (bit_and_operator, 2, opAssoc.LEFT, decode_binary),
+    (bit_or_operator, 2, opAssoc.LEFT, decode_binary),
     (bit_eor_operator, 2, opAssoc.LEFT, decode_binary),
     (logical_and_operator, 2, opAssoc.LEFT, decode_binary),
     (logical_or_operator, 2, opAssoc.LEFT, decode_binary),
@@ -1492,17 +1501,18 @@ procedure_argument = operatorPrecedence(atom, [
     (bit_eor_operator, 2, opAssoc.LEFT, decode_binary),
 ])
 
-array_index_expr = operatorPrecedence(atom, [
-    (add_sub_operator, 2, opAssoc.LEFT, decode_binary),
-    (shift_operator, 2, opAssoc.LEFT, decode_binary),
+# Operations being used by an array indexing expression.
+array_index_atom = MatchFirst([array_access_expr, identifier, number])
+array_index_expr = operatorPrecedence(array_index_atom, [
+    (Literal("* /"), 2, opAssoc.LEFT, decode_binary),
+    (Literal("+ -"), 2, opAssoc.LEFT, decode_binary),
 ])
 
 # Define a bit extraction expression.
 bit_extract_expr <<= Group(
-    (identifier ^ array_access_expr) +
+    MatchFirst([array_access_expr, identifier]) +
     LANGLE +
-    (identifier ^ number) +
-    Optional(COLON + (identifier ^ number)) + 
+    delimitedList(array_index_atom, delim=":") + 
     RANGLE
 ).setParseAction(decode_bit_extract)
 
@@ -1510,8 +1520,7 @@ bit_extract_expr <<= Group(
 array_access_expr <<= Group(
     identifier +
     LBRACK +
-    (identifier ^ number) +
-    Optional(COMMA + (identifier ^ number)) +
+    delimitedList(array_index_expr) + 
     RBRACK
 ).setParseAction(decode_array_access)
 
@@ -1555,7 +1564,7 @@ multiline_if_statement = (IF + expr + THEN + ZeroOrMore(EOL) + Group(statement_l
 multiline_if_statement_no_else = (IF + expr + THEN + ZeroOrMore(EOL) + Group(statement_list) + ENDIF).setParseAction(decode_if_no_else)
 
 # Two types of if statements.
-if_statement = single_line_if_statement ^ multiline_if_statement ^ multiline_if_statement_no_else
+if_statement = MatchFirst([multiline_if_statement, multiline_if_statement_no_else, single_line_if_statement])
 
 # Define a case statement.
 otherwise_case = Group(OTHERWISE + Optional(EOL) + Group(statement_list))
@@ -1572,10 +1581,12 @@ while_statement = (WHILE + expr + DO + statement_list).setParseAction(decode_whi
 for_statement = (FOR + assignment_statement + TO + expr + EOL + statement_list + ENDFOR).setParseAction(decode_for)
 
 # Collect all statements. We have two kinds, the ones that end with a semicolon and other statements that do not.
-statement <<= Group(((undefined_statement ^ unpredictable_statement ^ see_statement ^
-                      implementation_defined_statement ^ subarchitecture_defined_statement ^ return_statement ^
-                      procedure_call_statement ^ assignment_statement) + SEMI) ^
-                    if_statement ^ repeat_until_statement ^ while_statement ^ for_statement ^ case_statement)
+t1 = MatchFirst([undefined_statement, unpredictable_statement, see_statement, \
+    implementation_defined_statement, subarchitecture_defined_statement, \
+    return_statement, procedure_call_statement, assignment_statement])
+
+t2 = MatchFirst([if_statement, repeat_until_statement, while_statement, for_statement, case_statement])
+statement <<= Group(MatchFirst([t1 + SEMI, t2]))
 
 # Define a basic program.
 program = statement_list
