@@ -53,10 +53,10 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp):
             try:
                 ret = ARMv7Parser.program.parseString(ins_operation, parseAll=True)
             except Exception, e:
-                print "-" * 80
-                print ins_name
-                print "-" * 80
-                print "Error: col=%d loc=%d parserElement=%s" % (e.col, e.loc, e.parserElement)
+                logging.error("-" * 80)
+                logging.error(ins_name)
+                logging.error("-" * 80)
+                logging.error("Error: col=%d loc=%d parserElement=%s" % (e.col, e.loc, e.parserElement))
 
                 class bcolors:
                     HEADER = '\033[95m'
@@ -71,16 +71,16 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp):
                 j = 1
                 for line in ins_operation.splitlines():
                     if j == e.lineno:
-                        print bcolors.OKGREEN + ("%2d: %s" % (j, line[:e.col-1])) + bcolors.FAIL + ("%s" % (line[e.col-1:])) + bcolors.ENDC
+                        logging.error(bcolors.OKGREEN + ("%2d: %s" % (j, line[:e.col-1])) + bcolors.FAIL + ("%s" % (line[e.col-1:])) + bcolors.ENDC)
                     
                     else:    
-                        print "%2d: %s" % (j, line)
+                        logging.error("%2d: %s" % (j, line))
 
                     j += 1
 
-                print "-" * 80
-                print e
-                print "# ", i, " of ", len(instructions), " to go ", len(instructions) - i
+                logging.error("-" * 80)
+                logging.error(e)
+                logging.error("# ", i, " of ", len(instructions), " to go ", len(instructions) - i)
                 return False
 
             i += 1
