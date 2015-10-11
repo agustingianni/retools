@@ -4749,8 +4749,8 @@ if ConditionPassed() then
     for e = 0 to elements-1
         ns1 = n >> 1;
         ms1 = m >> 1;
-        result = Elem[Qin[ns1],e,2*esize] + Elem[Qin[ms1],e,2*esize];
-        Elem[D[d],e,esize] = result<2*esize-1:esize>;
+        result = Elem[Qin[ns1], e, 2 * esize] + Elem[Qin[ms1], e, 2 * esize];
+        Elem[D[d],e,esize] = result<2 * esize - 1:esize>;
     endfor
 endif
 """
@@ -4762,6 +4762,7 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
     for e = 0 to elements-1
         if is_vaddw then
+            ns1 = n >> 1;
             op1 = Int(Elem[Qin[n>>1],e,2*esize], unsigned);
         else
             op1 = Int(Elem[Din[n],e,esize], unsigned);
@@ -4808,15 +4809,14 @@ endif
 }, { 
     "name" : "VBIF, VBIT, VBSL",
     "operation" : """
-enumeration VBitOps {VBitOps_VBIF, VBitOps_VBIT, VBitOps_VBSL};
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
     for r = 0 to regs-1
         case operation of
-            when VBitOps_VBIF D[d+r] = (D[d+r] AND D[m+r]) OR (D[n+r] AND NOT(D[m+r]);
-            when VBitOps_VBIT D[d+r] = (D[n+r] AND D[m+r]) OR (D[d+r] AND NOT(D[m+r]);
-            when VBitOps_VBSL D[d+r] = (D[n+r] AND D[d+r]) OR (D[m+r] AND NOT(D[d+r]);
+            when VBitOps_VBIF D[d+r] = (D[d+r] AND D[m+r]) OR (D[n+r] AND NOT(D[m+r]));
+            when VBitOps_VBIT D[d+r] = (D[n+r] AND D[m+r]) OR (D[d+r] AND NOT(D[m+r]));
+            when VBitOps_VBSL D[d+r] = (D[n+r] AND D[d+r]) OR (D[m+r] AND NOT(D[d+r]));
         endcase
     endfor
 endif
@@ -4863,7 +4863,7 @@ endif
 }, { 
     "name" : "VCGE (register)",
     "operation" : """
-if ConditionPassed()
+if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
     for r = 0 to regs-1
@@ -4903,7 +4903,6 @@ endif
 }, { 
     "name" : "VCGT (register)",
     "operation" : """
-enumeration VCGTtype {VCGTtype_signed, VCGTtype_unsigned, VCGTtype_fp};
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
@@ -5213,11 +5212,6 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    if quadword_operation then
-        Q[d>>1] = (Q[m>>1]:Q[n>>1])<position+127:position>;
-    else
-        D[d] = (D[m]:D[n])<position+63:position>;
-    endif
 endif
 """
 }, { 
@@ -5287,8 +5281,8 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
     NullCheckIfThumbEE(n);
     address = R[n];
-    if (address MOD alignment) != 0
-        then GenerateAlignmentException();
+    if (address MOD alignment) != 0 then
+        GenerateAlignmentException();
     endif
 
     if wback then
@@ -5856,7 +5850,8 @@ if ConditionPassed() then
             if polynomial then
                 product = PolynomialMult(op1,op2);
             else
-                product = (op1val*op2val)<2*esize-1:0>;
+                tmp = (op1val*op2val);
+                product = tmp<2*esize-1:0>;
             endif
 
             if long_destination then
@@ -5906,10 +5901,11 @@ if ConditionPassed() then
             if floating_point then
                 Elem[D[d+r],e,esize] = FPMul(op1, op2, FALSE);
             else
+                tmp = (op1val*op2val);
                 if long_destination then
-                    Elem[Q[d>>1],e,2*esize] = (op1val*op2val)<2*esize-1:0>;
+                    Elem[Q[d>>1],e,2*esize] = tmp<2*esize-1:0>;
                 else
-                    Elem[D[d+r],e,esize] = (op1val*op2val)<esize-1:0>;
+                    Elem[D[d+r],e,esize] = tmp<esize-1:0>;
                 endif
             endif
         endfor
@@ -5970,7 +5966,6 @@ endif
 }, { 
     "name" : "VNMLA, VNMLS, VNMUL",
     "operation" : """
-enumeration VFPNegMul {VFPNegMul_VNMLA, VFPNegMul_VNMLS, VFPNegMul_VNMUL};
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckVFPEnabled(TRUE);
@@ -6052,7 +6047,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    bits(64) dest;
+    dest = 0;
     h = elements/2;
     for e = 0 to h-1
         Elem[dest,e,esize] = Elem[D[n],2*e,esize] + Elem[D[n],2*e+1,esize];
@@ -6068,7 +6063,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    bits(64) dest;
+    dest = 0;
     h = elements/2;
     for e = 0 to h-1
         Elem[dest,e,esize] = FPAdd(Elem[D[n],2*e,esize], Elem[D[n],2*e+1,esize], FALSE);
@@ -6103,7 +6098,7 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
     
-    bits(64) dest;
+    dest = 0;
     h = elements/2;
     for e = 0 to h-1
         op1 = Int(Elem[D[n],2*e,esize], unsigned);
@@ -6125,7 +6120,7 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
     
-    bits(64) dest;
+    dest = 0;
     h = elements/2;
     for e = 0 to h-1
         op1 = Elem[D[n],2*e,esize];
@@ -6253,6 +6248,7 @@ if ConditionPassed() then
         if sat1 || sat2 then
             FPSCR.QC = '1';
         endif
+    endfor
 endif
 """
 }, { 
@@ -6460,6 +6456,7 @@ if ConditionPassed() then
         if sat then
             FPSCR.QC = '1';
         endif
+    endfor
 endif
 """
 }, { 
@@ -6533,7 +6530,7 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
     
-    bits(64) dest;
+    dest = 0;
     for r = 0 to regs-1
         for e = 0 to elements-1
             e_bits = e<esize-1:0>;
@@ -6863,13 +6860,22 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
     NullCheckIfThumbEE(n);
     address = R[n];
-    if (address MOD alignment) != 0 then GenerateAlignmentException();
-    if wback then R[n] = R[n] + (if register_index then R[m] else 16*regs);
+
+    if (address MOD alignment) != 0 then
+        GenerateAlignmentException();
+    endif
+
+    if wback then
+        R[n] = R[n] + (if register_index then R[m] else 16*regs);
+    endif
+
     for r = 0 to regs-1
-    for e = 0 to elements-1
-    MemU[address,ebytes] = Elem[D[d+r],e,esize];
-    MemU[address+ebytes,ebytes] = Elem[D[d2+r],e,esize];
-    address = address + 2*ebytes;
+        for e = 0 to elements-1
+            MemU[address,ebytes] = Elem[D[d+r],e,esize];
+            MemU[address+ebytes,ebytes] = Elem[D[d2+r],e,esize];
+            address = address + 2*ebytes;
+        endfor
+    endfor
 endif
 """
 }, { 
@@ -6993,15 +6999,20 @@ if ConditionPassed() then
     CheckVFPEnabled(TRUE);
     NullCheckIfThumbEE(n);
     address = if add then R[n] else R[n]-imm32;
-    if wback then R[n] = if add then R[n]+imm32 else R[n]-imm32;
+    if wback then
+        R[n] = if add then R[n]+imm32 else R[n]-imm32;
+    endif
+
     for r = 0 to regs-1
-    if single_regs then
-        MemA[address,4] = S[d+r];
-        address = address+4;
-    else
-    MemA[address,4] = if BigEndian() then D[d+r]<63:32> else D[d+r]<31:0>;
-    MemA[address+4,4] = if BigEndian() then D[d+r]<31:0> else D[d+r]<63:32>;
-    address = address+8;
+        if single_regs then
+            MemA[address,4] = S[d+r];
+            address = address+4;
+        else
+            MemA[address,4] = if BigEndian() then D[d+r]<63:32> else D[d+r]<31:0>;
+            MemA[address+4,4] = if BigEndian() then D[d+r]<31:0> else D[d+r]<63:32>;
+            address = address+8;
+        endif
+    endfor
 endif
 """
 }, { 
@@ -7202,6 +7213,7 @@ if ConditionPassed() then
 endif
 """
 }, { 
+    # XXX: bits(256) zipped_q; & bits(128) zipped_d;
     "name" : "VZIP",
     "operation" : """
 if ConditionPassed() then
@@ -7213,7 +7225,7 @@ if ConditionPassed() then
             Q[d>>1] = UNKNOWN_VALUE;
             Q[m>>1] = UNKNOWN_VALUE;
         else
-            bits(256) zipped_q;
+            zipped_q = 0;
             for e = 0 to (128 DIV esize) - 1
                 Elem[zipped_q,2*e,esize] = Elem[Q[d>>1],e,esize];
                 Elem[zipped_q,2*e+1,esize] = Elem[Q[m>>1],e,esize];
@@ -7227,7 +7239,7 @@ if ConditionPassed() then
             D[d] = UNKNOWN_VALUE;
             D[m] = UNKNOWN_VALUE;
         else
-            bits(128) zipped_d;
+            zipped_d = 0;
             for e = 0 to (64 DIV esize) - 1
                 Elem[zipped_d,2*e,esize] = Elem[D[d],e,esize];
                 Elem[zipped_d,2*e+1,esize] = Elem[D[m],e,esize];
