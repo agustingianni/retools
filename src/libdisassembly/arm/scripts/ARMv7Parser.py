@@ -408,7 +408,7 @@ class Visitor(object):
             r = self.accept_Return(node)
 
         else:
-            raise RuntimeError("Invalid type: %r (%s)" % (type(node), str(node)))
+            raise RuntimeError("Invalid type: '%r' (%s)" % (type(node), str(node)))
 
         return r
 
@@ -743,9 +743,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
     will spit compilable C++ code.
     """
 
-    def __init__(self, input_vars, decoder_name, instruction):
-        self.instruction = instruction
-        self.decoder_name = decoder_name
+    def __init__(self, input_vars):
         self.input_vars = input_vars
         self.var_bit_length = {}
         self.symbol_table = set()
@@ -794,7 +792,6 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         return str(node)
 
     def accept_UnaryExpression(self, node):
-        op_name = {"!": "negate", "-": "minus", "~": "invert", "+": "plus"}
         t = {
             "negate" : "!",
             "minus" : "-",
