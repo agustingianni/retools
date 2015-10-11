@@ -1786,6 +1786,8 @@ template<typename Section_t> bool MachoBinary::parse_prelink_state_kexts(Section
 template<typename Section_t> bool MachoBinary::parse_prelink_text_text(Section_t *lc) {
     // TODO: In this section we have the contents of all the kext's loaded by the kernel.
     auto data = m_data->offset<char>(lc->offset, lc->size);
+    hexdump("SHIT", data, (uint64_t) lc->size);
+    // exit(0);
     return true;
 }
 
