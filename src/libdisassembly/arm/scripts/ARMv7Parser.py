@@ -1470,7 +1470,8 @@ list_elements = delimitedList(list_atom)
 list_expr = (LPAR + list_elements + RPAR).setParseAction(decode_list)
 
 # Atoms are the most basic elements of expressions.
-atom = MatchFirst([procedure_call_expr,bit_extract_expr,if_expression,list_expr,array_access_expr,boolean,identifier,number,enum,ignored])
+atom = MatchFirst([procedure_call_expr, bit_extract_expr, if_expression, list_expr, \
+    array_access_expr, boolean, identifier, number, enum, ignored])
 
 # Define the order of precedence.
 expr = operatorPrecedence(atom, [
@@ -1504,15 +1505,15 @@ procedure_argument = operatorPrecedence(atom, [
 # Operations being used by an array indexing expression.
 array_index_atom = MatchFirst([array_access_expr, identifier, number])
 array_index_expr = operatorPrecedence(array_index_atom, [
-    (Literal("* /"), 2, opAssoc.LEFT, decode_binary),
-    (Literal("+ -"), 2, opAssoc.LEFT, decode_binary),
+    (oneOf("* / %"), 2, opAssoc.LEFT, decode_binary),
+    (oneOf("+ - >>"), 2, opAssoc.LEFT, decode_binary)
 ])
 
 # Define a bit extraction expression.
 bit_extract_expr <<= Group(
     MatchFirst([array_access_expr, identifier]) +
     LANGLE +
-    delimitedList(array_index_atom, delim=":") + 
+    delimitedList(array_index_expr, delim=":") +
     RANGLE
 ).setParseAction(decode_bit_extract)
 
