@@ -7,7 +7,10 @@ project(libemulation CXX)
 add_library(
 	emulation
 	STATIC
-	${CMAKE_SOURCE_DIR}/src/libemulation/
+	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMEmulator.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMEmulator.h
+	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMInterpreter.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMInterpreter.h
 )
 
 # Enable c++11 on the target.
@@ -20,6 +23,7 @@ set_target_properties(
 # Set target specific include directories.
 target_include_directories(
  	emulation
- 	PRIVATE
- 	${CMAKE_SOURCE_DIR}/src/libemulation
+ 	PUBLIC
+ 	${CMAKE_CURRENT_SOURCE_DIR}				# Add the current directory as an include path.
+ 	${CMAKE_CURRENT_SOURCE_DIR}/arm
 )

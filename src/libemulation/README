@@ -1,0 +1,29 @@
+Emulation framework.
+
+- Implement a fast interpreter that we can use when we don't use the JIT.
+	
+	- Each instructions has an ARMInstruction::emulate
+		
+		- ARMContext
+		
+			- ARMMemory
+			- ARMRegisters
+			- ARMState
+			
+		- Helpers
+		
+			- read_register<T>(n, out_value)
+			- write_register<T>(n, in_value)
+			- read_memory<T>(address)
+			- write_memory<T>(address, value)
+			
+	- Decode a basic block.
+	- Execute it with the generated interpreted.
+	
+- Implement a fast JIT engine using asmjit or a custom build thing like xenia.
+
+	- Split the memory layout so the emulator does not interfere with the emulee.
+
+- Run the interpreter and time.
+- Run the jitted version and time.
+- Get the difference between the interpreted code and the jitted.
