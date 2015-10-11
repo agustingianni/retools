@@ -92,7 +92,6 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp):
     return True
 
 def main():
-    #parser = ARMv7Parser.InstructionFormatParser()
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description='Generator.')
