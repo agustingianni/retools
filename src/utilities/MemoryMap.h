@@ -11,12 +11,11 @@
 class MemoryMap {
 private:
     unsigned char *m_memory;
-    size_t m_size;
     unsigned char *m_end;
 
 public:
     MemoryMap(unsigned char *memory, size_t size) :
-            m_memory(memory), m_size(size), m_end(memory + size) {
+            m_memory(memory), m_end(memory + size) {
     }
 
     // Get a sane pointer to a given type and a memory pointer.
