@@ -17,6 +17,11 @@
 
 class ARMDecoder;
 
+#define IS_THUMB_VFP  (opcode) ((opcode & 0xec000e00) == 0xec000a00)
+#define IS_THUMB_SIMD (opcode) ((opcode & 0xef000000) == 0xef000000)
+#define IS_ARM_VFP    (opcode) ((opcode & 0x0c000e00) == 0x0c000a00)
+#define IS_ARM_SIMD   (opcode) ((opcode & 0xfe000000) == 0xf2000000)
+
 namespace Disassembler {
 	typedef struct fpscr {
 			unsigned IOC :1; 	// Invalid Operation cumulative flag
@@ -405,49 +410,26 @@ namespace Disassembler {
 				std::shared_ptr<ARMInstruction> ins(new ARMInstruction());
 				return ins;
 			}
-
+			
 			virtual ~ARMInstruction() {
 			}
 
+			// All the instructions share these fields.
 			std::function<std::string(ARMInstruction *)> m_to_string;
+			ARMEncoding encoding;
+			unsigned opcode;
+			unsigned id;
+			ARMInstrSize ins_size;
+			std::string m_decoded_by;
+			bool m_skip;
+
+			// Maybe this should be a union.
+			uint32_t imm32;
+			uint64_t imm64;
 
 			virtual std::string toString() {
 				return m_to_string ? m_to_string(this) : "to_string_missing";
 			}
-
-			ARMInstrSize ins_size;
-
-			std::string m_decoded_by;
-
-			bool m_skip;
-			unsigned mask;
-			unsigned firstcond;
-			unsigned opcode_;
-			unsigned mode;
-			unsigned read_spsr;
-			unsigned write_spsr;
-			unsigned changemode;
-			unsigned enable;
-			unsigned disable;
-			unsigned affectI;
-			unsigned affectA;
-			unsigned affectF;
-			unsigned SYSm;
-
-			unsigned increment;
-			unsigned wordhigher;
-
-			unsigned id;
-			unsigned reg;
-			unsigned cmode;
-			unsigned U;
-			unsigned T;
-			unsigned E;
-			unsigned Q;
-			unsigned P;
-			unsigned D;
-			unsigned W;
-			unsigned op;
 
 			bool UnalignedAllowed;
 			bool add;
@@ -498,7 +480,6 @@ namespace Disassembler {
 			bool write_g;
 			bool write_nzcvq;
 
-			unsigned B;
 			uint16_t ebytes;
 			uint16_t elements;
 			uint16_t esize;
@@ -506,11 +487,8 @@ namespace Disassembler {
 			uint16_t frac_bits;
 			uint16_t groupsize;
 			uint16_t groupsize_minus_one;
-			uint16_t imm5;
-			uint16_t imm16;
 			uint16_t registers;
-			uint32_t imm32;
-			uint64_t imm64;
+			
 			uint8_t alignment;
 			uint8_t carry;
 			uint8_t cond;
@@ -529,42 +507,60 @@ namespace Disassembler {
 			uint8_t saturate_to;
 			uint8_t shift_amount;
 
-			unsigned coproc;
-			unsigned opc1;
+			unsigned B;
 			unsigned CRd;
-			unsigned CRn;
 			unsigned CRm;
-			unsigned opc2;
-			unsigned option;
-
+			unsigned CRn;
+			unsigned D;
+			unsigned E;
 			unsigned I1;
 			unsigned I2;
-
+			unsigned P;
+			unsigned Q;
+			unsigned SYSm;
+			unsigned T;
+			unsigned U;
+			unsigned W;
+			unsigned a;
+			unsigned affectA;
+			unsigned affectF;
+			unsigned affectI;
+			unsigned changemode;
+			unsigned cmode;
+			unsigned coproc;
 			unsigned d2;
 			unsigned d3;
 			unsigned d4;
-			unsigned a;
 			unsigned d;
-			unsigned m;
-			unsigned n;
-			unsigned s;
-			unsigned t;
-			unsigned t2;
 			unsigned dHi;
 			unsigned dLo;
-
-			ARMEncoding encoding;
-			unsigned opcode;
-
+			unsigned disable;
+			unsigned enable;
+			unsigned firstcond;
+			unsigned increment;
+			unsigned m;
+			unsigned mask;
+			unsigned mode;
+			unsigned n;
+			unsigned op;
+			unsigned opc1;
+			unsigned opc2;
+			unsigned opcode_;
+			unsigned option;
+			unsigned read_spsr;
+			unsigned reg;
 			unsigned reverse_mask;
-
+			unsigned s;
 			unsigned shift_n;
 			unsigned shift_t;
-
 			unsigned size;
+			unsigned t2;
+			unsigned t;
 			unsigned targetInstrSet;
 			unsigned type;
 			unsigned widthminus1;
+			unsigned wordhigher;
+			unsigned write_spsr;
 	};
 
 	class UnpredictableInstruction: public ARMInstruction {
