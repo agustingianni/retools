@@ -2,10 +2,11 @@
 This script generates both the decoder and the multiplexing tables
 used for opcode disassembly.
 """
-import argparse
 import os
 import re
+import json
 import logging
+import argparse
 
 from ARMv7DecodingSpec import instructions
 from utils import get_mask, get_value, get_size
@@ -144,7 +145,7 @@ def indent(lines):
 
     return t
 
-def create_decoders(decoder_name_h, decoder_name_cpp):
+def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
     """
     Create the ARMDecoder.h and ARMDecoder.cpp.
     """
@@ -305,6 +306,9 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
         fd.write("    return shared_ptr<ARMInstruction>(new UnknownInstruction());\n")
         fd.write("}\n\n")
 
+        # Set that contains all the fields used in _all_ the instructions.
+        ins_fields = set()
+
         i = -1
         for instruction in instructions:
             i += 1
@@ -381,16 +385,22 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
 
             # Save all the variables defined inside the decoding procedure.
             for var in visitor.define_me:
+                ins_fields.add(var)
                 fd.write("    ins->%s = %s;\n" % (var, var))
 
             # Also save the hard coded variables.
             for var in input_vars:
                 if var[0] in hard:
+                    ins_fields.add(var[0])
                     fd.write("    ins->%s = %s;\n" % (var[0], var[0]))
 
             fd.write("\n")
             fd.write("    return ins;\n")
             fd.write("}\n\n")
+
+    # Save used symbols for use in the interpreter generator.
+    with open(symbols_file, "w") as fd:
+        json.dump(list(ins_fields), fd)
 
     return True
 
@@ -2170,6 +2180,7 @@ def main():
 
     # Filenames and path's.
     gen_dir = os.path.abspath(args.gendir)
+    symbols_file = os.path.join(gen_dir, "symbols.sym")
     decoder_name_h = os.path.join(gen_dir, "ARMDecodingTable.h")
     decoder_name_cpp = os.path.join(gen_dir, "ARMDecodingTable.cpp")
     to_string_name_h = os.path.join(gen_dir, "ARMtoString.h")
@@ -2201,7 +2212,6 @@ def main():
             logging.error("Could not create custom to_string stubs.")
             return False
 
-
     # We've chosen to regenerate the decoders.
     if gen_decoder:
         if os.path.exists(decoder_name_h):
@@ -2212,7 +2222,8 @@ def main():
 
         logging.info("Creating decoders at '%s'." % decoder_name_h)
         logging.info("Creating decoders at '%s'." % decoder_name_cpp)
-        if not create_decoders(decoder_name_h, decoder_name_cpp):
+        logging.info("Creating symbols file at '%s'." % symbols_file)
+        if not create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
             logging.error("Could not create the decoders.")
             return False
 
