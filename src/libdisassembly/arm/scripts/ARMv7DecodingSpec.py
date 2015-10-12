@@ -6014,6 +6014,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     else
         round_nearest = TRUE;
     endif
+    imm32 = imm6;
     esize = 32; frac_bits = 64 - UInt(imm6); elements = 2;
     d = UInt(D:Vd); m = UInt(M:Vm); regs = if Q == '0' then 1 else 2;"""
 } , {
@@ -6031,6 +6032,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     else
         round_nearest = TRUE;
     endif
+    imm32 = imm6;
     esize = 32; frac_bits = 64 - UInt(imm6); elements = 2;
     d = UInt(D:Vd); m = UInt(M:Vm); regs = if Q == '0' then 1 else 2;"""
 } , {
@@ -6233,7 +6235,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "pattern" : "1 1 1 0 1 1 1 1 1 D#1 1 1 Vn#4 Vd#4 imm4#4 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
     if Q == '0' && imm4<3> == '1' then UNDEFINED;
-    quadword_operation = (Q == '1'); position = 8 * UInt(imm4);
+    imm32 = imm4; quadword_operation = (Q == '1'); position = 8 * UInt(imm4);
     d = UInt(D:Vd); n = UInt(N:Vn); m = UInt(M:Vm);"""
 } , {
     "name" : "VEXT",
@@ -6243,7 +6245,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "pattern" : "1 1 1 1 0 0 1 0 1 D#1 1 1 Vn#4 Vd#4 imm4#4 N#1 Q#1 M#1 0 Vm#4",
     "decoder" : """if Q == '1' && (Vd<0> == '1' || Vn<0> == '1' || Vm<0> == '1') then UNDEFINED;
     if Q == '0' && imm4<3> == '1' then UNDEFINED;
-    quadword_operation = (Q == '1'); position = 8 * UInt(imm4);
+    imm32 = imm4; quadword_operation = (Q == '1'); position = 8 * UInt(imm4);
     d = UInt(D:Vd); n = UInt(N:Vn); m = UInt(M:Vm);"""
 } , {
     "name" : "VFMA, VFMS",
@@ -8189,6 +8191,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
         when "01xxxx" esize = 16; elements = 4; shift_amount = 32 - UInt(imm6);
         when "1xxxxx" esize = 32; elements = 2; shift_amount = 64 - UInt(imm6);
     endcase
+    imm32 = imm6;
     src_unsigned = (U == '1' && op == '1'); dest_unsigned = (U == '1'); d = UInt(D:Vd); m = UInt(M:Vm);"""
 } , {
     "name" : "VQRSHRN, VQRSHRUN",
@@ -8204,6 +8207,7 @@ if t == 15 && reg != '0001' then UNPREDICTABLE;"""
         when "01xxxx" esize = 16; elements = 4; shift_amount = 32 - UInt(imm6);
         when "1xxxxx" esize = 32; elements = 2; shift_amount = 64 - UInt(imm6);
     endcase
+    imm32 = imm6;
     src_unsigned = (U == '1' && op == '1'); dest_unsigned = (U == '1'); d = UInt(D:Vd); m = UInt(M:Vm);"""
 } , {
     "name" : "VQSHL (register)",

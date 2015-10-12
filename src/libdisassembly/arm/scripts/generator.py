@@ -152,8 +152,8 @@ def create_decoders(decoder_name_h, decoder_name_cpp):
 
     # Here we hard code some variables that are not defined in the body but need to go into the instruction.
     hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "D",
-            "W", "B", "P", "U", "op", "imm3", "imm6", "mode", "opcode_", "mask",
-            "firstcond", "Q", "size", "E", "T", "imm4", "type", "reg", "cmode"]
+            "W", "B", "P", "U", "op", "mode", "opcode_", "mask",
+            "firstcond", "Q", "size", "E", "T", "type", "reg", "cmode"]
 
     # Create the header file with all the declarations.
     with open(decoder_name_h, "w") as fd:
@@ -1298,9 +1298,9 @@ string size_str(const ARMInstruction *ins) {
         case vqshrn_vqshrun: // VQSHRN, VQSHRUN
         case vrshrn: // VRSHRN
         case vshrn: // VSHRN
-            if (get_bits(ins->imm6, 5, 3) == 1) return "16";
-            else if (get_bits(ins->imm6, 5, 4) == 1) return "32";
-            else if (get_bit(ins->imm6, 5) == 1) return "64";
+            if (get_bits(ins->imm32, 5, 3) == 1) return "16";
+            else if (get_bits(ins->imm32, 5, 4) == 1) return "32";
+            else if (get_bit(ins->imm32, 5) == 1) return "64";
             break;
         default:
             break;

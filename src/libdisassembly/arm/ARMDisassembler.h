@@ -448,9 +448,6 @@ namespace Disassembler {
 			unsigned D;
 			unsigned W;
 			unsigned op;
-			unsigned imm3;
-			unsigned imm4;
-			unsigned imm6;
 
 			bool UnalignedAllowed;
 			bool add;
