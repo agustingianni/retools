@@ -797,7 +797,7 @@ else
             UNDEFINED;
         endif
     else
-        CallHypervisor(imm16);
+        CallHypervisor(imm32);
     endif
 endif
 """
@@ -1784,7 +1784,7 @@ endif
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    R[d]<31:16> = imm16;
+    R[d]<31:16> = imm32;
 endif
 """
 }, { 
