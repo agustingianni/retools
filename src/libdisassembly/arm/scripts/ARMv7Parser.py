@@ -10,6 +10,7 @@ from string import letters
 from collections import namedtuple
 
 debug = False
+type_check = False
 
 from ARMv7DecodingSpec import instructions
 from utils import get_mask, get_value, get_size
@@ -235,7 +236,14 @@ class ArrayAccess(BaseNode):
         self.expr3 = expr3
 
     def __str__(self):
-        return "ArrayAccess: %s %s %s %s" % (str(self.name), str(self.expr1), str(self.expr2), str(self.expr3))
+        args = [str(self.expr1)]
+        if self.expr2:
+            args.append(str(self.expr2))
+
+        if self.expr3:
+            args.append(str(self.expr3))
+
+        return "ArrayAccess: %s[%s]" % (str(self.name), " ".join(args))
 
 
 class MaskedBinary(BaseNode):
@@ -702,19 +710,6 @@ class GrapVisitor(Visitor):
         self.graph.add_node(n)
         return n
 
-
-class TranslatorVisitor(Visitor):
-    """
-    Base class of all the translator visitor. This is used to
-    gather the basic properties of a traslator.
-    Every particular source to source translator should
-    inherit from this.
-    """
-
-    def __init__(self):
-        pass
-
-
 def indent(lines):
     t = ""
     for l in lines.split("\n"):
@@ -722,63 +717,150 @@ def indent(lines):
 
     return t
 
-
-class SymbolTable(object):
-    def __init__(self, input_vars):
-        self.input_vars = input_vars
-        self.var_bit_length = {}
-        self.symbol_table = set()
-
-        for input_var in self.input_vars:
-            self.var_bit_length[input_var[0]] = input_var[1]
-            self.symbol_table.add(input_var[0])
-
-        def add_symbol(self):
-            pass
-
-
-class CPPTranslatorVisitor(TranslatorVisitor):
+class CPPTranslatorVisitor(Visitor):
     """
     Implementation of a source to source translator that
     will spit compilable C++ code.
     """
-
-    def __init__(self, input_vars):
-        self.input_vars = input_vars
+    def __init__(self, input_vars=None, known_types=None):
         self.var_bit_length = {}
         self.symbol_table = set()
         self.define_me = set()
-
         self.seen_see = set()
-
         self.node_types = {}
 
-        for input_var in self.input_vars:
-            self.var_bit_length[input_var[0]] = input_var[1]
-            self.symbol_table.add(input_var[0])
-            self.set_type(Identifier(input_var[0]), ("int", input_var[1]))
+        if input_vars:
+            # Add the opcode variables and their types to the system.
+            for input_var in input_vars:
+                # Map from variable name to bit lenght.
+                self.var_bit_length[input_var[0]] = input_var[1]
+                
+                # Create a new symbol.
+                self.symbol_table.add(input_var[0])
+
+                # Set the type.
+                self.set_type(Identifier(input_var[0]), ("int", input_var[1]))
+
+        if known_types:
+            for type_ in known_types:
+                self.var_bit_length[type_["name"]] = type_["type"][0]
+                self.symbol_table.add(type_["name"])
+                self.set_type(Identifier(type_["name"]), type_["type"])
 
     def set_type(self, node, type_, override=False):
+        """
+        Set the type of a node. Use a dictionary indexed by the string representation
+        of the current node.
+        """
         if not self.node_types.has_key(str(node)):
-            # print "// Adding node `%s' with type `%s'" % (str(node), type_)
             self.node_types[str(node)] = type_
 
-        # XXX: Enable this for useful debugging information.
-        # else:
-        #     if self.get_type(node) != type_ and self.get_type(node) != ('unknown', None):
-        #         print "    // DEBUG Type redefinition: e='%s' o='%s' n='%s'" % (str(node), str(self.get_type(node)), type_)
-
     def get_type(self, node):
-        # Stupid hack.
-        if not self.node_types.has_key(str(node)):
-            if str(node) in self.symbol_table:
-               return ("int", self.var_bit_length[str(node)])
+        """
+        Get the type of 'node'. 
+        """
+        if self.node_types.has_key(str(node)):
+            return self.node_types[str(node)]
 
-            return ("unknown", None)
+        if type(node) is ProcedureCall and self.node_types.has_key(str(node.name)):          
+            return self.node_types[str(node.name)]
 
-        type_ = self.node_types[str(node)]
-        # print "// Getting node `%s' type `%s'" % (str(node), type_)
-        return type_
+        if str(node) in self.symbol_table:
+           return ("int", self.var_bit_length[str(node)])
+
+        return ("unknown", None)
+
+    def accept_RegularRegisterRead(self, node):
+        self.set_type(node, ("int", 32))
+        register_no_expression = self.accept(node.expr1)
+        return "ctx.readRegularRegister(%s)" % (register_no_expression)
+
+    def accept_SingleRegisterRead(self, node):
+        self.set_type(node, ("int", 32))
+        register_no_expression = self.accept(node.expr1)
+        return "ctx.readSingleRegister(%s)" % (register_no_expression)
+
+    def accept_DoubleRegisterRead(self, node):
+        self.set_type(node, ("int", 64))
+        register_no_expression = self.accept(node.expr1)
+        return "ctx.readDoubleRegister(%s)" % (register_no_expression)
+
+    def accept_QuadRegisterRead(self, node):
+        self.set_type(node, ("int", 128))
+        register_no_expression = self.accept(node.expr1)
+        return "ctx.readQuadRegister(%s)" % (register_no_expression)
+
+    def accept_MemoryRead(self, node):
+        """
+        All the memory accesses are dictated by the value of the variable 'esize'.
+        We won't get the size of the memory access unless it is implicit.
+        """
+        args = [self.accept(node.expr1)]
+        if node.expr2:
+            args.append(self.accept(node.expr2))
+        
+        if node.expr3:
+            args.append(self.accept(node.expr3))
+        
+        else:
+            # If no size expression is supplied we assume a single byte size.
+            self.set_type(node, ("int", 8))
+            args.append("1")
+
+        return "ctx.readMemory(%s)" % (", ".join(args))
+
+    def accept_RegularRegisterWrite(self, node):
+        # Receives a BinaryExpression with an ArrayAccess and an expression.
+        register_no_expression = self.accept(node.left_expr.expr1)
+        register_value_expression = self.accept(node.right_expr)
+        return "ctx.writeRegularRegister(%s, %s)" % (register_no_expression, register_value_expression)
+
+    def accept_MemoryWrite(self, node):
+        # Receives a BinaryExpression with an ArrayAccess and an expression.
+        args = [self.accept(node.left_expr.expr1), self.accept(node.right_expr)]
+        if node.left_expr.expr2:
+            args.append(self.accept(node.left_expr.expr2))
+
+        if node.left_expr.expr3:
+            args.append(self.accept(node.left_expr.expr3))
+
+        return "ctx.writeMemory(%s)" % (", ".join(args))
+
+    def accept_ArrayAccess(self, node):
+        """
+        bits(32) Rmode[integer n, bits(5) mode]
+        Rmode[integer n, bits(5) mode] = bits(32) value
+        bits(32) R[integer n]
+        R[integer n] = bits(32) value        
+        """
+        node_name = str(node.name)
+        if node_name in ["R", "Rmode"]:            
+            return self.accept_RegularRegisterRead(node)
+
+        elif node_name in ["S"]:
+            return self.accept_SingleRegisterRead(node)
+
+        elif node_name in ["D", "Din"]:
+            return self.accept_DoubleRegisterRead(node)
+
+        elif node_name in ["Q", "Qin"]:
+            return self.accept_QuadRegisterRead(node)
+
+        elif node_name in ["Elem"]:
+            # TODO: This is just for testing.
+            return self.accept_MemoryRead(node)
+
+        elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
+            return self.accept_MemoryRead(node)
+
+        print "DEBUG:"
+        print "DEBUG: node = %s" % str(node)
+        print "DEBUG: node.name = %s" % str(node.name)
+        print "DEBUG: node.expr1", str(node.expr1)
+        print "DEBUG: node.expr2", str(node.expr2)
+        print "DEBUG: node.expr3", str(node.expr3)
+
+        raise RuntimeError("Unknown ArrayAccess name: %s" % str(node.name))
 
     def accept_BooleanValue(self, node):
         self.set_type(node, ("int", 1))
@@ -804,6 +886,15 @@ class CPPTranslatorVisitor(TranslatorVisitor):
 
         # Obtain the type of the expression.
         expr_type = self.get_type(node.expr)
+
+        if expr_type == ("unknown", None):
+            print "DEBUG:"
+            print "DEBUG: Unary expresion type unknown."
+            print "DEBUG: node      = %s" % str(node)
+            print "DEBUG: node.expr = %s" % str(expr_str)
+
+            if type_check:
+                raise RuntimeError("Unary expresion type unknown.")
 
         # Make the node inherit the type of the expression.
         self.set_type(node, expr_type)
@@ -867,6 +958,16 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             left_expr_type = self.get_type(node.left_expr)
             right_expr_type = self.get_type(node.right_expr)
 
+            if left_expr_type == ("unknown", None) or right_expr_type == ("unknown", None):
+                print "DEBUG:"
+                print "DEBUG: Concatenated expressions type is unknown."
+                print "DEBUG: node            = %s" % str(node)
+                print "DEBUG: node.left_expr  = %s" % str(left_expr)
+                print "DEBUG: node.right_expr = %s" % str(right_expr)
+
+                if type_check:
+                    raise RuntimeError("Unary expresion type unknown.")
+
             # Since all constants have the same string representation, we need to
             # cheat a bit and use the bit_size instead of the inferred type.
             if type(node.right_expr) is NumberValue and right_expr_type[1] != node.right_expr.bit_size:
@@ -921,7 +1022,22 @@ class CPPTranslatorVisitor(TranslatorVisitor):
                 right_expr = self.accept(node.right_expr)
 
                 # Check that the lists are of the same type.
-                assert self.get_type(node.left_expr) == self.get_type(node.right_expr)
+                t1 = self.get_type(node.left_expr)
+                t2 = self.get_type(node.right_expr)
+
+                # We may have typing information on the function name.
+                t3 = self.get_type(node.right_expr.name)
+
+                if t1 != t2 and t1 != t3:            
+                    print "DEBUG:"
+                    print "DEBUG: List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3)
+                    print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
+                    print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
+                    print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
+                    print "DEBUG: node.right_expr       = %r" % self.accept(node.right_expr)
+
+                    if type_check:
+                        raise RuntimeError("List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3))
 
                 names = []
                 acum = ""
@@ -935,17 +1051,48 @@ class CPPTranslatorVisitor(TranslatorVisitor):
                         # Declare it and initialize it.
                         self.symbol_table.add(name)
                         self.define_me.add(name)
-                        names.append(name)
+                    
+                    names.append(name)
 
                     if not type(var) is Ignore:
                         self.set_type(var, ("int", 32))
 
                     i += 1
 
-                assert len(node.left_expr.values) == len(names)
+                if len(node.left_expr.values) != len(names):
+                    print "DEBUG:"
+                    print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
+                    print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
+                    print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
+                    print "DEBUG: node.right_expr       = %r" % self.accept(node.right_expr)
+                    print "DEBUG: node.left_expr.values = %r" % map(self.accept, node.left_expr.values)
+                    print "DEBUG: names                 = %r" % names
+                    print "DEBUG: len(node.left_expr.values) != len(names): %d != %d" % (len(node.left_expr.values), len(names))
+                    
+                    if type_check:
+                        raise RuntimeError("len(node.left_expr.values) != len(names): %d != %d" % \
+                            (len(node.left_expr.values), len(names)))
 
                 acum += "std::tie(%s) = %s;\n" % (", ".join(names), right_expr)
                 return acum
+
+            # Handle: SomeArray[expression] = expression
+            elif type(node.left_expr) is ArrayAccess:
+                # An array write can be of two types:
+                #     - Register write.
+                #     - Memory write.
+
+                # Get the name of the array.
+                node_name = str(node.left_expr.name)
+                
+                # It is a register.
+                if node_name in ["R"]:
+                    return "%s;" % self.accept_RegularRegisterWrite(node)
+
+                elif node_name in ["Mem", "MemA", "MemU"]:
+                    return "%s;" % self.accept_MemoryWrite(node)
+
+                return "// XXX: What is this? '%s'" % node
 
             left_expr = self.accept(node.left_expr)
             right_expr = self.accept(node.right_expr)
@@ -989,8 +1136,19 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             left_expr_type = self.get_type(node.left_expr)
             right_expr_type = self.get_type(node.right_expr)
 
-            assert left_expr_type[0] == right_expr_type[0]
-
+            if left_expr_type[0] != right_expr_type[0]:
+                if type_check:
+                    raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (left_expr_type, right_expr_type))
+            
+                print "DEBUG:"
+                print "DEBUG: Types differ in expression = %s" % (node)
+                print "DEBUG: left_expr.type             = %r" % str(left_expr_type)
+                print "DEBUG: right_expr.type            = %s" % str(right_expr_type)
+                print "DEBUG: type(node.left_expr)       = %r" % type(node.left_expr)
+                print "DEBUG: type(node.right_expr)      = %r" % type(node.right_expr)
+                print "DEBUG: node.left_expr             = %r" % self.accept(node.left_expr)
+                print "DEBUG: node.right_expr            = %r" % self.accept(node.right_expr)
+            
             self.set_type(node, left_expr_type)
 
         else:
@@ -1009,8 +1167,82 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         for arg in node.arguments:
             arguments.append(self.accept(arg))
 
+        # Inherit the type of the function via its arguments.
         if str(node.name) in ["UInt", "ThumbExpandImm"]:
+            # Assumption: the type in the manual is 'integer' so 32 bits.
             self.set_type(node, ("int", 32))
+
+        elif str(node.name) in ["ZeroExtend", "FPZero"]:
+            # If the argument is an integer then it is the size of the expression.
+            argument = self.accept(node.arguments[1])
+            if argument.isdigit():
+                self.set_type(node, ("int", int(argument)))
+
+        elif str(node.name) in ["ROR", "LSL", "FPNeg", "FPMul"]:
+            # Inherit the type of the first argument.
+            arg_type = self.get_type(node.arguments[0])
+            if arg_type != ("unknown", None):
+                self.set_type(node, arg_type)
+
+        elif str(node.name) in ["Zeros", "Ones"]:
+            # If the argument is an integer then it is the size of the generated integer.
+            argument = self.accept(node.arguments[0])
+            if argument.isdigit():
+                self.set_type(node, ("int", int(argument)))
+            
+        elif str(node.name) in ["Int"]:
+            # Integers are always 32 bits.
+            self.set_type(node, ("int", 32))
+            
+            if arguments[1] == "unsigned":
+                return "UInt(%s)" % (arguments[0])
+
+            elif arguments[1] == "signed":
+                arg_type = self.get_type(node.arguments[0])
+                if arg_type == ("unknown", None):
+                    print "DEBUG:"
+                    print 'DEBUG: arg_type == ("unknown", None)'
+                    print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
+                    print "DEBUG: node.name = %s" % (str(node.name))
+
+                    if type_check:
+                        raise RuntimeError("Sign extension (SInt) failed due to arg_type == ('unknown', None)")
+    
+                arg_bit_len = arg_type[1]
+                return "SInt(%s, %s)" % (arguments[0], arg_bit_len)
+
+            else:
+                arg_type = self.get_type(node.arguments[0])
+                if arg_type == ("unknown", None):
+                    print "DEBUG:"
+                    print 'DEBUG: arg_type == ("unknown", None)'
+                    print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
+                    print "DEBUG: node.name = %s" % (str(node.name))
+
+                    if type_check:
+                        raise RuntimeError("Sign extension (SInt) failed due to arg_type == ('unknown', None)")
+
+                arg_bit_len = arg_type[1]
+                return "((%s) ? %s : %s)" % (arguments[1], "UInt(%s)" % arguments[0], "SInt(%s, %s)" % (arguments[0], arg_bit_len))
+
+        elif str(node.name) in ["SInt"]:
+            # Get the argument type.
+            arg_type = self.get_type(node.arguments[0])
+            if arg_type == ("unknown", None):
+                print "DEBUG:"
+                print 'DEBUG: arg_type == ("unknown", None)'
+                print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
+                print "DEBUG: node.name = %s" % (str(node.name))
+
+                if type_check:
+                    raise RuntimeError("Sign extension (SInt) failed due to arg_type == ('unknown', None)")
+
+            # Integers are always 32 bits.
+            self.set_type(node, ("int", 32))
+
+            # Get the bit lenght.
+            arg_bit_len = arg_type[1]
+            return "SInt(%s, %s)" % (arguments[0], arg_bit_len)
 
         elif str(node.name) in ["InITBlock", "LastInITBlock"]:
             self.set_type(node, ("int", 1))
@@ -1027,12 +1259,19 @@ class CPPTranslatorVisitor(TranslatorVisitor):
             return "NOT(%s, %s)" % (", ".join(arguments), arg_type[1])
 
         elif str(node.name) == "Consistent":
+            self.set_type(node, ("int", 1))
             # We replace Consistent(Rm) with (Rm == Rm_).
             return "(%s == %s_)" % (node.arguments[0], node.arguments[0])
 
         elif str(node.name) == "SignExtend":
             # Sign extend in c++ needs the bitsize of the bit string.
             arg_bit_len = self.get_type(node.arguments[0])[1]
+
+            # The resulting size is the second argument.
+            argument = self.accept(node.arguments[1])
+            if argument.isdigit():
+                self.set_type(node, ("int", int(argument)))
+
             return "SignExtend(%s, %s)" % (arguments[0], arg_bit_len)
 
         return "%s(%s)" % (node.name, ", ".join(arguments))
@@ -1040,7 +1279,7 @@ class CPPTranslatorVisitor(TranslatorVisitor):
     def accept_RepeatUntil(self, node):
         t = "do {\n"
         for st in node.statements:
-            t += "    %s\n" % self.accept(st)
+            t += "    %s;\n" % self.accept(st)
 
         t += "} while (%s);\n\n" % self.accept(node.condition)
 
@@ -1096,29 +1335,27 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         return t
 
     def accept_BitExtraction(self, node):
-        if len(node.range) == 1:
-            # The type is a one bit integer.
-            self.set_type(node, ("int", 1))
-            return "get_bit(%s, %s)" % (node.identifier, self.accept(node.range[0]))
+        # The identifier may be an expression, evaluate it.
+        node_name = self.accept(node.identifier)
 
-        # We know that limits here are integers so we can get the size.
+        # The type is a one bit integer.
+        if len(node.range) == 1:
+            self.set_type(node, ("int", 1))
+            return "get_bit(%s, %s)" % (node_name, self.accept(node.range[0]))
+
+        # Accept the limits.
         hi_lim = self.accept(node.range[0])
         lo_lim = self.accept(node.range[1])
-
-        assert type(node.range[0]) is Identifier or type(node.range[0]) is NumberValue
-        assert type(node.range[1]) is Identifier or type(node.range[1]) is NumberValue
-
+        
+        # If both types are numbers we can get typing information.
         if type(node.range[0]) is NumberValue and type(node.range[1]) is NumberValue:
             bit_size = int(hi_lim) - int(lo_lim) + 1
-            assert bit_size > 0 and bit_size <= 32
             self.set_type(node, ("int", bit_size))
-            return "get_bits(%s, %s, %s)" % (node.identifier, hi_lim, lo_lim)
+            return "get_bits(%s, %s, %s)" % (node_name, hi_lim, lo_lim)
 
-        else:
-            # print "// DEBUG: assuming type of expression '%s' to be 32 bits" % (str(node))
-            self.set_type(node, ("int", 32))
-            return "get_bits(%s, %s, %s)" % (node.identifier, hi_lim, lo_lim)
-
+        # Assume the bit extraction expression is a 32 bit expression.
+        self.set_type(node, ("int", 32))
+        return "get_bits(%s, %s, %s)" % (node_name, hi_lim, lo_lim)
 
     def accept_IfExpression(self, node):
         condition = self.accept(node.condition)
@@ -1129,7 +1366,21 @@ class CPPTranslatorVisitor(TranslatorVisitor):
         falseValue_type = self.get_type(node.falseValue)
 
         # Set the type, since we've proved that both match.
-        assert trueValue_type[0] == falseValue_type[0]
+        if trueValue_type[0] != falseValue_type[0]:
+            if type_check:
+                raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (trueValue_type[0], falseValue_type[0]))
+
+            print "DEBUG:"
+            print "DEBUG: Types differ in expression = %s" % (node)
+            print "DEBUG: trueValue.type             = %s" % str(trueValue_type)
+            print "DEBUG: falseValue.type            = %s" % str(falseValue_type)
+            print "DEBUG: type(node.condition)       = %r" % type(node.condition)
+            print "DEBUG: type(node.trueValue)       = %r" % type(node.trueValue)
+            print "DEBUG: type(node.falseValue)      = %r" % type(node.falseValue)
+            print "DEBUG: node.condition             = %r" % self.accept(node.condition)
+            print "DEBUG: node.trueValue             = %r" % self.accept(node.trueValue)
+            print "DEBUG: node.falseValue            = %r" % self.accept(node.falseValue)
+
         self.set_type(node, falseValue_type)
 
         return "%s ? %s : %s" % (condition, trueValue, falseValue)
@@ -1233,7 +1484,7 @@ def decode_case(x):
 
 
 def decode_repeat_until(x):
-    return RepeatUntil(x[1], x[3])
+    return RepeatUntil(x[1], x[4])
 
 
 def decode_for(x):
