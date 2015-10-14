@@ -352,7 +352,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
 
             # Get the AST for the decoder pseudocode and translate it to C++.
             ret = ARMv7Parser.program.parseString(decoder, parseAll=True)
-            visitor = ARMv7Parser.CPPTranslatorVisitor(input_vars)
+            visitor = ARMv7Parser.CPPTranslatorVisitor(input_vars=input_vars)
 
             body = ""
             for ast in ret:
