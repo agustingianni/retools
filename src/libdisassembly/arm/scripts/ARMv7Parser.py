@@ -791,23 +791,14 @@ class CPPTranslatorVisitor(Visitor):
         return "ctx.readQuadRegister(%s)" % (register_no_expression)
 
     def accept_MemoryRead(self, node):
-        """
-        All the memory accesses are dictated by the value of the variable 'esize'.
-        We won't get the size of the memory access unless it is implicit.
-        """
-        args = [self.accept(node.expr1)]
-        if node.expr2:
-            args.append(self.accept(node.expr2))
-        
-        if node.expr3:
-            args.append(self.accept(node.expr3))
-        
-        else:
-            # If no size expression is supplied we assume a single byte size.
-            self.set_type(node, ("int", 8))
-            args.append("1")
+        expr1 = self.accept(node.expr1)
+        expr2 = self.accept(node.expr2)
 
-        return "ctx.readMemory(%s)" % (", ".join(args))
+        # Set the type of the memory access.
+        if expr2.isdigit():
+            self.set_type(node, ("int", int(expr2)))
+
+        return "ctx.readMemory(%s, %s)" % (expr1, expr2)
 
     def accept_RegularRegisterWrite(self, node):
         # Receives a BinaryExpression with an ArrayAccess and an expression.
@@ -848,7 +839,8 @@ class CPPTranslatorVisitor(Visitor):
 
         elif node_name in ["Elem"]:
             # TODO: This is just for testing.
-            return self.accept_MemoryRead(node)
+            #return self.accept_MemoryRead(node)
+            return "CACA"
 
         elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
             return self.accept_MemoryRead(node)
