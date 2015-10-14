@@ -775,6 +775,12 @@ class CPPTranslatorVisitor(Visitor):
         register_no_expression = self.accept(node.expr1)
         return "ctx.readRegularRegister(%s)" % (register_no_expression)
 
+    def accept_RmodeRead(self, node):
+        self.set_type(node, ("int", 32))
+        expr1 = self.accept(node.expr1)
+        expr2 = self.accept(node.expr2)
+        return "ctx.readRmode(%s, %s)" % (expr1, expr2)
+
     def accept_SingleRegisterRead(self, node):
         self.set_type(node, ("int", 32))
         register_no_expression = self.accept(node.expr1)
@@ -806,6 +812,31 @@ class CPPTranslatorVisitor(Visitor):
         register_value_expression = self.accept(node.right_expr)
         return "ctx.writeRegularRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
+    def accept_RmodeWrite(self, node):
+        # Receives a BinaryExpression with an ArrayAccess and an expression.
+        expr1 = self.accept(node.left_expr.expr1)
+        expr2 = self.accept(node.left_expr.expr2)
+        value = self.accept(node.right_expr)
+        return "ctx.writeRmode(%s, %s, %s)" % (expr1, expr2, value)
+
+    def accept_SingleRegisterWrite(self, node):
+        register_no_expression = self.accept(node.left_expr.expr1)
+        register_value_expression = self.accept(node.right_expr)
+        return "ctx.writeSingleRegister(%s, %s)" % (register_no_expression, register_value_expression)
+
+    def accept_DoubleRegisterWrite(self, node):
+        register_no_expression = self.accept(node.left_expr.expr1)
+        register_value_expression = self.accept(node.right_expr)
+        return "ctx.writeDoubleRegister(%s, %s)" % (register_no_expression, register_value_expression)
+
+    def accept_QuadRegisterWrite(self, node):
+        register_no_expression = self.accept(node.left_expr.expr1)
+        register_value_expression = self.accept(node.right_expr)
+        return "ctx.writeQuadRegister(%s, %s)" % (register_no_expression, register_value_expression)
+
+    def accept_ElementWrite(self, node):
+        return "ctx.TODO_writeElement()"
+
     def accept_MemoryWrite(self, node):
         # Receives a BinaryExpression with an ArrayAccess and an expression.
         args = [self.accept(node.left_expr.expr1), self.accept(node.right_expr)]
@@ -817,6 +848,16 @@ class CPPTranslatorVisitor(Visitor):
 
         return "ctx.writeMemory(%s)" % (", ".join(args))
 
+    def accept_ElementRead(self, node):
+        """
+        The pseudocode function Elem[] accesses the element of a specified index and size in a vector:
+        
+        bits(size) Elem[bits(N) vector, integer e, integer size]
+            return vector<(e+1)*size-1:e*size>;
+        """
+        # TODO: Implement.
+        return "TODO_accept_ElementRead()"
+
     def accept_ArrayAccess(self, node):
         """
         bits(32) Rmode[integer n, bits(5) mode]
@@ -825,8 +866,13 @@ class CPPTranslatorVisitor(Visitor):
         R[integer n] = bits(32) value        
         """
         node_name = str(node.name)
-        if node_name in ["R", "Rmode"]:            
+
+        # TODO: Rmode has two arguments
+        if node_name in ["R"]: 
             return self.accept_RegularRegisterRead(node)
+
+        elif node_name in ["Rmode"]:
+            return self.accept_RmodeRead(node)
 
         elif node_name in ["S"]:
             return self.accept_SingleRegisterRead(node)
@@ -839,8 +885,7 @@ class CPPTranslatorVisitor(Visitor):
 
         elif node_name in ["Elem"]:
             # TODO: This is just for testing.
-            #return self.accept_MemoryRead(node)
-            return "CACA"
+            return self.accept_ElementRead(node)
 
         elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
             return self.accept_MemoryRead(node)
@@ -1079,10 +1124,27 @@ class CPPTranslatorVisitor(Visitor):
                 
                 # It is a register.
                 if node_name in ["R"]:
-                    return "%s;" % self.accept_RegularRegisterWrite(node)
+                    return self.accept_RegularRegisterWrite(node)
 
-                elif node_name in ["Mem", "MemA", "MemU"]:
-                    return "%s;" % self.accept_MemoryWrite(node)
+                elif node_name in ["Rmode"]:
+                    return self.accept_RmodeWrite(node)
+
+                elif node_name in ["S"]:
+                    return self.accept_SingleRegisterWrite(node)
+
+                elif node_name in ["D", "Din"]:
+                    return self.accept_DoubleRegisterWrite(node)
+
+                elif node_name in ["Q", "Qin"]:
+                    return self.accept_QuadRegisterWrite(node)
+
+                elif node_name in ["Elem"]:
+                    # TODO: This is just for testing.
+                    return self.accept_ElementWrite(node)
+
+                elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
+                    return self.accept_MemoryWrite(node)
+
 
                 return "// XXX: What is this? '%s'" % node
 
