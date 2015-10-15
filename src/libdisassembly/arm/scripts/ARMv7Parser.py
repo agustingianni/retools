@@ -877,13 +877,6 @@ class CPPTranslatorVisitor(Visitor):
         elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
             return self.accept_MemoryRead(node)
 
-        print "DEBUG:"
-        print "DEBUG: node = %s" % str(node)
-        print "DEBUG: node.name = %s" % str(node.name)
-        print "DEBUG: node.expr1", str(node.expr1)
-        print "DEBUG: node.expr2", str(node.expr2)
-        print "DEBUG: node.expr3", str(node.expr3)
-
         raise RuntimeError("Unknown ArrayAccess name: %s" % str(node.name))
 
     def accept_BooleanValue(self, node):
