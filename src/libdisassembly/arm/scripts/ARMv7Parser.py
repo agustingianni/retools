@@ -1132,6 +1132,7 @@ class CPPTranslatorVisitor(Visitor):
             # Assignment makes lhs inherit the type of rhs.
             right_expr_type = self.get_type(node.right_expr)
             if IsUnknownType(right_expr_type):
+                print "DEBUG: Assignment statement:"
                 print "DEBUG: node            = %s" % (str(node))
                 print "DEBUG: node.left_expr  = %s" % (str(left_expr))
                 print "DEBUG: node.right_expr = %s" % (str(right_expr))
@@ -1179,14 +1180,13 @@ class CPPTranslatorVisitor(Visitor):
                 if type_check:
                     raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (left_expr_type, right_expr_type))
             
-                print "DEBUG:"
+                print
                 print "DEBUG: Types differ in expression = %s" % (node)
                 print "DEBUG: left_expr.type             = %r" % str(left_expr_type)
                 print "DEBUG: right_expr.type            = %s" % str(right_expr_type)
-                print "DEBUG: type(node.left_expr)       = %r" % type(node.left_expr)
-                print "DEBUG: type(node.right_expr)      = %r" % type(node.right_expr)
                 print "DEBUG: node.left_expr             = %r" % self.accept(node.left_expr)
                 print "DEBUG: node.right_expr            = %r" % self.accept(node.right_expr)
+                print
             
             self.set_type(node, left_expr_type)
 
@@ -1624,7 +1624,7 @@ def decode_array_access(x):
         name, expr1, expr2, expr3 = x[0]
         return ArrayAccess(name, expr1, expr2, expr3)
 
-    print "DEBUG:", x[0], len(x[0])
+    raise RuntimeError("Cannot decode '%s'" % str(x))
 
 def decode_masked_base2(x):
     return MaskedBinary(x[0])
