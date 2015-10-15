@@ -2,12 +2,16 @@
 Python parser for the ARM Architecture Reference Manual (ARMv7-A and ARMv7-R edition)
 pseudocode.
 """
+import inspect
 import string
 import re
 
 from pyparsing import *
 from string import letters
 from collections import namedtuple
+
+def lineno():
+    return inspect.currentframe().f_back.f_lineno
 
 debug = False
 type_check = False
@@ -912,7 +916,7 @@ class CPPTranslatorVisitor(Visitor):
         expr_type = self.get_type(node.expr)
 
         if IsUnknownType(expr_type ):
-            print "DEBUG:"
+            print "DEBUG(%4d):" % (lineno())
             print "DEBUG: Unary expresion type unknown."
             print "DEBUG: node      = %s" % str(node)
             print "DEBUG: node.expr = %s" % str(expr_str)
@@ -983,7 +987,7 @@ class CPPTranslatorVisitor(Visitor):
             right_expr_type = self.get_type(node.right_expr)
 
             if IsUnknownType(left_expr_type) or IsUnknownType(right_expr_type):
-                print "DEBUG:"
+                print "DEBUG(%4d):" % (lineno())
                 print "DEBUG: Concatenated expressions type is unknown."
                 print "DEBUG: node            = %s" % str(node)
                 print "DEBUG: node.left_expr  = %s" % str(left_expr)
@@ -1053,7 +1057,7 @@ class CPPTranslatorVisitor(Visitor):
                 t3 = self.get_type(node.right_expr.name)
 
                 if t1 != t2 and t1 != t3:            
-                    print "DEBUG:"
+                    print "DEBUG(%4d):" % (lineno())
                     print "DEBUG: List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3)
                     print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
                     print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
@@ -1084,7 +1088,7 @@ class CPPTranslatorVisitor(Visitor):
                     i += 1
 
                 if len(node.left_expr.values) != len(names):
-                    print "DEBUG:"
+                    print "DEBUG(%4d):" % (lineno())
                     print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
                     print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
                     print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
@@ -1136,14 +1140,14 @@ class CPPTranslatorVisitor(Visitor):
 
             # Assignment makes lhs inherit the type of rhs.
             right_expr_type = self.get_type(node.right_expr)
-            if IsUnknownType(right_expr_type):
-                print "DEBUG: Assignment statement:"
-                print "DEBUG: node                 = %s" % (str(node))
-                print "DEBUG: node.left_expr       = %s" % (str(left_expr))
-                print "DEBUG: node.right_expr      = %s" % (str(right_expr))
-                print "DEBUG: node.left_expr.type  = %s" % str(self.get_type(node.left_expr))
-                print "DEBUG: node.right_expr.type = %s" % str(self.get_type(node.right_expr))
-                print
+            # if IsUnknownType(right_expr_type):
+            #     print "DEBUG: Assignment statement:"
+            #     print "DEBUG: node                 = %s" % (str(node))
+            #     print "DEBUG: node.left_expr       = %s" % (str(left_expr))
+            #     print "DEBUG: node.right_expr      = %s" % (str(right_expr))
+            #     print "DEBUG: node.left_expr.type  = %s" % str(self.get_type(node.left_expr))
+            #     print "DEBUG: node.right_expr.type = %s" % str(self.get_type(node.right_expr))
+            #     print
             
             self.set_type(node.left_expr, right_expr_type)
 
@@ -1187,13 +1191,13 @@ class CPPTranslatorVisitor(Visitor):
                 if type_check:
                     raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (left_expr_type, right_expr_type))
             
-                print
-                print "DEBUG: Types differ in expression = %s" % (node)
-                print "DEBUG: left_expr.type             = %r" % str(left_expr_type)
-                print "DEBUG: right_expr.type            = %s" % str(right_expr_type)
-                print "DEBUG: node.left_expr             = %r" % self.accept(node.left_expr)
-                print "DEBUG: node.right_expr            = %r" % self.accept(node.right_expr)
-                print
+                # print
+                # print "DEBUG: Types differ in expression = %s" % (node)
+                # print "DEBUG: left_expr.type             = %r" % str(left_expr_type)
+                # print "DEBUG: right_expr.type            = %s" % str(right_expr_type)
+                # print "DEBUG: node.left_expr             = %r" % self.accept(node.left_expr)
+                # print "DEBUG: node.right_expr            = %r" % self.accept(node.right_expr)
+                # print
             
             self.set_type(node, left_expr_type)
 
@@ -1246,7 +1250,7 @@ class CPPTranslatorVisitor(Visitor):
             elif arguments[1] == "signed":
                 arg_type = self.get_type(node.arguments[0])
                 if IsUnknownType(arg_type):
-                    print "DEBUG:"
+                    print "DEBUG(%4d):" % (lineno())
                     print 'DEBUG: arg_type == ("unknown", None)'
                     print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
                     print "DEBUG: node.name = %s" % (str(node.name))
@@ -1260,13 +1264,8 @@ class CPPTranslatorVisitor(Visitor):
             else:
                 arg_type = self.get_type(node.arguments[0])
                 if IsUnknownType(arg_type):
-                    print "DEBUG:"
-                    print 'DEBUG: arg_type == ("unknown", None)'
-                    print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
-                    print "DEBUG: node.name = %s" % (str(node.name))
-
-                    if type_check:
-                        raise RuntimeError("Sign extension (SInt) failed due to arg_type == ('unknown', None)")
+                    assert  type(node.arguments[0]) == ArrayAccess
+                    arg_type = ("int", self.accept(node.arguments[0].expr3))
 
                 arg_bit_len = arg_type[1]
                 return "((%s) ? %s : %s)" % (arguments[1], "UInt(%s)" % arguments[0], "SInt(%s, %s)" % (arguments[0], arg_bit_len))
@@ -1274,14 +1273,9 @@ class CPPTranslatorVisitor(Visitor):
         elif str(node.name) in ["SInt"]:
             # Get the argument type.
             arg_type = self.get_type(node.arguments[0])
-            if IsUnknownType(arg_type) or arg_type[1] == None:
-                print "DEBUG:"
-                print 'DEBUG: arg_type == ("unknown", None)'
-                print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
-                print "DEBUG: node.name = %s" % (str(node.name))
-
-                if type_check:
-                    raise RuntimeError("Sign extension (SInt) failed due to arg_type == ('unknown', None)")
+            if IsUnknownType(arg_type):
+                assert  type(node.arguments[0]) == ArrayAccess
+                arg_type = ("int", self.accept(node.arguments[0].expr3))
 
             # Integers are always 32 bits.
             self.set_type(node, ("int", 32))
@@ -1413,7 +1407,7 @@ class CPPTranslatorVisitor(Visitor):
 
         # We can't do shit.
         if IsUnknownType(trueValue_type) and IsUnknownType(falseValue_type):
-            print "DEBUG:"
+            print "DEBUG(%4d):" % (lineno())
             print "DEBUG: Types differ in expression = %s" % (node)
             print "DEBUG: trueValue.type             = %s" % str(trueValue_type)
             print "DEBUG: falseValue.type            = %s" % str(falseValue_type)
