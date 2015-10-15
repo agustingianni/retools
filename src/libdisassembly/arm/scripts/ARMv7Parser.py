@@ -1344,18 +1344,16 @@ class CPPTranslatorVisitor(Visitor):
         return t
 
     def accept_For(self, node):
-        from_ = self.accept(node.from_)
+        assert node.from_.type == "assign"
+        var_name = self.accept(node.from_.left_expr)
+        var_value = self.accept(node.from_.right_expr)
         to_ = self.accept(node.to)
 
-        statements = []
+        t = "for(unsigned %s = %s; %s < %s; ++%s) {\n" % (var_name, var_value, var_name, to_, var_name)
         for st in node.statements:
-            statements.append(self.accept(st))
+            t += "    %s\n" % (self.accept(st))
 
-        t = "for(unsigned i = %s; i < %s; ++i) {\n" % (from_, to_)
-        for st in statements:
-            t += "    %s\n" % st
         t += "}\n\n"
-
         return t
 
     def accept_If(self, node):
