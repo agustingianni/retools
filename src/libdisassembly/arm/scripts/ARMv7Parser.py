@@ -845,10 +845,10 @@ class CPPTranslatorVisitor(Visitor):
         return "ctx.writeQuadRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
     def accept_MemoryWrite(self, node):
-        # Receives a BinaryExpression with an ArrayAccess and an expression.
-        # Mem[address, size] = expression;
-        args = [self.accept(node.left_expr.expr1), self.accept(node.left_expr.expr2), self.accept(node.right_expr)]
-        return "ctx.writeMemory(%s)" % (", ".join(args))
+        address = self.accept(node.left_expr.expr1)
+        size = self.accept(node.left_expr.expr2)
+        value = self.accept(node.left_expr.expr3)
+        return "ctx.writeMemory(%s, %s, %s)" % (address, size, value)
 
     def accept_ElementRead(self, node):
         vector = self.accept(node.expr1)
