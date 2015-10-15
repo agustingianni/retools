@@ -69,6 +69,8 @@ SEE = Keyword("SEE")
 IMPLEMENTATION_DEFINED = Keyword("IMPLEMENTATION_DEFINED")
 SUBARCHITECTURE_DEFINED = Keyword("SUBARCHITECTURE_DEFINED")
 
+def IsUnknownType(type_):
+    return type_ == ("unknown", None)
 
 def cases(mask):
     """
@@ -802,7 +804,7 @@ class CPPTranslatorVisitor(Visitor):
 
         # Set the type of the memory access.
         if expr2.isdigit():
-            self.set_type(node, ("int", int(expr2)))
+            self.set_type(node, ("int", int(expr2) * 8))
 
         return "ctx.readMemory(%s, %s)" % (expr1, expr2)
 
@@ -904,7 +906,7 @@ class CPPTranslatorVisitor(Visitor):
         # Obtain the type of the expression.
         expr_type = self.get_type(node.expr)
 
-        if expr_type == ("unknown", None):
+        if IsUnknownType(expr_type ):
             print "DEBUG:"
             print "DEBUG: Unary expresion type unknown."
             print "DEBUG: node      = %s" % str(node)
@@ -975,7 +977,7 @@ class CPPTranslatorVisitor(Visitor):
             left_expr_type = self.get_type(node.left_expr)
             right_expr_type = self.get_type(node.right_expr)
 
-            if left_expr_type == ("unknown", None) or right_expr_type == ("unknown", None):
+            if IsUnknownType(left_expr_type) or IsUnknownType(right_expr_type):
                 print "DEBUG:"
                 print "DEBUG: Concatenated expressions type is unknown."
                 print "DEBUG: node            = %s" % str(node)
@@ -1128,7 +1130,14 @@ class CPPTranslatorVisitor(Visitor):
             right_expr = self.accept(node.right_expr)
 
             # Assignment makes lhs inherit the type of rhs.
-            self.set_type(node.left_expr, self.get_type(node.right_expr))
+            right_expr_type = self.get_type(node.right_expr)
+            if IsUnknownType(right_expr_type):
+                print "DEBUG: node            = %s" % (str(node))
+                print "DEBUG: node.left_expr  = %s" % (str(left_expr))
+                print "DEBUG: node.right_expr = %s" % (str(right_expr))
+                print
+            
+            self.set_type(node.left_expr, right_expr_type)
 
             # If the lhs is present at the symbol table we need not to initialize it.
             if left_expr in self.symbol_table:
@@ -1202,16 +1211,16 @@ class CPPTranslatorVisitor(Visitor):
             # Assumption: the type in the manual is 'integer' so 32 bits.
             self.set_type(node, ("int", 32))
 
-        elif str(node.name) in ["ZeroExtend", "FPZero"]:
+        elif str(node.name) in ["ZeroExtend", "FPZero", "SignedSat", "UnsignedSat", "Sat"]:
             # If the argument is an integer then it is the size of the expression.
             argument = self.accept(node.arguments[1])
             if argument.isdigit():
                 self.set_type(node, ("int", int(argument)))
 
-        elif str(node.name) in ["ROR", "LSL", "FPNeg", "FPMul"]:
+        elif str(node.name) in ["ROR", "LSL", "FPNeg", "FPMul", "RoundTowardsZero"]:
             # Inherit the type of the first argument.
             arg_type = self.get_type(node.arguments[0])
-            if arg_type != ("unknown", None):
+            if not IsUnknownType(arg_type):
                 self.set_type(node, arg_type)
 
         elif str(node.name) in ["Zeros", "Ones"]:
@@ -1229,7 +1238,7 @@ class CPPTranslatorVisitor(Visitor):
 
             elif arguments[1] == "signed":
                 arg_type = self.get_type(node.arguments[0])
-                if arg_type == ("unknown", None):
+                if IsUnknownType(arg_type):
                     print "DEBUG:"
                     print 'DEBUG: arg_type == ("unknown", None)'
                     print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
@@ -1243,7 +1252,7 @@ class CPPTranslatorVisitor(Visitor):
 
             else:
                 arg_type = self.get_type(node.arguments[0])
-                if arg_type == ("unknown", None):
+                if IsUnknownType(arg_type):
                     print "DEBUG:"
                     print 'DEBUG: arg_type == ("unknown", None)'
                     print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
@@ -1258,7 +1267,7 @@ class CPPTranslatorVisitor(Visitor):
         elif str(node.name) in ["SInt"]:
             # Get the argument type.
             arg_type = self.get_type(node.arguments[0])
-            if arg_type == ("unknown", None):
+            if IsUnknownType(arg_type):
                 print "DEBUG:"
                 print 'DEBUG: arg_type == ("unknown", None)'
                 print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
@@ -1395,23 +1404,28 @@ class CPPTranslatorVisitor(Visitor):
         trueValue_type = self.get_type(node.trueValue)
         falseValue_type = self.get_type(node.falseValue)
 
-        # Set the type, since we've proved that both match.
-        if trueValue_type[0] != falseValue_type[0]:
-            if type_check:
-                raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (trueValue_type[0], falseValue_type[0]))
-
+        # We can't do shit.
+        if IsUnknownType(trueValue_type) and IsUnknownType(falseValue_type):
             print "DEBUG:"
             print "DEBUG: Types differ in expression = %s" % (node)
             print "DEBUG: trueValue.type             = %s" % str(trueValue_type)
             print "DEBUG: falseValue.type            = %s" % str(falseValue_type)
-            print "DEBUG: type(node.condition)       = %r" % type(node.condition)
-            print "DEBUG: type(node.trueValue)       = %r" % type(node.trueValue)
-            print "DEBUG: type(node.falseValue)      = %r" % type(node.falseValue)
-            print "DEBUG: node.condition             = %r" % self.accept(node.condition)
             print "DEBUG: node.trueValue             = %r" % self.accept(node.trueValue)
             print "DEBUG: node.falseValue            = %r" % self.accept(node.falseValue)
 
-        self.set_type(node, falseValue_type)
+            raise RuntimeError("Cannot infer type for IfExpression")
+
+        elif IsUnknownType(trueValue_type):
+            self.set_type(node, falseValue_type)            
+
+        elif IsUnknownType(falseValue_type):
+            self.set_type(node, trueValue_type)
+
+        elif falseValue_type[1] > trueValue_type[1]:
+            self.set_type(node, falseValue_type)
+        
+        else:
+            self.set_type(node, trueValue_type)
 
         return "%s ? %s : %s" % (condition, trueValue, falseValue)
 
