@@ -915,7 +915,7 @@ class CPPTranslatorVisitor(Visitor):
         # Obtain the type of the expression.
         expr_type = self.get_type(node.expr)
 
-        if IsUnknownType(expr_type ):
+        if IsUnknownType(expr_type):
             print "DEBUG(%4d):" % (lineno())
             print "DEBUG: Unary expresion type unknown."
             print "DEBUG: node      = %s" % str(node)
@@ -1407,14 +1407,15 @@ class CPPTranslatorVisitor(Visitor):
 
         # We can't do shit.
         if IsUnknownType(trueValue_type) and IsUnknownType(falseValue_type):
-            print "DEBUG(%4d):" % (lineno())
-            print "DEBUG: Types differ in expression = %s" % (node)
-            print "DEBUG: trueValue.type             = %s" % str(trueValue_type)
-            print "DEBUG: falseValue.type            = %s" % str(falseValue_type)
-            print "DEBUG: node.trueValue             = %r" % self.accept(node.trueValue)
-            print "DEBUG: node.falseValue            = %r" % self.accept(node.falseValue)
-
-            raise RuntimeError("Cannot infer type for IfExpression")
+            if type_check:
+                print "DEBUG(%4d):" % (lineno())
+                print "DEBUG: Types differ in expression = %s" % (node)
+                print "DEBUG: trueValue.type             = %s" % str(trueValue_type)
+                print "DEBUG: falseValue.type            = %s" % str(falseValue_type)
+                print "DEBUG: node.trueValue             = %r" % self.accept(node.trueValue)
+                print "DEBUG: node.falseValue            = %r" % self.accept(node.falseValue)
+                
+                raise RuntimeError("Cannot infer type for IfExpression")
 
         elif IsUnknownType(trueValue_type):
             self.set_type(node, falseValue_type)            
