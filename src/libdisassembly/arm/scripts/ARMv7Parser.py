@@ -1095,10 +1095,6 @@ class CPPTranslatorVisitor(Visitor):
 
             # Handle: SomeArray[expression] = expression
             elif type(node.left_expr) is ArrayAccess:
-                # An array write can be of two types:
-                #     - Register write.
-                #     - Memory write.
-
                 # Get the name of the array.
                 node_name = str(node.left_expr.name)
                 
