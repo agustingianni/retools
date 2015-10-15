@@ -19,12 +19,36 @@ type_check = False
 from ARMv7DecodingSpec import instructions
 from utils import get_mask, get_value, get_size
 
-UnaryNameToOperator = {
+UnaryExpressionNameToOperator = {
     "negate" : "!",
     "minus" : "-",
     "invert" : "~",
     "plus" : "+",
 }
+
+BinaryExpressionNameToOperator = {
+    "add" : "+",
+    "and" : "&&",
+    "eq" : "==",
+    "gt" : ">",
+    "gte" : ">=",
+    "imod" : "%",
+    "mod" : "%",
+    "idiv" : "/",
+    "div" : "/",
+    "lshift" : "<<",
+    "rshift" : ">>",
+    "lt" : "<",
+    "mul" : "*",
+    "ne" : "!=",
+    "or" : "||",
+    "sub" : "-",
+    "xor" : "^",
+    "lte" : "<="
+}
+
+def IsBooleanOperator(opname):
+    return opname in ["and", "or", "eq", "ne", "gt", "lt", "gte", "lte", "in"]
 
 # Avoid treating newlines as whitespaces.
 ParserElement.setDefaultWhitespaceChars(" \t")
@@ -847,7 +871,7 @@ class CPPTranslatorVisitor(Visitor):
     def accept_MemoryWrite(self, node):
         address = self.accept(node.left_expr.expr1)
         size = self.accept(node.left_expr.expr2)
-        value = self.accept(node.left_expr.expr3)
+        value = self.accept(node.right_expr)
         return "ctx.writeMemory(%s, %s, %s)" % (address, size, value)
 
     def accept_ElementRead(self, node):
@@ -915,276 +939,267 @@ class CPPTranslatorVisitor(Visitor):
         # Make the node inherit the type of the expression.
         self.set_type(node, expr_type)
 
-        return "%s%s" % (UnaryNameToOperator[node.type], expr_str)
+        return "%s%s" % (UnaryExpressionNameToOperator[node.type], expr_str)
 
-    def accept_BinaryExpression(self, node):
-        if node.type == "in":
-            left_expr = self.accept(node.left_expr)
+    def accept_InExpression(self, node):
+        left_expr = self.accept(node.left_expr)
 
-            # We set the type to boolean.
-            self.set_type(node, ("int", 1))
+        # We set the type to boolean.
+        self.set_type(node, ("int", 1))
 
-            # Handle:
-            #   c in {0, 1} -> ((c == 0) || (c == 1))
-            #   c in "1x"   -> (c == 10b || c == 11b)
-            if type(node.right_expr) is MaskedBinary:
-                def can_optimize(cases_):
-                    prev = cases_[0]
-                    for i in xrange(1, len(cases_)):
-                        if cases_[i] != prev + 1:
-                            return False
+        # Handle:
+        #   c in {0, 1} -> ((c == 0) || (c == 1))
+        #   c in "1x"   -> (c == 10b || c == 11b)
+        if type(node.right_expr) is MaskedBinary:
+            def can_optimize(cases_):
+                prev = cases_[0]
+                for i in xrange(1, len(cases_)):
+                    if cases_[i] != prev + 1:
+                        return False
 
-                        prev += 1
+                    prev += 1
 
-                    return True
+                return True
 
-                cases_ = cases(node.right_expr.value)
+            cases_ = cases(node.right_expr.value)
 
-                if can_optimize(cases_):
-                    return "(%s >= %d && %s <= %d)" % (left_expr, cases_[0], left_expr, cases_[-1])
+            if can_optimize(cases_):
+                return "(%s >= %d && %s <= %d)" % (left_expr, cases_[0], left_expr, cases_[-1])
 
-                else:
-                    t = []
-                    for case in cases_:
-                        t.append("%s == %d" % (left_expr, case))
-
-                    return "(%s)" % (" || ".join(t))
-
-            elif type(node.right_expr) in [List, Enumeration]:
+            else:
                 t = []
-                for cond in node.right_expr.values:
-                    t.append("%s == %s" % (left_expr, self.accept(cond)))
+                for case in cases_:
+                    t.append("%s == %d" % (left_expr, case))
 
                 return "(%s)" % (" || ".join(t))
 
-        elif node.type == "concatenation":
-            # imm = a:b -> imm = Concatenate(a, b, len(b))
-            left_expr = self.accept(node.left_expr)
-            right_expr = self.accept(node.right_expr)
+        elif type(node.right_expr) in [List, Enumeration]:
+            t = []
+            for cond in node.right_expr.values:
+                t.append("%s == %s" % (left_expr, self.accept(cond)))
 
-            # Get the types.
-            left_expr_type = self.get_type(node.left_expr)
-            right_expr_type = self.get_type(node.right_expr)
+            return "(%s)" % (" || ".join(t))
 
-            if IsUnknownType(left_expr_type) or IsUnknownType(right_expr_type):
-                print "DEBUG(%4d):" % (lineno())
-                print "DEBUG: Concatenated expressions type is unknown."
-                print "DEBUG: node            = %s" % str(node)
-                print "DEBUG: node.left_expr  = %s" % str(left_expr)
-                print "DEBUG: node.right_expr = %s" % str(right_expr)
+    def accept_ConcatenationExpression(self, node):
+        # imm = a:b -> imm = Concatenate(a, b, len(b))
+        left_expr = self.accept(node.left_expr)
+        right_expr = self.accept(node.right_expr)
 
-                if type_check:
-                    raise RuntimeError("Unary expresion type unknown.")
+        # Get the types.
+        left_expr_type = self.get_type(node.left_expr)
+        right_expr_type = self.get_type(node.right_expr)
 
-            # Since all constants have the same string representation, we need to
-            # cheat a bit and use the bit_size instead of the inferred type.
-            if type(node.right_expr) is NumberValue and right_expr_type[1] != node.right_expr.bit_size:
-                right_expr_type = (right_expr_type[0], node.right_expr.bit_size)
+        if IsUnknownType(left_expr_type) or IsUnknownType(right_expr_type):
+            print "DEBUG(%4d):" % (lineno())
+            print "DEBUG: Concatenated expressions type is unknown."
+            print "DEBUG: node            = %s" % str(node)
+            print "DEBUG: node.left_expr  = %s" % str(left_expr)
+            print "DEBUG: node.right_expr = %s" % str(right_expr)
 
-            # Create a new type.
-            result_expr_type = ("int", left_expr_type[1] + right_expr_type[1])
-            self.set_type(node, result_expr_type)
+            if type_check:
+                raise RuntimeError("Unary expresion type unknown.")
 
-            return "Concatenate(%s, %s, %d)" % (left_expr, right_expr, right_expr_type[1])
+        # Since all constants have the same string representation, we need to
+        # cheat a bit and use the bit_size instead of the inferred type.
+        if type(node.right_expr) is NumberValue and right_expr_type[1] != node.right_expr.bit_size:
+            right_expr_type = (right_expr_type[0], node.right_expr.bit_size)
 
-        elif node.type == "assign":
-            # Handle: (a, b) = (1, 2)
-            if type(node.left_expr) is List and type(node.right_expr) is List:
-                # It is safe to assume the types to be (uint32_t, uint32_t)
-                # (shift_t, shift_n) = (SRType_LSL, 0);
-                # (shift_t, shift_n) = (SRType_LSL, UInt(imm2));
+        # Create a new type.
+        result_expr_type = ("int", left_expr_type[1] + right_expr_type[1])
+        self.set_type(node, result_expr_type)
 
-                # Accept the unused nodes so we can have master race type checking.
-                self.accept(node.left_expr)
-                self.accept(node.right_expr)
+        return "Concatenate(%s, %s, %d)" % (left_expr, right_expr, right_expr_type[1])
 
-                # Check that the lists are of the same type.
-                assert self.get_type(node.left_expr) == self.get_type(node.right_expr)
+    def accept_AssignmentExpression(self, node):
+        # Handle: (a, b) = (1, 2)
+        if type(node.left_expr) is List and type(node.right_expr) is List:
+            # It is safe to assume the types to be (uint32_t, uint32_t)
+            # (shift_t, shift_n) = (SRType_LSL, 0);
+            # (shift_t, shift_n) = (SRType_LSL, UInt(imm2));
 
-                t = ""
-                i = 0
-                # For each of the left variables.
-                for var in node.left_expr.values:
-                    if var in self.symbol_table:
-                        # Make the assignment.
-                        t += "%s %s %s;\n" % (var, name_op[node.type], node.right_expr.values[i])
+            # Accept the unused nodes so we can have master race type checking.
+            self.accept(node.left_expr)
+            self.accept(node.right_expr)
 
-                    else:
-                        # Declare it and initialize it.
-                        self.symbol_table.add(str(var))
-                        self.define_me.add(str(var))
-                        t += "%s %s %s;\n" % (var, name_op[node.type], node.right_expr.values[i])
+            # Check that the lists are of the same type.
+            assert self.get_type(node.left_expr) == self.get_type(node.right_expr)
 
-                    # Set the types of the assignee and the assigned.
-                    self.set_type(var, ("int", 32))
-                    self.set_type(node.right_expr.values[i], ("int", 32))
-
-                    i += 1
-
-                return t
-
-            # Handle: (a, b) = SomeFunction(arguments)
-            elif type(node.left_expr) is List and type(node.right_expr) is ProcedureCall:
-                # Accept the unused nodes so we can have master race type checking.
-                self.accept(node.left_expr)
-                right_expr = self.accept(node.right_expr)
-
-                # Check that the lists are of the same type.
-                t1 = self.get_type(node.left_expr)
-                t2 = self.get_type(node.right_expr)
-
-                # We may have typing information on the function name.
-                t3 = self.get_type(node.right_expr.name)
-
-                if t1 != t2 and t1 != t3:            
-                    print "DEBUG(%4d):" % (lineno())
-                    print "DEBUG: List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3)
-                    print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
-                    print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
-                    print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
-                    print "DEBUG: node.right_expr       = %r" % self.accept(node.right_expr)
-
-                    if type_check:
-                        raise RuntimeError("List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3))
-
-                names = []
-                acum = ""
-                i = 0
-                # For each of the left variables.
-                for var in node.left_expr.values:
-                    # Set a special name for the ignored values.
-                    name = ("ignored_%d" % i) if type(var) is Ignore else str(var)
-
-                    if not name in self.symbol_table:
-                        # Declare it and initialize it.
-                        self.symbol_table.add(name)
-                        self.define_me.add(name)
-                    
-                    names.append(name)
-
-                    if not type(var) is Ignore:
-                        self.set_type(var, ("int", 32))
-
-                    i += 1
-
-                if len(node.left_expr.values) != len(names):
-                    print "DEBUG(%4d):" % (lineno())
-                    print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
-                    print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
-                    print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
-                    print "DEBUG: node.right_expr       = %r" % self.accept(node.right_expr)
-                    print "DEBUG: node.left_expr.values = %r" % map(self.accept, node.left_expr.values)
-                    print "DEBUG: names                 = %r" % names
-                    print "DEBUG: len(node.left_expr.values) != len(names): %d != %d" % (len(node.left_expr.values), len(names))
-                    
-                    if type_check:
-                        raise RuntimeError("len(node.left_expr.values) != len(names): %d != %d" % \
-                            (len(node.left_expr.values), len(names)))
-
-                acum += "std::tie(%s) = %s;\n" % (", ".join(names), right_expr)
-                return acum
-
-            # Handle: SomeArray[expression] = expression
-            elif type(node.left_expr) is ArrayAccess:
-                # Get the name of the array.
-                node_name = str(node.left_expr.name)
-                
-                # It is a register.
-                if node_name in ["R"]:
-                    return self.accept_RegularRegisterWrite(node)
-
-                elif node_name in ["Rmode"]:
-                    return self.accept_RmodeWrite(node)
-
-                elif node_name in ["S"]:
-                    return self.accept_SingleRegisterWrite(node)
-
-                elif node_name in ["D", "Din"]:
-                    return self.accept_DoubleRegisterWrite(node)
-
-                elif node_name in ["Q", "Qin"]:
-                    return self.accept_QuadRegisterWrite(node)
-
-                elif node_name in ["Elem"]:
-                    # TODO: This is just for testing.
-                    return self.accept_ElementWrite(node)
-
-                elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
-                    return self.accept_MemoryWrite(node)
+            t = ""
+            i = 0
+            # For each of the left variables.
+            for var in node.left_expr.values:
+                if var in self.symbol_table:
+                    # Make the assignment.
+                    t += "%s %s %s;\n" % (var, name_op[node.type], node.right_expr.values[i])
 
                 else:
-                    raise RuntimeError("Unknown node: %s" % str(node))
+                    # Declare it and initialize it.
+                    self.symbol_table.add(str(var))
+                    self.define_me.add(str(var))
+                    t += "%s %s %s;\n" % (var, name_op[node.type], node.right_expr.values[i])
 
-            left_expr = self.accept(node.left_expr)
+                # Set the types of the assignee and the assigned.
+                self.set_type(var, ("int", 32))
+                self.set_type(node.right_expr.values[i], ("int", 32))
+
+                i += 1
+
+            return t
+
+        # Handle: (a, b) = SomeFunction(arguments)
+        elif type(node.left_expr) is List and type(node.right_expr) is ProcedureCall:
+            # Accept the unused nodes so we can have master race type checking.
+            self.accept(node.left_expr)
             right_expr = self.accept(node.right_expr)
 
-            # Assignment makes lhs inherit the type of rhs.
-            right_expr_type = self.get_type(node.right_expr)
-            # if IsUnknownType(right_expr_type):
-            #     print "DEBUG: Assignment statement:"
-            #     print "DEBUG: node                 = %s" % (str(node))
-            #     print "DEBUG: node.left_expr       = %s" % (str(left_expr))
-            #     print "DEBUG: node.right_expr      = %s" % (str(right_expr))
-            #     print "DEBUG: node.left_expr.type  = %s" % str(self.get_type(node.left_expr))
-            #     print "DEBUG: node.right_expr.type = %s" % str(self.get_type(node.right_expr))
-            #     print
+            # Check that the lists are of the same type.
+            t1 = self.get_type(node.left_expr)
+            t2 = self.get_type(node.right_expr)
+
+            # We may have typing information on the function name.
+            t3 = self.get_type(node.right_expr.name)
+
+            if t1 != t2 and t1 != t3:            
+                print "DEBUG(%4d):" % (lineno())
+                print "DEBUG: List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3)
+                print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
+                print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
+                print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
+                print "DEBUG: node.right_expr       = %r" % self.accept(node.right_expr)
+
+                if type_check:
+                    raise RuntimeError("List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3))
+
+            names = []
+            acum = ""
+            i = 0
+            # For each of the left variables.
+            for var in node.left_expr.values:
+                # Set a special name for the ignored values.
+                name = ("ignored_%d" % i) if type(var) is Ignore else str(var)
+
+                if not name in self.symbol_table:
+                    # Declare it and initialize it.
+                    self.symbol_table.add(name)
+                    self.define_me.add(name)
+                
+                names.append(name)
+
+                if not type(var) is Ignore:
+                    self.set_type(var, ("int", 32))
+
+                i += 1
+
+            if len(node.left_expr.values) != len(names):
+                print "DEBUG(%4d):" % (lineno())
+                print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
+                print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
+                print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
+                print "DEBUG: node.right_expr       = %r" % self.accept(node.right_expr)
+                print "DEBUG: node.left_expr.values = %r" % map(self.accept, node.left_expr.values)
+                print "DEBUG: names                 = %r" % names
+                print "DEBUG: len(node.left_expr.values) != len(names): %d != %d" % (len(node.left_expr.values), len(names))
+                
+                if type_check:
+                    raise RuntimeError("len(node.left_expr.values) != len(names): %d != %d" % \
+                        (len(node.left_expr.values), len(names)))
+
+            acum += "std::tie(%s) = %s;\n" % (", ".join(names), right_expr)
+            return acum
+
+        # Handle: SomeArray[expression] = expression
+        elif type(node.left_expr) is ArrayAccess:
+            # Get the name of the array.
+            node_name = str(node.left_expr.name)
             
-            self.set_type(node.left_expr, right_expr_type)
+            # It is a register.
+            if node_name in ["R"]:
+                return self.accept_RegularRegisterWrite(node)
 
-            # If the lhs is present at the symbol table we need not to initialize it.
-            if left_expr in self.symbol_table:
-                return "%s %s %s;" % (left_expr, name_op[node.type], right_expr)
+            elif node_name in ["Rmode"]:
+                return self.accept_RmodeWrite(node)
 
-            # Add the left symbol to the symbol table.
-            self.symbol_table.add(left_expr)
-            self.define_me.add(left_expr)
+            elif node_name in ["S"]:
+                return self.accept_SingleRegisterWrite(node)
 
-            # Declare it and initialize it.
-            return "%s %s %s;" % (left_expr, name_op[node.type], right_expr)
+            elif node_name in ["D", "Din"]:
+                return self.accept_DoubleRegisterWrite(node)
 
-        elif node.type == "idiv":
-            type_ = "/"
+            elif node_name in ["Q", "Qin"]:
+                return self.accept_QuadRegisterWrite(node)
 
-        elif node.type == "imod":
-            type_ = "%"
+            elif node_name in ["Elem"]:
+                # TODO: This is just for testing.
+                return self.accept_ElementWrite(node)
 
-        elif node.type == "xor":
-            type_ = "^"
+            elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
+                return self.accept_MemoryWrite(node)
 
-        elif node.type == "and":
-            type_ = "&&"
-
-        elif node.type == "or":
-            type_ = "||"
-
-        else:
-            type_ = name_op[node.type]
+            else:
+                raise RuntimeError("Unknown node: %s" % str(node))
 
         left_expr = self.accept(node.left_expr)
         right_expr = self.accept(node.right_expr)
 
-        if not node.type in ["and", "or", "eq", "ne", "gt", "lt", "gte", "lte", "in"]:
-            left_expr_type = self.get_type(node.left_expr)
-            right_expr_type = self.get_type(node.right_expr)
+        # Assignment makes lhs inherit the type of rhs.
+        right_expr_type = self.get_type(node.right_expr)
+        # if IsUnknownType(right_expr_type):
+        #     print "DEBUG: Assignment statement:"
+        #     print "DEBUG: node                 = %s" % (str(node))
+        #     print "DEBUG: node.left_expr       = %s" % (str(left_expr))
+        #     print "DEBUG: node.right_expr      = %s" % (str(right_expr))
+        #     print "DEBUG: node.left_expr.type  = %s" % str(self.get_type(node.left_expr))
+        #     print "DEBUG: node.right_expr.type = %s" % str(self.get_type(node.right_expr))
+        #     print
+        
+        self.set_type(node.left_expr, right_expr_type)
 
-            if left_expr_type[0] != right_expr_type[0]:
-                if type_check:
-                    raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (left_expr_type, right_expr_type))
-            
-                # print
-                # print "DEBUG: Types differ in expression = %s" % (node)
-                # print "DEBUG: left_expr.type             = %r" % str(left_expr_type)
-                # print "DEBUG: right_expr.type            = %s" % str(right_expr_type)
-                # print "DEBUG: node.left_expr             = %r" % self.accept(node.left_expr)
-                # print "DEBUG: node.right_expr            = %r" % self.accept(node.right_expr)
-                # print
-            
-            self.set_type(node, left_expr_type)
+        # If the lhs is present at the symbol table we need not to initialize it.
+        if left_expr in self.symbol_table:
+            return "%s %s %s;" % (left_expr, name_op[node.type], right_expr)
 
-        else:
+        # Add the left symbol to the symbol table.
+        self.symbol_table.add(left_expr)
+        self.define_me.add(left_expr)
+
+        # Declare it and initialize it.
+        return "%s %s %s;" % (left_expr, name_op[node.type], right_expr)
+
+    def accept_BinaryExpression(self, node):
+        if node.type == "in":
+            return self.accept_InExpression(node)
+
+        elif node.type == "concatenation":
+            return self.accept_ConcatenationExpression(node)
+
+        elif node.type == "assign":
+            return self.accept_AssignmentExpression(node)
+
+        left_expr = self.accept(node.left_expr)
+        right_expr = self.accept(node.right_expr)
+        op_name = BinaryExpressionNameToOperator[node.type]
+
+        # Boolean operations do not need type checking.
+        if IsBooleanOperator(node.type):
             self.set_type(node, ("int", 1))
+            return "(%s %s %s)" % (left_expr, op_name, right_expr)
 
-        return "(%s %s %s)" % (left_expr, type_, right_expr)
+        left_expr_type = self.get_type(node.left_expr)
+        right_expr_type = self.get_type(node.right_expr)
+
+        if left_expr_type[0] != right_expr_type[0]:
+            if type_check:
+                raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (left_expr_type, right_expr_type))
+        
+            print "DEBUG(%4d):" % (lineno())
+            print "DEBUG: Types differ in expression = %s" % (node)
+            print "DEBUG: left_expr.type             = %r" % str(left_expr_type)
+            print "DEBUG: right_expr.type            = %s" % str(right_expr_type)
+            print "DEBUG: node.left_expr             = %r" % self.accept(node.left_expr)
+            print "DEBUG: node.right_expr            = %r" % self.accept(node.right_expr)
+        
+        self.set_type(node, left_expr_type)
+        return "(%s %s %s)" % (left_expr, op_name, right_expr)
 
     def accept_ProcedureCall(self, node):
         """
