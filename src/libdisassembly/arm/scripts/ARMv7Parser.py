@@ -1216,6 +1216,7 @@ class CPPTranslatorVisitor(Visitor):
         if str(node.name) in ["UInt", "ThumbExpandImm"]:
             # Assumption: the type in the manual is 'integer' so 32 bits.
             self.set_type(node, ("int", 32))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["ZeroExtend", "FPZero", "SignedSat", "UnsignedSat", "Sat"]:
             # If the argument is an integer then it is the size of the expression.
@@ -1223,17 +1224,23 @@ class CPPTranslatorVisitor(Visitor):
             if argument.isdigit():
                 self.set_type(node, ("int", int(argument)))
 
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
         elif str(node.name) in ["ROR", "LSL", "FPNeg", "FPMul", "RoundTowardsZero"]:
             # Inherit the type of the first argument.
             arg_type = self.get_type(node.arguments[0])
             if not IsUnknownType(arg_type):
                 self.set_type(node, arg_type)
 
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
         elif str(node.name) in ["Zeros", "Ones"]:
             # If the argument is an integer then it is the size of the generated integer.
             argument = self.accept(node.arguments[0])
             if argument.isdigit():
                 self.set_type(node, ("int", int(argument)))
+
+            return "%s(%s)" % (node.name, ", ".join(arguments))
             
         elif str(node.name) in ["Int"]:
             # Integers are always 32 bits.
@@ -1281,16 +1288,17 @@ class CPPTranslatorVisitor(Visitor):
 
         elif str(node.name) in ["InITBlock", "LastInITBlock"]:
             self.set_type(node, ("int", 1))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["DecodeImmShift", "ARMExpandImm_C", "ThumbExpandImm_C"]:
             self.set_type(node, ("list", 2))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["NOT"]:
             # Inherit the type of the argument.
             assert len(node.arguments) == 1
             arg_type = self.get_type(node.arguments[0])
             self.set_type(node, arg_type)
-
             return "NOT(%s, %s)" % (", ".join(arguments), arg_type[1])
 
         elif str(node.name) == "Consistent":
