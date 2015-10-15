@@ -19,8 +19,12 @@ type_check = False
 from ARMv7DecodingSpec import instructions
 from utils import get_mask, get_value, get_size
 
-def verbose(name, e):
-    print "name=%s type=%s, str=%s, repr=%r" % (name, type(e).__name__, str(e), repr(e))
+UnaryNameToOperator = {
+    "negate" : "!",
+    "minus" : "-",
+    "invert" : "~",
+    "plus" : "+",
+}
 
 # Avoid treating newlines as whitespaces.
 ParserElement.setDefaultWhitespaceChars(" \t")
@@ -902,42 +906,18 @@ class CPPTranslatorVisitor(Visitor):
         return str(node)
 
     def accept_UnaryExpression(self, node):
-        t = {
-            "negate" : "!",
-            "minus" : "-",
-            "invert" : "~",
-            "plus" : "+",
-        }
-
         expr_str = self.accept(node.expr)
-        t = "%s%s" % (t[str(node.type)], expr_str)
-
-        # Obtain the type of the expression.
         expr_type = self.get_type(node.expr)
-
+        
         if IsUnknownType(expr_type):
-            print "DEBUG(%4d):" % (lineno())
-            print "DEBUG: Unary expresion type unknown."
-            print "DEBUG: node      = %s" % str(node)
-            print "DEBUG: node.expr = %s" % str(expr_str)
-
-            if type_check:
-                raise RuntimeError("Unary expresion type unknown.")
+            raise RuntimeError("Unary expresion type unknown.")
 
         # Make the node inherit the type of the expression.
         self.set_type(node, expr_type)
 
-        return t
+        return "%s%s" % (UnaryNameToOperator[node.type], expr_str)
 
     def accept_BinaryExpression(self, node):
-        t = {
-            "idiv" : "/",
-            "imod" : "%",
-            "xor"  : "^",
-            "and"  : "&&",
-            "or"   : "||"
-        }
-
         if node.type == "in":
             left_expr = self.accept(node.left_expr)
 
@@ -1274,7 +1254,7 @@ class CPPTranslatorVisitor(Visitor):
             # Get the argument type.
             arg_type = self.get_type(node.arguments[0])
             if IsUnknownType(arg_type):
-                assert  type(node.arguments[0]) == ArrayAccess
+                assert type(node.arguments[0]) == ArrayAccess
                 arg_type = ("int", self.accept(node.arguments[0].expr3))
 
             # Integers are always 32 bits.
@@ -1305,7 +1285,14 @@ class CPPTranslatorVisitor(Visitor):
 
         elif str(node.name) == "SignExtend":
             # Sign extend in c++ needs the bitsize of the bit string.
-            arg_bit_len = self.get_type(node.arguments[0])[1]
+            arg_type = self.get_type(node.arguments[0])
+            if IsUnknownType(arg_type):
+                print "DEBUG(%4d):" % (lineno())
+                print 'DEBUG: arg_type == ("unknown", None)'
+                print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
+                print "DEBUG: node.name = %s" % (str(node.name))
+
+            arg_bit_len = arg_type[1]
 
             # The resulting size is the second argument.
             argument = self.accept(node.arguments[1])
@@ -1414,7 +1401,7 @@ class CPPTranslatorVisitor(Visitor):
                 print "DEBUG: falseValue.type            = %s" % str(falseValue_type)
                 print "DEBUG: node.trueValue             = %r" % self.accept(node.trueValue)
                 print "DEBUG: node.falseValue            = %r" % self.accept(node.falseValue)
-                
+
                 raise RuntimeError("Cannot infer type for IfExpression")
 
         elif IsUnknownType(trueValue_type):
@@ -1887,7 +1874,6 @@ def InstructionFormatParser():
             return "OpcodeArguments(name=%r)" % self.name
 
     def decode_op_mandatory(s, locs, toks):
-        #verbose("decode_op_mandatory", toks.asList())
         toks = toks.asList()
 
         if len(toks) == 3:
@@ -1907,19 +1893,16 @@ def InstructionFormatParser():
             return MandatoryToken(toks[3], sign=toks[1], pound=toks[0])
 
     def decode_op_optional(s, locs, toks):
-        #verbose("decode_op_optional", toks.asList())
         toks = toks.asList()
         assert toks[0] == "{" and toks[-1] == "}"
 
         return OptionalToken(toks[1:-1])
 
     def decode_opcode_name(s, locs, toks):
-        #verbose("decode_opcode", toks.asList())
         toks = toks.asList()
         return OpcodeName(toks)
 
     def decode_opcode_args(s, locs, toks):
-        #verbose("decode_opcode", toks.asList())
         toks = toks.asList()
         return OpcodeArguments(toks)
 
