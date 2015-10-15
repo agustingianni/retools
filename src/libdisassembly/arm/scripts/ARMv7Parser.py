@@ -839,13 +839,8 @@ class CPPTranslatorVisitor(Visitor):
 
     def accept_MemoryWrite(self, node):
         # Receives a BinaryExpression with an ArrayAccess and an expression.
-        args = [self.accept(node.left_expr.expr1), self.accept(node.right_expr)]
-        if node.left_expr.expr2:
-            args.append(self.accept(node.left_expr.expr2))
-
-        if node.left_expr.expr3:
-            args.append(self.accept(node.left_expr.expr3))
-
+        # Mem[address, size] = expression;
+        args = [self.accept(node.left_expr.expr1), self.accept(node.left_expr.expr2), self.accept(node.right_expr)]
         return "ctx.writeMemory(%s)" % (", ".join(args))
 
     def accept_ElementRead(self, node):
@@ -1145,8 +1140,8 @@ class CPPTranslatorVisitor(Visitor):
                 elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
                     return self.accept_MemoryWrite(node)
 
-
-                return "// XXX: What is this? '%s'" % node
+                else:
+                    raise RuntimeError("Unknown node: %s" % str(node))
 
             left_expr = self.accept(node.left_expr)
             right_expr = self.accept(node.right_expr)
