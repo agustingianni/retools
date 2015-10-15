@@ -834,9 +834,6 @@ class CPPTranslatorVisitor(Visitor):
         register_value_expression = self.accept(node.right_expr)
         return "ctx.writeQuadRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
-    def accept_ElementWrite(self, node):
-        return "ctx.TODO_writeElement()"
-
     def accept_MemoryWrite(self, node):
         # Receives a BinaryExpression with an ArrayAccess and an expression.
         # Mem[address, size] = expression;
@@ -851,18 +848,14 @@ class CPPTranslatorVisitor(Visitor):
             return vector<(e+1)*size-1:e*size>;
         """
         # TODO: Implement.
-        return "TODO_accept_ElementRead()"
+        return "ctxt.TODO_readElement()"
+
+    def accept_ElementWrite(self, node):
+        return "ctx.TODO_writeElement()"
 
     def accept_ArrayAccess(self, node):
-        """
-        bits(32) Rmode[integer n, bits(5) mode]
-        Rmode[integer n, bits(5) mode] = bits(32) value
-        bits(32) R[integer n]
-        R[integer n] = bits(32) value        
-        """
         node_name = str(node.name)
 
-        # TODO: Rmode has two arguments
         if node_name in ["R"]: 
             return self.accept_RegularRegisterRead(node)
 
@@ -879,7 +872,6 @@ class CPPTranslatorVisitor(Visitor):
             return self.accept_QuadRegisterRead(node)
 
         elif node_name in ["Elem"]:
-            # TODO: This is just for testing.
             return self.accept_ElementRead(node)
 
         elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
