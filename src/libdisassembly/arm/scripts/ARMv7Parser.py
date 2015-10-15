@@ -843,17 +843,22 @@ class CPPTranslatorVisitor(Visitor):
         return "ctx.writeMemory(%s)" % (", ".join(args))
 
     def accept_ElementRead(self, node):
-        """
-        The pseudocode function Elem[] accesses the element of a specified index and size in a vector:
-        
-        bits(size) Elem[bits(N) vector, integer e, integer size]
-            return vector<(e+1)*size-1:e*size>;
-        """
-        # TODO: Implement.
-        return "ctxt.TODO_readElement()"
+        vector = self.accept(node.expr1)
+        element = self.accept(node.expr2)
+        size = self.accept(node.expr3)
+
+        if size.isdigit():
+            self.set_type(node, ("int", int(size) * 8))
+
+        return "ctxt.readElement(%s, %s, %s)" % (vector, element, size)
 
     def accept_ElementWrite(self, node):
-        return "ctx.TODO_writeElement()"
+        vector = self.accept(node.left_expr.expr1)
+        element = self.accept(node.left_expr.expr2)
+        size = self.accept(node.left_expr.expr3)
+        value = self.accept(node.right_expr)
+
+        return "ctxt.writeElement(%s, %s, %s, %s)" % (vector, element, size, value)
 
     def accept_ArrayAccess(self, node):
         node_name = str(node.name)
@@ -1133,9 +1138,11 @@ class CPPTranslatorVisitor(Visitor):
             right_expr_type = self.get_type(node.right_expr)
             if IsUnknownType(right_expr_type):
                 print "DEBUG: Assignment statement:"
-                print "DEBUG: node            = %s" % (str(node))
-                print "DEBUG: node.left_expr  = %s" % (str(left_expr))
-                print "DEBUG: node.right_expr = %s" % (str(right_expr))
+                print "DEBUG: node                 = %s" % (str(node))
+                print "DEBUG: node.left_expr       = %s" % (str(left_expr))
+                print "DEBUG: node.right_expr      = %s" % (str(right_expr))
+                print "DEBUG: node.left_expr.type  = %s" % str(self.get_type(node.left_expr))
+                print "DEBUG: node.right_expr.type = %s" % str(self.get_type(node.right_expr))
                 print
             
             self.set_type(node.left_expr, right_expr_type)
@@ -1267,7 +1274,7 @@ class CPPTranslatorVisitor(Visitor):
         elif str(node.name) in ["SInt"]:
             # Get the argument type.
             arg_type = self.get_type(node.arguments[0])
-            if IsUnknownType(arg_type):
+            if IsUnknownType(arg_type) or arg_type[1] == None:
                 print "DEBUG:"
                 print 'DEBUG: arg_type == ("unknown", None)'
                 print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
