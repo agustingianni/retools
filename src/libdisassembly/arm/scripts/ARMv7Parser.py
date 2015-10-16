@@ -933,7 +933,7 @@ class CPPTranslatorVisitor(Visitor):
         expr_str = self.accept(node.expr)
         expr_type = self.get_type(node.expr)
         
-        if IsUnknownType(expr_type):
+        if IsUnknownType(expr_type) and type_check:
             raise RuntimeError("Unary expresion type unknown.")
 
         # Make the node inherit the type of the expression.
@@ -1049,7 +1049,7 @@ class CPPTranslatorVisitor(Visitor):
         # Handle: (a, b) = SomeFunction(arguments)
         elif type(node.left_expr) is List and type(node.right_expr) is ProcedureCall:
             # Accept the unused nodes so we can have master race type checking.
-            self.accept(node.left_expr)
+            left_expr = self.accept(node.left_expr)
             right_expr = self.accept(node.right_expr)
 
             # Check that the lists are of the same type.
@@ -1069,6 +1069,33 @@ class CPPTranslatorVisitor(Visitor):
 
                 if type_check:
                     raise RuntimeError("List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3))
+            
+            # Small hack.
+            if self.accept(node.right_expr.name) in ["SignedSatQ", "UnsignedSatQ"]:
+                # (result, sat) = UnsignedSatQ(SInt(operand), saturate_to);
+                # (result1, sat1) = UnsignedSatQ(SInt(R[n]<15:0>), saturate_to);
+                # (result2, sat2) = UnsignedSatQ(SInt(R[n]<31:16>), saturate_to);
+                
+                # Get the saturation size.
+                sat_size = self.accept(node.right_expr.arguments[1])
+                if sat_size.isdigit():
+                    sat_size = int(sat_size)
+
+                arg0 = self.accept(node.left_expr.values[0])
+                arg1 = self.accept(node.left_expr.values[1])
+
+                # Set the type either to an integer or an integer expression.
+                self.set_type(arg0, ("int", sat_size))
+                self.set_type(arg1, ("int", 1))
+
+                print
+                print "XXXX: (%d)" % lineno()
+                print "XXXX: node.left_expr        ", arg0, ("int", sat_size)
+                print "XXXX: node.left_expr        ", arg1, ("int", 1)
+                print "XXXX: std::tie(%s) = %s;\n" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
+                print
+
+                return "std::tie(%s) = %s;\n" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
 
             names = []
             acum = ""
@@ -1191,12 +1218,12 @@ class CPPTranslatorVisitor(Visitor):
             if type_check:
                 raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (left_expr_type, right_expr_type))
         
-            print "DEBUG(%4d):" % (lineno())
-            print "DEBUG: Types differ in expression = %s" % (node)
-            print "DEBUG: left_expr.type             = %r" % str(left_expr_type)
-            print "DEBUG: right_expr.type            = %s" % str(right_expr_type)
-            print "DEBUG: node.left_expr             = %r" % self.accept(node.left_expr)
-            print "DEBUG: node.right_expr            = %r" % self.accept(node.right_expr)
+            # print "DEBUG(%4d):" % (lineno())
+            # print "DEBUG: Types differ in expression = %s" % (node)
+            # print "DEBUG: left_expr.type             = %r" % str(left_expr_type)
+            # print "DEBUG: right_expr.type            = %s" % str(right_expr_type)
+            # print "DEBUG: node.left_expr             = %r" % self.accept(node.left_expr)
+            # print "DEBUG: node.right_expr            = %r" % self.accept(node.right_expr)
         
         self.set_type(node, left_expr_type)
         return "(%s %s %s)" % (left_expr, op_name, right_expr)
@@ -1298,6 +1325,9 @@ class CPPTranslatorVisitor(Visitor):
             # Inherit the type of the argument.
             assert len(node.arguments) == 1
             arg_type = self.get_type(node.arguments[0])
+            if IsUnknownType(arg_type) and type_check:
+                raise RuntimeError("Type of NOT expression is unknown.")
+
             self.set_type(node, arg_type)
             return "NOT(%s, %s)" % (", ".join(arguments), arg_type[1])
 
@@ -1489,7 +1519,12 @@ class CPPTranslatorVisitor(Visitor):
 
     def accept_Return(self, node):
         t = "return %s;" % self.accept(node.value)
-        self.set_type(node, self.get_type(node.value))
+        ret_type = self.get_type(node.value)
+
+        if IsUnknownType(ret_type) and type_check:
+            raise RuntimeError("Type of the return statement is unknown.")
+
+        self.set_type(node, ret_type)
         return t
 
     def accept_List(self, node):
