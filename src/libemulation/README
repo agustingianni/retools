@@ -1,7 +1,32 @@
 Emulation framework.
 
+Roadmap:
+
+	- Terminar la traduccion source to source del interprete.
+		- Check type correctness.
+
+- Parece que una cache de decodificacion puede hacer el codigo muy rapido.
+	- HAbria que ver si hay que hacer cache por PC o por opcode.
+	- Una queue seria algo interesante, onda que se mantenga hot
+	  las instrucciones mas nuevas.
+	- Por ahi una estructura de esas probabilisticas?
+	  - Son rapidas de acceder
+	  - bloom filter
+
 - Implement a fast interpreter that we can use when we don't use the JIT.
-	
+	- We have two options:
+
+		- Translate the pseudocode to C++
+			- Using the interpreter is more natural from C++, just call the right
+			  function and that's it.
+			- Once we finish the AST translator that's it, we have an interpreter.
+			- 
+
+		- Translate the psudocode to bytecode.
+			- If we add other architectures we only need to do 
+			  the JIT translation once, from bytecode to JIT.
+			- More complex as we also need to do a bytecode interpreter.
+
 	- Each instructions has an ARMInstruction::emulate
 		
 		- ARMContext
