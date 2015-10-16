@@ -15,7 +15,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 # Build related libraries.
 add_subdirectory(src/libbinary)
 add_subdirectory(src/libdisassembly)
-add_subdirectory(src/libemulation)
+# add_subdirectory(src/libemulation)
 # add_subdirectory(src/libsymbolic)
 
 # Build the tools.
