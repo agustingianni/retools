@@ -10,12 +10,12 @@ add_library(
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMDisassembler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMDisassembler.h
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMUtilities.h
+	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMtoStringCustom.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMtoStringCustom.h
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMDecodingTable.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMDecodingTable.h
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMtoString.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMtoString.h
-	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMtoStringCustom.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMtoStringCustom.h
 	${CMAKE_SOURCE_DIR}/src/utilities/Utilities.h
 )
 
