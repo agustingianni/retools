@@ -10,7 +10,7 @@ from ast.translators import CPPTranslatorVisitor, indent
 
 DEBUG = False
 
-def instruction_decoder_name(ins_name):
+def instruction_interpreter_name(ins_name):
     ins_name = re.sub('[\s\(\)\-\,\/\#]', '_', ins_name)
     ins_name = ins_name.replace("__", "_")
     ins_name = ins_name.rstrip("_")
@@ -33,7 +33,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         fd.write(header)
         for instruction in ARVv7OperationSpec.instructions:
             ins_name = instruction["name"]
-            fd.write("    bool %s(ARMContext &ctx, const ARMInstruction &ins);\n" % instruction_decoder_name(ins_name))
+            fd.write("    bool %s(ARMContext &ctx, const ARMInstruction &ins);\n" % instruction_interpreter_name(ins_name))
         
         fd.write("};\n")
     
@@ -48,7 +48,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             ins_name = instruction["name"]
             logging.info("Doing instruction '%s'" % ins_name)
 
-            fd.write("bool ARMInterpreter::%s(ARMContext &ctx, const ARMInstruction &ins) {\n" % instruction_decoder_name(ins_name))
+            fd.write("bool ARMInterpreter::%s(ARMContext &ctx, const ARMInstruction &ins) {\n" % instruction_interpreter_name(ins_name))
             
             ins_operation = instruction["operation"]
 
@@ -185,7 +185,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             # Write the translated body of the decoding procedure.
             fd.write(body)            
             fd.write("    return true;\n")
-            fd.write("};\n")
+            fd.write("}\n")
             fd.write("\n")
 
             i += 1
@@ -230,8 +230,8 @@ def main():
         if os.path.exists(interpreter_name_cpp):
             os.remove(interpreter_name_cpp)
 
-        logging.info("Creating decoders at '%s'." % interpreter_name_h)
-        logging.info("Creating decoders at '%s'." % interpreter_name_cpp)
+        logging.info("Creating interpreter at '%s'." % interpreter_name_h)
+        logging.info("Creating interpreter at '%s'." % interpreter_name_cpp)
 
         if not create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             logging.error("Could not create the interpreter.")
