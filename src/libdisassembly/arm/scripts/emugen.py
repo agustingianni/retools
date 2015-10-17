@@ -26,7 +26,9 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
 
     with open(interpreter_name_h, "w") as fd:
         header = ""
-        header += '#include "arm/ARMContext.h"\n\n' 
+        header += '#include "arm/ARMContext.h"\n'
+        header += '#include "arm/ARMDisassembler.h"\n\n'
+        header += 'using namespace Disassembler;\n\n' 
         header += "class ARMInterpreter {\n"
         header += "    ARMInterpreter() {};\n\n"
         
