@@ -8,10 +8,49 @@ import json
 import logging
 import argparse
 
-from ARMv7DecodingSpec import instructions
-from utils import get_mask, get_value, get_size
+from parser import ARMv7Parser
+from specification import ARMv7DecodingSpec
+from ast.translators import CPPTranslatorVisitor
 
 DEBUG = False
+
+def get_size(input):
+    s = 0
+    for e in input.split():
+        if not "#" in e:
+            s += len(e)
+
+        else:
+            s += int(e.split("#")[1])
+
+    return "eSize32" if s == 32 else "eSize16"
+
+def get_value(input):
+    r = "0b"
+    for e in input.split():
+        if not "#" in e:
+            r += e
+
+        else:
+            r += "0" * int(e.split("#")[1])
+
+    return int(r, 2)
+
+def get_mask(input):
+    r = ""
+    for e in input.split():
+        if not "#" in e:
+            r += "1" * len(e)
+        else:
+            r += "0" * int(e.split("#")[1])
+
+    # If we are a 16 bit instruction we need to pad it with 0xffff
+    if len(r) == 16:
+        r = "1111111111111111" + r
+
+    r = "0b" + r
+
+    return int(r, 2)
 
 def instruction_decoder_name(instruction):
     """
@@ -149,8 +188,6 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
     """
     Create the ARMDecoder.h and ARMDecoder.cpp.
     """
-    import ARMv7Parser
-
     # Here we hard code some variables that are not defined in the body but need to go into the instruction.
     hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "D",
             "W", "B", "P", "U", "op", "mode", "opcode_", "mask",
@@ -162,7 +199,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
 
         # Generate the instruction id enum.
         fd.write("typedef enum ARMInstructionId {\n")
-        for instruction_id in sorted(set(map(instruction_id_name, instructions))):
+        for instruction_id in sorted(set(map(instruction_id_name, ARMv7DecodingSpec.instructions))):
             fd.write("    %s,\n" % instruction_id)
         fd.write("} ARMInstructionId;\n")
         fd.write("\n")
@@ -220,7 +257,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
         fd.write("\n")
         fd.write("    public:\n")
 
-        for instruction in instructions:
+        for instruction in ARMv7DecodingSpec.instructions:
             fd.write("        std::shared_ptr<Disassembler::ARMInstruction> %s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, Disassembler::ARMEncoding encoding);\n" % instruction_decoder_name(instruction))
 
         fd.write("        std::shared_ptr<Disassembler::ARMInstruction> decode_unknown(uint32_t opcode, Disassembler::ARMInstrSize ins_size, Disassembler::ARMEncoding encoding);\n")
@@ -232,7 +269,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
 
         fd.write("// Format: (mask, value, version, encoding, decoder_function, name)\n")
         fd.write("ARMOpcode arm_opcodes[] = {\n")
-        for instruction in instructions:
+        for instruction in ARMv7DecodingSpec.instructions:
             if instruction["encoding"][0] == "T":
                 continue
 
@@ -267,7 +304,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
         fd.write("}\n\n")
 
         fd.write("ARMOpcode thumb_opcodes[] = {\n")
-        for instruction in instructions:
+        for instruction in ARMv7DecodingSpec.instructions:
             if instruction["encoding"][0] == "A":
                 continue
 
@@ -310,7 +347,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
         ins_fields = set()
 
         i = -1
-        for instruction in instructions:
+        for instruction in ARMv7DecodingSpec.instructions:
             i += 1
 
             input_vars = get_input_vars(instruction["pattern"])
@@ -326,7 +363,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
                         fd.write("// " + line2.strip() + "\n")
 
             if i % 50 == 0:
-                logging.info("Processing instruction %.4d of %.4d" % (i, len(instructions)))
+                logging.info("Processing instruction %.4d of %.4d" % (i, len(ARMv7DecodingSpec.instructions)))
 
             # Generate the decoder function signature for the current instruction.
             decoder_name = instruction_decoder_name(instruction)
@@ -352,7 +389,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
 
             # Get the AST for the decoder pseudocode and translate it to C++.
             ret = ARMv7Parser.program.parseString(decoder, parseAll=True)
-            visitor = ARMv7Parser.CPPTranslatorVisitor(input_vars=input_vars)
+            visitor = CPPTranslatorVisitor(input_vars=input_vars)
 
             body = ""
             for ast in ret:
@@ -1885,7 +1922,6 @@ std::string x_str(const Disassembler::ARMInstruction *ins);
 std::string y_str(const Disassembler::ARMInstruction *ins);
 '''
 def create_to_string(to_string_name_h, to_string_name_cpp):
-    import ARMv7Parser
     parser = ARMv7Parser.InstructionFormatParser()
     names = set()
 
@@ -1965,7 +2001,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
 
         s = set()
 
-        for instruction in instructions:
+        for instruction in ARMv7DecodingSpec.instructions:
             # Skip the custom ones as they are handled in 'create_to_string_custom'.
             if "CUSTOM" == instruction["format"]:
                 continue
@@ -2094,7 +2130,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
     with open(to_string_name_h, "w") as fd:
         fd.write(to_string_h)
 
-        for instruction in instructions:
+        for instruction in ARMv7DecodingSpec.instructions:
             if "CUSTOM" == instruction["format"].split()[0]:
                 continue
 
@@ -2128,7 +2164,7 @@ def create_to_string_custom(to_string_custom_name_h, to_string_custom_name_cpp):
     with open(to_string_custom_name_h, "w") as fd:
         fd.write(to_string_custom_h)
 
-        for instruction in filter(lambda x: x["format"] == "CUSTOM", instructions):
+        for instruction in filter(lambda x: x["format"] == "CUSTOM", ARMv7DecodingSpec.instructions):
             fd.write("std::string %s_to_string(const Disassembler::ARMInstruction *ins);\n" % instruction_decoder_name(instruction))
 
     # Create the implementation file.
@@ -2137,7 +2173,7 @@ def create_to_string_custom(to_string_custom_name_h, to_string_custom_name_cpp):
 
         s = set()
 
-        for instruction in filter(lambda x: x["format"] == "CUSTOM", instructions):
+        for instruction in filter(lambda x: x["format"] == "CUSTOM", ARMv7DecodingSpec.instructions):
             fd.write("// Instruction: %s\n// Encoding: %s\n" % (instruction["name"], instruction["encoding"]))
             fd.write("std::string %s_to_string(const Disassembler::ARMInstruction *ins) {\n" % instruction_decoder_name(instruction))
             fd.write("    char buffer[64];\n")

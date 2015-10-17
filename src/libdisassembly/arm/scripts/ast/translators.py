@@ -1,0 +1,894 @@
+import inspect
+
+from ast.visitor import Visitor
+from ast.nodes import *
+
+debug = False
+type_check = False
+
+op_name = {
+    "+": "add",
+    "-": "sub",
+    "/": "div",
+    "*": "mul",
+   "<<": "lshift",
+   ">>": "rshift",
+   "DIV": "idiv",
+   "MOD": "imod",
+   "^": "xor",
+   "||": "or",
+   "&&": "and",
+   "==": "eq",
+   "!=": "ne",
+   ">": "gt",
+   "<": "lt",
+   ">=": "gte",
+   "<=": "lte",
+   "IN": "in",
+   "=": "assign",
+   "EOR": "xor",
+   ":": "concatenation",
+   "AND": "and",
+   "OR": "or"
+}
+
+name_op = {v: k for k, v in op_name.items()}
+
+UnaryExpressionNameToOperator = {
+    "negate" : "!",
+    "minus" : "-",
+    "invert" : "~",
+    "plus" : "+"
+}
+
+BinaryExpressionNameToOperator = {
+    "add" : "+",
+    "and" : "&&",
+    "eq" : "==",
+    "gt" : ">",
+    "gte" : ">=",
+    "imod" : "%",
+    "mod" : "%",
+    "idiv" : "/",
+    "div" : "/",
+    "lshift" : "<<",
+    "rshift" : ">>",
+    "lt" : "<",
+    "mul" : "*",
+    "ne" : "!=",
+    "or" : "||",
+    "sub" : "-",
+    "xor" : "^",
+    "lte" : "<="
+}
+
+def indent(lines):
+    t = ""
+    for l in lines.split("\n"):
+        t += "    %s\n" % l
+
+    return t
+
+def lineno():
+    return inspect.currentframe().f_back.f_lineno
+
+def IsUnknownType(type_):
+    return type_ == ("unknown", None)
+
+def IsBooleanOperator(opname):
+    return opname in ["and", "or", "eq", "ne", "gt", "lt", "gte", "lte", "in"]
+
+def cases(mask):
+    p = []
+
+    def rec(mask, acum):
+        if not len(mask):
+            p.append(int(acum, 2))
+            return
+
+        if mask[0] == "x":
+            rec(mask[1:], acum + "0")
+            rec(mask[1:], acum + "1")
+
+        else:
+            rec(mask[1:], acum + mask[0])
+
+    rec(mask, "")
+
+    return p
+
+class CPPTranslatorVisitor(Visitor):
+    """
+    Implementation of a source to source translator that
+    will spit compilable C++ code.
+    """
+    def __init__(self, input_vars=None, known_types=None):
+        self.var_bit_length = {}
+        self.symbol_table = set()
+        self.define_me = set()
+        self.seen_see = set()
+        self.node_types = {}
+
+        if input_vars:
+            # Add the opcode variables and their types to the system.
+            for input_var in input_vars:
+                # Map from variable name to bit lenght.
+                self.var_bit_length[input_var[0]] = input_var[1]
+                
+                # Create a new symbol.
+                self.symbol_table.add(input_var[0])
+
+                # Set the type.
+                self.set_type(Identifier(input_var[0]), ("int", input_var[1]))
+
+        if known_types:
+            for type_ in known_types:
+                self.var_bit_length[type_["name"]] = type_["type"][0]
+                self.symbol_table.add(type_["name"])
+                self.set_type(Identifier(type_["name"]), type_["type"])
+
+    def set_type(self, node, type_, override=False):
+        """
+        Set the type of a node. Use a dictionary indexed by the string representation
+        of the current node.
+        """
+        if not self.node_types.has_key(str(node)):
+            self.node_types[str(node)] = type_
+
+    def get_type(self, node):
+        """
+        Get the type of 'node'. 
+        """
+        if self.node_types.has_key(str(node)):
+            return self.node_types[str(node)]
+
+        if type(node) is ProcedureCall and self.node_types.has_key(str(node.name)):          
+            return self.node_types[str(node.name)]
+
+        if str(node) in self.symbol_table:
+           return ("int", self.var_bit_length[str(node)])
+
+        return ("unknown", None)
+
+    def accept_RegularRegisterRead(self, node):
+        self.set_type(node, ("int", 32))
+        register_no_expression = self.accept(node.expr1)
+        return "ctx.readRegularRegister(%s)" % (register_no_expression)
+
+    def accept_RmodeRead(self, node):
+        self.set_type(node, ("int", 32))
+        expr1 = self.accept(node.expr1)
+        expr2 = self.accept(node.expr2)
+        return "ctx.readRmode(%s, %s)" % (expr1, expr2)
+
+    def accept_SingleRegisterRead(self, node):
+        self.set_type(node, ("int", 32))
+        register_no_expression = self.accept(node.expr1)
+        return "ctx.readSingleRegister(%s)" % (register_no_expression)
+
+    def accept_DoubleRegisterRead(self, node):
+        self.set_type(node, ("int", 64))
+        register_no_expression = self.accept(node.expr1)
+        return "ctx.readDoubleRegister(%s)" % (register_no_expression)
+
+    def accept_QuadRegisterRead(self, node):
+        self.set_type(node, ("int", 128))
+        register_no_expression = self.accept(node.expr1)
+        return "ctx.readQuadRegister(%s)" % (register_no_expression)
+
+    def accept_MemoryRead(self, node):
+        expr1 = self.accept(node.expr1)
+        expr2 = self.accept(node.expr2)
+
+        # Set the type of the memory access.
+        if expr2.isdigit():
+            self.set_type(node, ("int", int(expr2) * 8))
+
+        return "ctx.readMemory(%s, %s)" % (expr1, expr2)
+
+    def accept_RegularRegisterWrite(self, node):
+        # Receives a BinaryExpression with an ArrayAccess and an expression.
+        register_no_expression = self.accept(node.left_expr.expr1)
+        register_value_expression = self.accept(node.right_expr)
+        return "ctx.writeRegularRegister(%s, %s)" % (register_no_expression, register_value_expression)
+
+    def accept_RmodeWrite(self, node):
+        # Receives a BinaryExpression with an ArrayAccess and an expression.
+        expr1 = self.accept(node.left_expr.expr1)
+        expr2 = self.accept(node.left_expr.expr2)
+        value = self.accept(node.right_expr)
+        return "ctx.writeRmode(%s, %s, %s)" % (expr1, expr2, value)
+
+    def accept_SingleRegisterWrite(self, node):
+        register_no_expression = self.accept(node.left_expr.expr1)
+        register_value_expression = self.accept(node.right_expr)
+        return "ctx.writeSingleRegister(%s, %s)" % (register_no_expression, register_value_expression)
+
+    def accept_DoubleRegisterWrite(self, node):
+        register_no_expression = self.accept(node.left_expr.expr1)
+        register_value_expression = self.accept(node.right_expr)
+        return "ctx.writeDoubleRegister(%s, %s)" % (register_no_expression, register_value_expression)
+
+    def accept_QuadRegisterWrite(self, node):
+        register_no_expression = self.accept(node.left_expr.expr1)
+        register_value_expression = self.accept(node.right_expr)
+        return "ctx.writeQuadRegister(%s, %s)" % (register_no_expression, register_value_expression)
+
+    def accept_MemoryWrite(self, node):
+        address = self.accept(node.left_expr.expr1)
+        size = self.accept(node.left_expr.expr2)
+        value = self.accept(node.right_expr)
+        return "ctx.writeMemory(%s, %s, %s)" % (address, size, value)
+
+    def accept_ElementRead(self, node):
+        vector = self.accept(node.expr1)
+        element = self.accept(node.expr2)
+        size = self.accept(node.expr3)
+
+        if size.isdigit():
+            self.set_type(node, ("int", int(size) * 8))
+
+        return "ctxt.readElement(%s, %s, %s)" % (vector, element, size)
+
+    def accept_ElementWrite(self, node):
+        vector = self.accept(node.left_expr.expr1)
+        element = self.accept(node.left_expr.expr2)
+        size = self.accept(node.left_expr.expr3)
+        value = self.accept(node.right_expr)
+
+        return "ctxt.writeElement(%s, %s, %s, %s)" % (vector, element, size, value)
+
+    def accept_ArrayAccess(self, node):
+        node_name = str(node.name)
+
+        if node_name in ["R"]: 
+            return self.accept_RegularRegisterRead(node)
+
+        elif node_name in ["Rmode"]:
+            return self.accept_RmodeRead(node)
+
+        elif node_name in ["S"]:
+            return self.accept_SingleRegisterRead(node)
+
+        elif node_name in ["D", "Din"]:
+            return self.accept_DoubleRegisterRead(node)
+
+        elif node_name in ["Q", "Qin"]:
+            return self.accept_QuadRegisterRead(node)
+
+        elif node_name in ["Elem"]:
+            return self.accept_ElementRead(node)
+
+        elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
+            return self.accept_MemoryRead(node)
+
+        raise RuntimeError("Unknown ArrayAccess name: %s" % str(node.name))
+
+    def accept_BooleanValue(self, node):
+        self.set_type(node, ("int", 1))
+        return str(node)
+
+    def accept_Identifier(self, node):
+        return str(node)
+
+    def accept_NumberValue(self, node):
+        self.set_type(node, ("int", len(node)))
+        return str(node)
+
+    def accept_UnaryExpression(self, node):
+        expr_str = self.accept(node.expr)
+        expr_type = self.get_type(node.expr)
+        
+        if IsUnknownType(expr_type) and type_check:
+            raise RuntimeError("Unary expresion type unknown.")
+
+        # Make the node inherit the type of the expression.
+        self.set_type(node, expr_type)
+
+        return "%s%s" % (UnaryExpressionNameToOperator[node.type], expr_str)
+
+    def accept_InExpression(self, node):
+        left_expr = self.accept(node.left_expr)
+
+        # We set the type to boolean.
+        self.set_type(node, ("int", 1))
+
+        # Handle:
+        #   c in {0, 1} -> ((c == 0) || (c == 1))
+        #   c in "1x"   -> (c == 10b || c == 11b)
+        if type(node.right_expr) is MaskedBinary:
+            def can_optimize(cases_):
+                prev = cases_[0]
+                for i in xrange(1, len(cases_)):
+                    if cases_[i] != prev + 1:
+                        return False
+
+                    prev += 1
+
+                return True
+
+            cases_ = cases(node.right_expr.value)
+
+            if can_optimize(cases_):
+                return "(%s >= %d && %s <= %d)" % (left_expr, cases_[0], left_expr, cases_[-1])
+
+            else:
+                t = []
+                for case in cases_:
+                    t.append("%s == %d" % (left_expr, case))
+
+                return "(%s)" % (" || ".join(t))
+
+        elif type(node.right_expr) in [List, Enumeration]:
+            t = []
+            for cond in node.right_expr.values:
+                t.append("%s == %s" % (left_expr, self.accept(cond)))
+
+            return "(%s)" % (" || ".join(t))
+
+    def accept_ConcatenationExpression(self, node):
+        # imm = a:b -> imm = Concatenate(a, b, len(b))
+        left_expr = self.accept(node.left_expr)
+        right_expr = self.accept(node.right_expr)
+
+        # Get the types.
+        left_expr_type = self.get_type(node.left_expr)
+        right_expr_type = self.get_type(node.right_expr)
+
+        if IsUnknownType(left_expr_type) or IsUnknownType(right_expr_type):
+            print "DEBUG(%4d):" % (lineno())
+            print "DEBUG: Concatenated expressions type is unknown."
+            print "DEBUG: node            = %s" % str(node)
+            print "DEBUG: node.left_expr  = %s" % str(left_expr)
+            print "DEBUG: node.right_expr = %s" % str(right_expr)
+
+            if type_check:
+                raise RuntimeError("Unary expresion type unknown.")
+
+        # Since all constants have the same string representation, we need to
+        # cheat a bit and use the bit_size instead of the inferred type.
+        if type(node.right_expr) is NumberValue and right_expr_type[1] != node.right_expr.bit_size:
+            right_expr_type = (right_expr_type[0], node.right_expr.bit_size)
+
+        # Create a new type.
+        result_expr_type = ("int", left_expr_type[1] + right_expr_type[1])
+        self.set_type(node, result_expr_type)
+
+        return "Concatenate(%s, %s, %d)" % (left_expr, right_expr, right_expr_type[1])
+
+    def accept_AssignmentExpression(self, node):
+        # Handle: (a, b) = (1, 2)
+        if type(node.left_expr) is List and type(node.right_expr) is List:
+            # It is safe to assume the types to be (uint32_t, uint32_t)
+            # (shift_t, shift_n) = (SRType_LSL, 0);
+            # (shift_t, shift_n) = (SRType_LSL, UInt(imm2));
+
+            # Accept the unused nodes so we can have master race type checking.
+            self.accept(node.left_expr)
+            self.accept(node.right_expr)
+
+            # Check that the lists are of the same type.
+            assert self.get_type(node.left_expr) == self.get_type(node.right_expr)
+
+            t = ""
+            i = 0
+            # For each of the left variables.
+            for var in node.left_expr.values:
+                if var in self.symbol_table:
+                    # Make the assignment.
+                    t += "%s %s %s;\n" % (var, name_op[node.type], node.right_expr.values[i])
+
+                else:
+                    # Declare it and initialize it.
+                    self.symbol_table.add(str(var))
+                    self.define_me.add(str(var))
+                    t += "%s %s %s;\n" % (var, name_op[node.type], node.right_expr.values[i])
+
+                # Set the types of the assignee and the assigned.
+                self.set_type(var, ("int", 32))
+                self.set_type(node.right_expr.values[i], ("int", 32))
+
+                i += 1
+
+            return t
+
+        # Handle: (a, b) = SomeFunction(arguments)
+        elif type(node.left_expr) is List and type(node.right_expr) is ProcedureCall:
+            # Accept the unused nodes so we can have master race type checking.
+            left_expr = self.accept(node.left_expr)
+            right_expr = self.accept(node.right_expr)
+
+            # Check that the lists are of the same type.
+            t1 = self.get_type(node.left_expr)
+            t2 = self.get_type(node.right_expr)
+
+            # We may have typing information on the function name.
+            t3 = self.get_type(node.right_expr.name)
+
+            if t1 != t2 and t1 != t3:            
+                print "DEBUG(%4d):" % (lineno())
+                print "DEBUG: List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3)
+                print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
+                print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
+                print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
+                print "DEBUG: node.right_expr       = %r" % self.accept(node.right_expr)
+
+                if type_check:
+                    raise RuntimeError("List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3))
+            
+            # Small hack.
+            if self.accept(node.right_expr.name) in ["SignedSatQ", "UnsignedSatQ"]:
+                # (result, sat) = UnsignedSatQ(SInt(operand), saturate_to);
+                # (result1, sat1) = UnsignedSatQ(SInt(R[n]<15:0>), saturate_to);
+                # (result2, sat2) = UnsignedSatQ(SInt(R[n]<31:16>), saturate_to);
+                
+                # Get the saturation size.
+                sat_size = self.accept(node.right_expr.arguments[1])
+                if sat_size.isdigit():
+                    sat_size = int(sat_size)
+
+                arg0 = self.accept(node.left_expr.values[0])
+                arg1 = self.accept(node.left_expr.values[1])
+
+                # Set the type either to an integer or an integer expression.
+                self.set_type(arg0, ("int", sat_size))
+                self.set_type(arg1, ("int", 1))
+
+                print
+                print "XXXX: (%d)" % lineno()
+                print "XXXX: node.left_expr        ", arg0, ("int", sat_size)
+                print "XXXX: node.left_expr        ", arg1, ("int", 1)
+                print "XXXX: std::tie(%s) = %s;\n" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
+                print
+
+                return "std::tie(%s) = %s;\n" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
+
+            names = []
+            acum = ""
+            i = 0
+            # For each of the left variables.
+            for var in node.left_expr.values:
+                # Set a special name for the ignored values.
+                name = ("ignored_%d" % i) if type(var) is Ignore else str(var)
+
+                if not name in self.symbol_table:
+                    # Declare it and initialize it.
+                    self.symbol_table.add(name)
+                    self.define_me.add(name)
+                
+                names.append(name)
+
+                if not type(var) is Ignore:
+                    self.set_type(var, ("int", 32))
+
+                i += 1
+
+            if len(node.left_expr.values) != len(names):
+                print "DEBUG(%4d):" % (lineno())
+                print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
+                print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
+                print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
+                print "DEBUG: node.right_expr       = %r" % self.accept(node.right_expr)
+                print "DEBUG: node.left_expr.values = %r" % map(self.accept, node.left_expr.values)
+                print "DEBUG: names                 = %r" % names
+                print "DEBUG: len(node.left_expr.values) != len(names): %d != %d" % (len(node.left_expr.values), len(names))
+                
+                if type_check:
+                    raise RuntimeError("len(node.left_expr.values) != len(names): %d != %d" % \
+                        (len(node.left_expr.values), len(names)))
+
+            acum += "std::tie(%s) = %s;\n" % (", ".join(names), right_expr)
+            return acum
+
+        # Handle: SomeArray[expression] = expression
+        elif type(node.left_expr) is ArrayAccess:
+            # Get the name of the array.
+            node_name = str(node.left_expr.name)
+            
+            # It is a register.
+            if node_name in ["R"]:
+                return self.accept_RegularRegisterWrite(node)
+
+            elif node_name in ["Rmode"]:
+                return self.accept_RmodeWrite(node)
+
+            elif node_name in ["S"]:
+                return self.accept_SingleRegisterWrite(node)
+
+            elif node_name in ["D", "Din"]:
+                return self.accept_DoubleRegisterWrite(node)
+
+            elif node_name in ["Q", "Qin"]:
+                return self.accept_QuadRegisterWrite(node)
+
+            elif node_name in ["Elem"]:
+                # TODO: This is just for testing.
+                return self.accept_ElementWrite(node)
+
+            elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
+                return self.accept_MemoryWrite(node)
+
+            else:
+                raise RuntimeError("Unknown node: %s" % str(node))
+
+        left_expr = self.accept(node.left_expr)
+        right_expr = self.accept(node.right_expr)
+
+        # Assignment makes lhs inherit the type of rhs.
+        right_expr_type = self.get_type(node.right_expr)
+        # if IsUnknownType(right_expr_type):
+        #     print "DEBUG: Assignment statement:"
+        #     print "DEBUG: node                 = %s" % (str(node))
+        #     print "DEBUG: node.left_expr       = %s" % (str(left_expr))
+        #     print "DEBUG: node.right_expr      = %s" % (str(right_expr))
+        #     print "DEBUG: node.left_expr.type  = %s" % str(self.get_type(node.left_expr))
+        #     print "DEBUG: node.right_expr.type = %s" % str(self.get_type(node.right_expr))
+        #     print
+        
+        self.set_type(node.left_expr, right_expr_type)
+
+        # If the lhs is present at the symbol table we need not to initialize it.
+        if left_expr in self.symbol_table:
+            return "%s %s %s;" % (left_expr, name_op[node.type], right_expr)
+
+        # Add the left symbol to the symbol table.
+        self.symbol_table.add(left_expr)
+        self.define_me.add(left_expr)
+
+        # Declare it and initialize it.
+        return "%s %s %s;" % (left_expr, name_op[node.type], right_expr)
+
+    def accept_BinaryExpression(self, node):
+        if node.type == "in":
+            return self.accept_InExpression(node)
+
+        elif node.type == "concatenation":
+            return self.accept_ConcatenationExpression(node)
+
+        elif node.type == "assign":
+            return self.accept_AssignmentExpression(node)
+
+        left_expr = self.accept(node.left_expr)
+        right_expr = self.accept(node.right_expr)
+        op_name = BinaryExpressionNameToOperator[node.type]
+
+        # Boolean operations do not need type checking.
+        if IsBooleanOperator(node.type):
+            self.set_type(node, ("int", 1))
+            return "(%s %s %s)" % (left_expr, op_name, right_expr)
+
+        left_expr_type = self.get_type(node.left_expr)
+        right_expr_type = self.get_type(node.right_expr)
+
+        if left_expr_type[0] != right_expr_type[0]:
+            if type_check:
+                raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (left_expr_type, right_expr_type))
+        
+            # print "DEBUG(%4d):" % (lineno())
+            # print "DEBUG: Types differ in expression = %s" % (node)
+            # print "DEBUG: left_expr.type             = %r" % str(left_expr_type)
+            # print "DEBUG: right_expr.type            = %s" % str(right_expr_type)
+            # print "DEBUG: node.left_expr             = %r" % self.accept(node.left_expr)
+            # print "DEBUG: node.right_expr            = %r" % self.accept(node.right_expr)
+        
+        self.set_type(node, left_expr_type)
+        return "(%s %s %s)" % (left_expr, op_name, right_expr)
+
+    def accept_ProcedureCall(self, node):
+        """
+        We have no idea what type a procedure call
+        returns but since this pseudocode defines
+        a couple of functions we can actually list them
+        and hard code the type.
+        """
+        arguments = []
+        for arg in node.arguments:
+            arguments.append(self.accept(arg))
+
+        # Inherit the type of the function via its arguments.
+        if str(node.name) in ["UInt", "ThumbExpandImm"]:
+            # Assumption: the type in the manual is 'integer' so 32 bits.
+            self.set_type(node, ("int", 32))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["ZeroExtend", "FPZero", "SignedSat", "UnsignedSat", "Sat"]:
+            # If the argument is an integer then it is the size of the expression.
+            argument = self.accept(node.arguments[1])
+            if argument.isdigit():
+                self.set_type(node, ("int", int(argument)))
+
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["ROR", "LSL", "FPNeg", "FPMul", "RoundTowardsZero"]:
+            # Inherit the type of the first argument.
+            arg_type = self.get_type(node.arguments[0])
+            if not IsUnknownType(arg_type):
+                self.set_type(node, arg_type)
+
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["Zeros", "Ones"]:
+            # If the argument is an integer then it is the size of the generated integer.
+            argument = self.accept(node.arguments[0])
+            if argument.isdigit():
+                self.set_type(node, ("int", int(argument)))
+
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+            
+        elif str(node.name) in ["Int"]:
+            # Integers are always 32 bits.
+            self.set_type(node, ("int", 32))
+            
+            if arguments[1] == "unsigned":
+                return "UInt(%s)" % (arguments[0])
+
+            elif arguments[1] == "signed":
+                arg_type = self.get_type(node.arguments[0])
+                if IsUnknownType(arg_type):
+                    print "DEBUG(%4d):" % (lineno())
+                    print 'DEBUG: arg_type == ("unknown", None)'
+                    print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
+                    print "DEBUG: node.name = %s" % (str(node.name))
+
+                    if type_check:
+                        raise RuntimeError("Sign extension (SInt) failed due to arg_type == ('unknown', None)")
+    
+                arg_bit_len = arg_type[1]
+                return "SInt(%s, %s)" % (arguments[0], arg_bit_len)
+
+            else:
+                arg_type = self.get_type(node.arguments[0])
+                if IsUnknownType(arg_type):
+                    assert  type(node.arguments[0]) == ArrayAccess
+                    arg_type = ("int", self.accept(node.arguments[0].expr3))
+
+                arg_bit_len = arg_type[1]
+                return "((%s) ? %s : %s)" % (arguments[1], "UInt(%s)" % arguments[0], "SInt(%s, %s)" % (arguments[0], arg_bit_len))
+
+        elif str(node.name) in ["SInt"]:
+            # Get the argument type.
+            arg_type = self.get_type(node.arguments[0])
+            if IsUnknownType(arg_type):
+                assert type(node.arguments[0]) == ArrayAccess
+                arg_type = ("int", self.accept(node.arguments[0].expr3))
+
+            # Integers are always 32 bits.
+            self.set_type(node, ("int", 32))
+
+            # Get the bit lenght.
+            arg_bit_len = arg_type[1]
+            return "SInt(%s, %s)" % (arguments[0], arg_bit_len)
+
+        elif str(node.name) in ["InITBlock", "LastInITBlock"]:
+            self.set_type(node, ("int", 1))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["DecodeImmShift", "ARMExpandImm_C", "ThumbExpandImm_C"]:
+            self.set_type(node, ("list", 2))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["NOT"]:
+            # Inherit the type of the argument.
+            assert len(node.arguments) == 1
+            arg_type = self.get_type(node.arguments[0])
+            if IsUnknownType(arg_type) and type_check:
+                raise RuntimeError("Type of NOT expression is unknown.")
+
+            self.set_type(node, arg_type)
+            return "NOT(%s, %s)" % (", ".join(arguments), arg_type[1])
+
+        elif str(node.name) == "Consistent":
+            self.set_type(node, ("int", 1))
+            # We replace Consistent(Rm) with (Rm == Rm_).
+            return "(%s == %s_)" % (node.arguments[0], node.arguments[0])
+
+        elif str(node.name) == "SignExtend":
+            # Sign extend in c++ needs the bitsize of the bit string.
+            arg_type = self.get_type(node.arguments[0])
+            if IsUnknownType(arg_type):
+                print "DEBUG(%4d):" % (lineno())
+                print 'DEBUG: arg_type == ("unknown", None)'
+                print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
+                print "DEBUG: node.name = %s" % (str(node.name))
+
+            arg_bit_len = arg_type[1]
+
+            # The resulting size is the second argument.
+            argument = self.accept(node.arguments[1])
+            if argument.isdigit():
+                self.set_type(node, ("int", int(argument)))
+
+            return "SignExtend(%s, %s)" % (arguments[0], arg_bit_len)
+
+        return "%s(%s)" % (node.name, ", ".join(arguments))
+
+    def accept_RepeatUntil(self, node):
+        t = "do {\n"
+        for st in node.statements:
+            t += "    %s;\n" % self.accept(st)
+
+        t += "} while (%s);\n\n" % self.accept(node.condition)
+
+        return t
+
+    def accept_While(self, node):
+        t = "while (%s) {\n" % self.accept(node.condition)
+        for st in node.statements:
+            t += "    %s\n" % self.accept(st)
+        t += "}\n\n"
+
+        return t
+
+    def accept_For(self, node):
+        assert node.from_.type == "assign"
+        var_name = self.accept(node.from_.left_expr)
+        var_value = self.accept(node.from_.right_expr)
+        to_ = self.accept(node.to)
+
+        t = "for(unsigned %s = %s; %s < %s; ++%s) {\n" % (var_name, var_value, var_name, to_, var_name)
+        for st in node.statements:
+            t += "    %s\n" % (self.accept(st))
+
+        t += "}\n\n"
+        return t
+
+    def accept_If(self, node):
+        def hint(condition, statements):
+            # Set the reason why Undefined or Unpredictable instructions are "skipped".
+            if type(statements[0]) in [Undefined, Unpredictable]:
+                statements[0].reason = condition
+
+            if len(statements) == 1 and type(statements[0]) in [Undefined, Unpredictable, See]:
+                return "unlikely(%s)" % condition
+
+            return condition
+
+        t = "\nif (%s) {\n" % hint(self.accept(node.condition), node.if_statements)
+        for st in node.if_statements:
+            t += "    %s\n" % self.accept(st)
+        t += "}"
+
+        if len(node.else_statements):
+            t += "\nelse {\n"
+            for st in node.else_statements:
+                t += "    %s\n" % self.accept(st)
+            t += "}\n"
+
+        t += "\n"
+
+        return t
+
+    def accept_BitExtraction(self, node):
+        # The identifier may be an expression, evaluate it.
+        node_name = self.accept(node.identifier)
+
+        # The type is a one bit integer.
+        if len(node.range) == 1:
+            self.set_type(node, ("int", 1))
+            return "get_bit(%s, %s)" % (node_name, self.accept(node.range[0]))
+
+        # Accept the limits.
+        hi_lim = self.accept(node.range[0])
+        lo_lim = self.accept(node.range[1])
+        
+        # If both types are numbers we can get typing information.
+        if type(node.range[0]) is NumberValue and type(node.range[1]) is NumberValue:
+            bit_size = int(hi_lim) - int(lo_lim) + 1
+            self.set_type(node, ("int", bit_size))
+            return "get_bits(%s, %s, %s)" % (node_name, hi_lim, lo_lim)
+
+        # Assume the bit extraction expression is a 32 bit expression.
+        self.set_type(node, ("int", 32))
+        return "get_bits(%s, %s, %s)" % (node_name, hi_lim, lo_lim)
+
+    def accept_IfExpression(self, node):
+        condition = self.accept(node.condition)
+        trueValue = self.accept(node.trueValue)
+        falseValue = self.accept(node.falseValue)
+
+        trueValue_type = self.get_type(node.trueValue)
+        falseValue_type = self.get_type(node.falseValue)
+
+        # We can't do shit.
+        if IsUnknownType(trueValue_type) and IsUnknownType(falseValue_type):
+            if type_check:
+                print "DEBUG(%4d):" % (lineno())
+                print "DEBUG: Types differ in expression = %s" % (node)
+                print "DEBUG: trueValue.type             = %s" % str(trueValue_type)
+                print "DEBUG: falseValue.type            = %s" % str(falseValue_type)
+                print "DEBUG: node.trueValue             = %r" % self.accept(node.trueValue)
+                print "DEBUG: node.falseValue            = %r" % self.accept(node.falseValue)
+
+                raise RuntimeError("Cannot infer type for IfExpression")
+
+        elif IsUnknownType(trueValue_type):
+            self.set_type(node, falseValue_type)            
+
+        elif IsUnknownType(falseValue_type):
+            self.set_type(node, trueValue_type)
+
+        elif falseValue_type[1] > trueValue_type[1]:
+            self.set_type(node, falseValue_type)
+        
+        else:
+            self.set_type(node, trueValue_type)
+
+        return "%s ? %s : %s" % (condition, trueValue, falseValue)
+
+    def accept_CaseElement(self, node):
+        # The special case is when we have a masked binary that we will interpret as a range.
+        if type(node.value) is MaskedBinary:
+            t = "// Values of %s\n" % node.value.value
+            for val in cases(node.value.value):
+                t += "case %s:\n" % val
+
+        elif node.value == None:
+            t = "default:\n"
+
+        else:
+            t = "case %s:\n" % self.accept(node.value)
+
+        for st in node.statements:
+            t += "    %s\n" % self.accept(st)
+        t += "    break;\n"
+
+        return t
+
+    def accept_Case(self, node):
+        t = "switch (%s) {\n" % self.accept(node.expr)
+        for case in node.cases:
+            t += indent(self.accept(case))
+
+        t += "}\n\n"
+
+        return t
+
+    def accept_Undefined(self, node):
+        self.set_type(node, ("unknown", None))
+        return """return shared_ptr<ARMInstruction>(new UndefinedInstruction("Reason: %s"));""" % node.reason
+
+    def accept_Unpredictable(self, node):
+        self.set_type(node, ("unknown", None))
+        return """return shared_ptr<ARMInstruction>(new UnpredictableInstruction("Reason: %s"));""" % node.reason
+
+    def accept_See(self, node):
+        self.set_type(node, ("unknown", None))
+        return "return shared_ptr<ARMInstruction>(new SeeInstruction(\"%s\"));" % str(node.msg)
+
+    def accept_ImplementationDefined(self, node):
+        self.set_type(node, ("unknown", None))
+        return "return shared_ptr<ARMInstruction>(new ImplementationDefinedInstruction());"
+
+    def accept_SubArchitectureDefined(self, node):
+        self.set_type(node, ("unknown", None))
+        return "return shared_ptr<ARMInstruction>(new SubArchitectureDefinedInstruction());"
+
+    def accept_Return(self, node):
+        t = "return %s;" % self.accept(node.value)
+        ret_type = self.get_type(node.value)
+
+        if IsUnknownType(ret_type) and type_check:
+            raise RuntimeError("Type of the return statement is unknown.")
+
+        self.set_type(node, ret_type)
+        return t
+
+    def accept_List(self, node):
+        # We accept every element of the list.
+        for element in node.values:
+            self.accept(element)
+
+        # Create the type list with the right number of elements. This is for type checking mostly.
+        self.set_type(node, ("list", len(node.values)))
+
+        # Lists are not representable in c++.
+        return None
+
+    def accept_Enumeration(self, node):
+        raise Exception("Accepting an Enumeration, why?")
+
+    def accept_MaskedBinary(self, node):
+        raise Exception("Accepting a MaskedBinary, why?")
+
+    def accept_Ignore(self, node):
+        return None

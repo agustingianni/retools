@@ -4,8 +4,9 @@ import json
 import logging
 import argparse
 
-import ARMv7Parser
-import ARVv7OperationSpec
+from parser import ARMv7Parser
+from specification import ARVv7OperationSpec
+from ast.translators import CPPTranslatorVisitor, indent
 
 DEBUG = False
 
@@ -170,13 +171,13 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
                 known_types.append({"name" : symbol, "type" : ("int", 32)})
 
             # Translate the AST into code.
-            translator = ARMv7Parser.CPPTranslatorVisitor(known_types=known_types)
+            translator = CPPTranslatorVisitor(known_types=known_types)
 
             body = ""
             for ast_node in program_ast:
                 ast_node = ast_node[0]
                 code = translator.accept(ast_node)
-                body += ARMv7Parser.indent(code)
+                body += indent(code)
                 
                 if type(ast_node) == ARMv7Parser.ProcedureCall:
                     body = body[:-1] + ";\n"
@@ -195,7 +196,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description='Generator.')
-    parser.add_argument("--gendir", default="../gen", help="Directory where the generated files will be placed.")
+    parser.add_argument("--gendir", default="../gen/", help="Directory where the generated files will be placed.")
     parser.add_argument("--geninterpreter", action='store_true', help="Generate ARMInterpreter[.h|.cpp]")
     parser.add_argument("--debug", action='store_true', help="Enable debugging information, just for developers.")
 
@@ -211,7 +212,7 @@ def main():
 
     # Filenames and path's.
     gen_dir = os.path.abspath(args.gendir)
-    symbols_file = os.path.join(os.path.abspath("../../../libdisassembly/arm/gen/"), "symbols.sym")
+    symbols_file = os.path.join(gen_dir, "symbols.sym")
     interpreter_name_h = os.path.join(gen_dir, "ARMInterpreter.h")
     interpreter_name_cpp = os.path.join(gen_dir, "ARMInterpreter.cpp")
 
