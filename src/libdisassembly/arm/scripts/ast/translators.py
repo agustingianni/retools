@@ -356,7 +356,7 @@ class CPPTranslatorVisitor(Visitor):
 
         return "Concatenate(%s, %s, %d)" % (left_expr, right_expr, right_expr_type[1])
 
-    def accept_AssignmentExpression(self, node):
+    def accept_AssignmentStatement(self, node):
         # Handle: (a, b) = (1, 2)
         if type(node.left_expr) is List and type(node.right_expr) is List:
             # It is safe to assume the types to be (uint32_t, uint32_t)
@@ -546,7 +546,7 @@ class CPPTranslatorVisitor(Visitor):
             return self.accept_ConcatenationExpression(node)
 
         elif node.type == "assign":
-            return self.accept_AssignmentExpression(node)
+            return self.accept_AssignmentStatement(node)
 
         left_expr = self.accept(node.left_expr)
         right_expr = self.accept(node.right_expr)
