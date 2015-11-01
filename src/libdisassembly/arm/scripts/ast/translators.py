@@ -740,7 +740,7 @@ class CPPTranslatorVisitor(Visitor):
         var_value = self.accept(node.from_.right_expr)
         to_ = self.accept(node.to)
 
-        t = "for(unsigned %s = %s; %s < %s; ++%s) {\n" % (var_name, var_value, var_name, to_, var_name)
+        t = "for (unsigned %s = %s; %s < %s; ++%s) {\n" % (var_name, var_value, var_name, to_, var_name)
         
         last = len(node.statements) - 1
         for_statements = ""
