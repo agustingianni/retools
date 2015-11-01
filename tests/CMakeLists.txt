@@ -14,8 +14,8 @@ find_library(DARM_LIBRARIES NAMES darm PATHS /Users/anon/workspace/darm)
 
 message("-- Include dirs of CAPSTONE  : " ${CAPSTONE_INCLUDE_DIR} )
 message("-- Library dirs of CAPSTONE  : " ${CAPSTONE_LIBRARIES} )
-message("-- Include dirs of DARM  : " ${DARM_INCLUDE_DIR} )
-message("-- Library dirs of DARM  : " ${DARM_LIBRARIES} )
+message("-- Include dirs of DARM      : " ${DARM_INCLUDE_DIR} )
+message("-- Library dirs of DARM      : " ${DARM_LIBRARIES} )
 message("-- Include dirs of boost     : " ${Boost_INCLUDE_DIRS} )
 
 add_executable(
