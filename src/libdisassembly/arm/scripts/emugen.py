@@ -6,7 +6,7 @@ import argparse
 
 from parser import ARMv7Parser
 from specification import ARVv7OperationSpec
-from ast.translators import CPPTranslatorVisitor, indent
+from ast.translators import CPPTranslatorVisitor, indent, NeedsSemiColon
 
 DEBUG = False
 
@@ -45,10 +45,9 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += '#include "arm/ARMContext.h"\n\n' 
         
         fd.write(header)
-        i = 0
-        for instruction in ARVv7OperationSpec.instructions:
+        for i, instruction in enumerate(ARVv7OperationSpec.instructions):
             ins_name = instruction["name"]
-            logging.info("Doing instruction '%s'" % ins_name)
+            logging.info("Doing instruction '%s' (%d)" % (ins_name, i))
 
             fd.write("bool ARMInterpreter::%s(ARMContext &ctx, const ARMInstruction &ins) {\n" % instruction_interpreter_name(ins_name))
             
@@ -176,21 +175,20 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             translator = CPPTranslatorVisitor(known_types=known_types)
 
             body = ""
-            for ast_node in program_ast:
-                ast_node = ast_node[0]
-                code = translator.accept(ast_node)
+
+            # For each of the statements, do a translation.
+            for ast_statement in map(lambda x: x[0], program_ast):    
+                code = translator.accept(ast_statement)
+                if NeedsSemiColon(ast_statement):
+                    code += ";"
+
                 body += indent(code)
                 
-                if type(ast_node) == ARMv7Parser.ProcedureCall:
-                    body = body[:-1] + ";\n"
-
             # Write the translated body of the decoding procedure.
             fd.write(body)            
             fd.write("    return true;\n")
             fd.write("}\n")
             fd.write("\n")
-
-            i += 1
             
     return True
 

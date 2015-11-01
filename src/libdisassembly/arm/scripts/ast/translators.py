@@ -62,6 +62,9 @@ BinaryExpressionNameToOperator = {
     "lte" : "<="
 }
 
+def NeedsSemiColon(node):
+    return not (type(node) in [RepeatUntil, While, For, If])
+
 def indent(lines):
     t = ""
     for l in lines.split("\n"):
@@ -376,13 +379,13 @@ class CPPTranslatorVisitor(Visitor):
             for var in node.left_expr.values:
                 if var in self.symbol_table:
                     # Make the assignment.
-                    t += "%s %s %s;\n" % (var, name_op[node.type], node.right_expr.values[i])
+                    t += "%s %s %s" % (var, name_op[node.type], node.right_expr.values[i])
 
                 else:
                     # Declare it and initialize it.
                     self.symbol_table.add(str(var))
                     self.define_me.add(str(var))
-                    t += "%s %s %s;\n" % (var, name_op[node.type], node.right_expr.values[i])
+                    t += "%s %s %s" % (var, name_op[node.type], node.right_expr.values[i])
 
                 # Set the types of the assignee and the assigned.
                 self.set_type(var, ("int", 32))
@@ -438,10 +441,10 @@ class CPPTranslatorVisitor(Visitor):
                 print "XXXX: (%d)" % lineno()
                 print "XXXX: node.left_expr        ", arg0, ("int", sat_size)
                 print "XXXX: node.left_expr        ", arg1, ("int", 1)
-                print "XXXX: std::tie(%s) = %s;\n" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
+                print "XXXX: std::tie(%s) = %s" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
                 print
 
-                return "std::tie(%s) = %s;\n" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
+                return "std::tie(%s) = %s" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
 
             names = []
             acum = ""
@@ -477,7 +480,7 @@ class CPPTranslatorVisitor(Visitor):
                     raise RuntimeError("len(node.left_expr.values) != len(names): %d != %d" % \
                         (len(node.left_expr.values), len(names)))
 
-            acum += "std::tie(%s) = %s;\n" % (", ".join(names), right_expr)
+            acum += "std::tie(%s) = %s" % (", ".join(names), right_expr)
             return acum
 
         # Handle: SomeArray[expression] = expression
@@ -529,14 +532,14 @@ class CPPTranslatorVisitor(Visitor):
 
         # If the lhs is present at the symbol table we need not to initialize it.
         if left_expr in self.symbol_table:
-            return "%s %s %s;" % (left_expr, name_op[node.type], right_expr)
+            return "%s %s %s" % (left_expr, name_op[node.type], right_expr)
 
         # Add the left symbol to the symbol table.
         self.symbol_table.add(left_expr)
         self.define_me.add(left_expr)
 
         # Declare it and initialize it.
-        return "%s %s %s;" % (left_expr, name_op[node.type], right_expr)
+        return "%s %s %s" % (left_expr, name_op[node.type], right_expr)
 
     def accept_BinaryExpression(self, node):
         if node.type == "in":
@@ -704,8 +707,13 @@ class CPPTranslatorVisitor(Visitor):
 
     def accept_RepeatUntil(self, node):
         t = "do {\n"
+
         for st in node.statements:
-            t += "    %s;\n" % self.accept(st)
+            t += "    %s" % self.accept(st)
+            if NeedsSemiColon(st):
+                t += ";"
+
+            t += "\n"
 
         t += "} while (%s);\n\n" % self.accept(node.condition)
 
@@ -714,7 +722,12 @@ class CPPTranslatorVisitor(Visitor):
     def accept_While(self, node):
         t = "while (%s) {\n" % self.accept(node.condition)
         for st in node.statements:
-            t += "    %s\n" % self.accept(st)
+            t += "    %s" % self.accept(st)
+            if NeedsSemiColon(st):
+                t += ";"
+
+            t += "\n"
+
         t += "}\n\n"
 
         return t
@@ -727,9 +740,14 @@ class CPPTranslatorVisitor(Visitor):
 
         t = "for(unsigned %s = %s; %s < %s; ++%s) {\n" % (var_name, var_value, var_name, to_, var_name)
         for st in node.statements:
-            t += "    %s\n" % (self.accept(st))
+            t += "    %s" % (self.accept(st))
+            if NeedsSemiColon(st):
+                t += ";"
+
+            t += "\n"
 
         t += "}\n\n"
+
         return t
 
     def accept_If(self, node):
@@ -743,19 +761,40 @@ class CPPTranslatorVisitor(Visitor):
 
             return condition
 
-        t = "\nif (%s) {\n" % hint(self.accept(node.condition), node.if_statements)
-        for st in node.if_statements:
-            t += "    %s\n" % self.accept(st)
+        # Hint unlikely expressions.
+        t = "if (%s) {\n" % hint(self.accept(node.condition), node.if_statements)
+        
+        # For each of the statements of the true branch.
+        true_block = ""
+        last = len(node.if_statements)
+        for i, st in enumerate(node.if_statements):
+            true_block += self.accept(st)
+            
+            if NeedsSemiColon(st):
+                true_block += ";"
+
+            if i != last - 1:
+                true_block += "\n"
+
+        t += indent(true_block)
         t += "}"
 
         if len(node.else_statements):
-            t += "\nelse {\n"
-            for st in node.else_statements:
-                t += "    %s\n" % self.accept(st)
-            t += "}\n"
+            last = len(node.else_statements)
+            false_block = ""
+            t += " else {\n"
+            for i, st in enumerate(node.else_statements):
+                false_block += self.accept(st)
 
-        t += "\n"
+                if NeedsSemiColon(st):
+                    false_block += ";"
 
+                if i != last - 1:
+                    false_block += "\n"
+
+            t += indent(false_block)
+            t += "}"
+        
         return t
 
     def accept_BitExtraction(self, node):
@@ -829,7 +868,12 @@ class CPPTranslatorVisitor(Visitor):
             t = "case %s:\n" % self.accept(node.value)
 
         for st in node.statements:
-            t += "    %s\n" % self.accept(st)
+            t += "    %s" % self.accept(st)
+            if NeedsSemiColon(st):
+                t += ";"
+
+            t += "\n"
+
         t += "    break;\n"
 
         return t
@@ -845,23 +889,23 @@ class CPPTranslatorVisitor(Visitor):
 
     def accept_Undefined(self, node):
         self.set_type(node, ("unknown", None))
-        return """return shared_ptr<ARMInstruction>(new UndefinedInstruction("Reason: %s"));""" % node.reason
+        return """return shared_ptr<ARMInstruction>(new UndefinedInstruction("Reason: %s"))""" % node.reason
 
     def accept_Unpredictable(self, node):
         self.set_type(node, ("unknown", None))
-        return """return shared_ptr<ARMInstruction>(new UnpredictableInstruction("Reason: %s"));""" % node.reason
+        return """return shared_ptr<ARMInstruction>(new UnpredictableInstruction("Reason: %s"))""" % node.reason
 
     def accept_See(self, node):
         self.set_type(node, ("unknown", None))
-        return "return shared_ptr<ARMInstruction>(new SeeInstruction(\"%s\"));" % str(node.msg)
+        return "return shared_ptr<ARMInstruction>(new SeeInstruction(\"%s\"))" % str(node.msg)
 
     def accept_ImplementationDefined(self, node):
         self.set_type(node, ("unknown", None))
-        return "return shared_ptr<ARMInstruction>(new ImplementationDefinedInstruction());"
+        return "return shared_ptr<ARMInstruction>(new ImplementationDefinedInstruction())"
 
     def accept_SubArchitectureDefined(self, node):
         self.set_type(node, ("unknown", None))
-        return "return shared_ptr<ARMInstruction>(new SubArchitectureDefinedInstruction());"
+        return "return shared_ptr<ARMInstruction>(new SubArchitectureDefinedInstruction())"
 
     def accept_Return(self, node):
         t = "return %s;" % self.accept(node.value)
