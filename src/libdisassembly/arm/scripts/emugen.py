@@ -60,40 +60,9 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
 
             # Remove empty lines, because I suck at parsing.
             ins_operation = os.linesep.join([s for s in ins_operation.splitlines() if not re.match(r'^\s*$', s)])
-            
-            try:
-                program_ast = ARMv7Parser.program.parseString(ins_operation, parseAll=True)
-                            
-            except Exception, e:
-                logging.error("-" * 80)
-                logging.error(ins_name)
-                logging.error("-" * 80)
-                logging.error("Error: col=%d loc=%d parserElement=%s" % (e.col, e.loc, e.parserElement))
 
-                class bcolors:
-                    HEADER = '\033[95m'
-                    OKBLUE = '\033[94m'
-                    OKGREEN = '\033[92m'
-                    WARNING = '\033[93m'
-                    FAIL = '\033[91m'
-                    ENDC = '\033[0m'
-                    BOLD = '\033[1m'
-                    UNDERLINE = '\033[4m'
-
-                j = 1
-                for line in ins_operation.splitlines():
-                    if j == e.lineno:
-                        logging.error(bcolors.OKGREEN + ("%2d: %s" % (j, line[:e.col-1])) + bcolors.FAIL + ("%s" % (line[e.col-1:])) + bcolors.ENDC)
-                    
-                    else:    
-                        logging.error("%2d: %s" % (j, line))
-
-                    j += 1
-
-                logging.error("-" * 80)
-                logging.error(e)
-                logging.error("# ", i, " of ", len(instructions), " to go ", len(ARVv7OperationSpec.instructions) - i)
-                return False
+            # Parse the instructions operation spec and return a set of statements.            
+            program_ast = ARMv7Parser.program.parseString(ins_operation, parseAll=True)
 
             # Set the types for implicit things in the pseudocode.
             known_types = []
