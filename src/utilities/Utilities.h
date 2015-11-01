@@ -17,7 +17,7 @@
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 
-bool IsZeroBit(unsigned i) {
+inline bool IsZeroBit(unsigned i) {
 	return i == 0;
 }
 

@@ -43,7 +43,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
     
     with open(interpreter_name_cpp, "w") as fd:
         header = ""
-        header += '#include "gen/ARMInterpreter.h"\n'
+        header += '#include "arm/gen/ARMInterpreter.h"\n'
         header += '#include "arm/ARMContext.h"\n'
         header += '#include "arm/ARMUtilities.h"\n'
         header += '#include "Utilities.h"\n\n'
