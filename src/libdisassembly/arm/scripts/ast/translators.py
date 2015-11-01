@@ -741,13 +741,18 @@ class CPPTranslatorVisitor(Visitor):
         to_ = self.accept(node.to)
 
         t = "for(unsigned %s = %s; %s < %s; ++%s) {\n" % (var_name, var_value, var_name, to_, var_name)
-        for st in node.statements:
-            t += "    %s" % (self.accept(st))
+        
+        last = len(node.statements) - 1
+        for_statements = ""
+        for i, st in enumerate(node.statements):
+            for_statements += self.accept(st)
             if NeedsSemiColon(st):
-                t += ";"
+                for_statements += ";"
+            
+            if i != last:
+                for_statements += "\n"
 
-            t += "\n"
-
+        t += indent(for_statements)
         t += "}\n\n"
 
         return t
