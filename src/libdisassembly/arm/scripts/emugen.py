@@ -31,6 +31,8 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += 'using namespace Disassembler;\n\n' 
         header += "class ARMInterpreter {\n"
         header += "    ARMInterpreter() {};\n\n"
+        header += "    bool ConditionPassed() { return true; }\n"
+        header += "    void EncodingSpecificOperations() {}\n"    
         
         fd.write(header)
         for instruction in ARVv7OperationSpec.instructions:
@@ -42,7 +44,10 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
     with open(interpreter_name_cpp, "w") as fd:
         header = ""
         header += '#include "gen/ARMInterpreter.h"\n'
-        header += '#include "arm/ARMContext.h"\n\n' 
+        header += '#include "arm/ARMContext.h"\n'
+        header += '#include "arm/ARMUtilities.h"\n'
+        header += '#include "Utilities.h"\n\n'
+        header += '#include <tuple>\n\n' 
         
         fd.write(header)
         for i, instruction in enumerate(ARVv7OperationSpec.instructions):
