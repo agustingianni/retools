@@ -182,7 +182,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             body = ""
 
             # For each of the statements, do a translation.
-            for ast_statement in map(lambda x: x[0], program_ast):    
+            for ast_statement in map(lambda x: x[0], program_ast):
                 code = translator.accept(ast_statement)
                 if NeedsSemiColon(ast_statement):
                     code += ";"

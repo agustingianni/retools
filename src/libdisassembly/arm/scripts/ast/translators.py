@@ -63,7 +63,7 @@ BinaryExpressionNameToOperator = {
 }
 
 def NeedsSemiColon(node):
-    return not (type(node) in [RepeatUntil, While, For, If])
+    return not (type(node) in [RepeatUntil, While, For, If, Case])
 
 def indent(lines):
     t = ""
@@ -374,24 +374,26 @@ class CPPTranslatorVisitor(Visitor):
             assert self.get_type(node.left_expr) == self.get_type(node.right_expr)
 
             t = ""
-            i = 0
+            last = len(node.left_expr.values) - 1
             # For each of the left variables.
-            for var in node.left_expr.values:
+            for i, var in enumerate(node.left_expr.values):
                 if var in self.symbol_table:
                     # Make the assignment.
                     t += "%s %s %s" % (var, name_op[node.type], node.right_expr.values[i])
+                    if i != last:
+                        t += ", "
 
                 else:
                     # Declare it and initialize it.
                     self.symbol_table.add(str(var))
                     self.define_me.add(str(var))
                     t += "%s %s %s" % (var, name_op[node.type], node.right_expr.values[i])
+                    if i != last:
+                        t += ", "
 
                 # Set the types of the assignee and the assigned.
                 self.set_type(var, ("int", 32))
                 self.set_type(node.right_expr.values[i], ("int", 32))
-
-                i += 1
 
             return t
 
