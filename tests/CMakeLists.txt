@@ -18,15 +18,17 @@ message("-- Include dirs of DARM  : " ${DARM_INCLUDE_DIR} )
 message("-- Library dirs of DARM  : " ${DARM_LIBRARIES} )
 message("-- Include dirs of boost     : " ${Boost_INCLUDE_DIRS} )
 
-include_directories(
-	${Boost_INCLUDE_DIRS}
-	${CAPSTONE_INCLUDE_DIR}
-	${DARM_INCLUDE_DIR}
-)
-
 add_executable(
 	instruction_fuzz
 	${CMAKE_CURRENT_SOURCE_DIR}/instruction_fuzz.cpp
+)
+
+target_include_directories(
+	instruction_fuzz
+	PRIVATE
+	${Boost_INCLUDE_DIRS}
+	${CAPSTONE_INCLUDE_DIR}
+	${DARM_INCLUDE_DIR}
 )
 
 # Enable c++11 on the target.
