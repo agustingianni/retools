@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "arm/ARMDisassembler.h"
+#include "arm/ARMArch.h"
 
 using namespace Disassembler;
 using namespace boost::python;

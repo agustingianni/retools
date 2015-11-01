@@ -9,6 +9,8 @@ add_library(
 	STATIC
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMDisassembler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMDisassembler.h
+	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMArch.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMArch.h
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMUtilities.h
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMtoStringCustom.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMtoStringCustom.h

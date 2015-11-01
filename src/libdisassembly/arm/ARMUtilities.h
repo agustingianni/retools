@@ -13,19 +13,18 @@
 #include <cstdlib>
 
 #include "arm/ARMDisassembler.h"
+#include "arm/ARMArch.h"
 #include "Utilities.h"
-
-namespace D = Disassembler;
 
 inline void NOP() {
 }
 
-inline bool EncodingIsARM(D::ARMEncoding e) {
-    return e == D::eEncodingA1 || e == D::eEncodingA2 || e == D::eEncodingA3 || e == D::eEncodingA4 || e == D::eEncodingA5;
+inline bool EncodingIsARM(ARMEncoding e) {
+    return e == eEncodingA1 || e == eEncodingA2 || e == eEncodingA3 || e == eEncodingA4 || e == eEncodingA5;
 }
 
-inline bool EncodingIsThumb(D::ARMEncoding e) {
-    return e == D::eEncodingT1 || e == D::eEncodingT2 || e == D::eEncodingT3 || e == D::eEncodingT4 || e == D::eEncodingT5;
+inline bool EncodingIsThumb(ARMEncoding e) {
+    return e == eEncodingT1 || e == eEncodingT2 || e == eEncodingT3 || e == eEncodingT4 || e == eEncodingT5;
 }
 
 // Implementation of: (bits(N), bit) LSL_C(bits(N) x, integer shift)
@@ -116,40 +115,40 @@ inline uint32_t RRX(uint32_t value, uint32_t carry_in) {
 inline std::tuple<uint32_t, uint32_t> DecodeImmShift(uint32_t type, uint32_t imm5) {
 	switch (type) {
 		case 0:
-			return std::tuple<uint32_t, uint32_t>(Disassembler::SRType_LSL, imm5);
+			return std::tuple<uint32_t, uint32_t>(SRType_LSL, imm5);
 		case 1:
-			return std::tuple<uint32_t, uint32_t>(Disassembler::SRType_LSR, imm5 == 0 ? 32 : imm5);
+			return std::tuple<uint32_t, uint32_t>(SRType_LSR, imm5 == 0 ? 32 : imm5);
 		case 2:
-			return std::tuple<uint32_t, uint32_t>(Disassembler::SRType_ASR, imm5 == 0 ? 32 : imm5);
+			return std::tuple<uint32_t, uint32_t>(SRType_ASR, imm5 == 0 ? 32 : imm5);
 		case 3:
 			if (imm5 == 0) {
-				return std::tuple<uint32_t, uint32_t>(Disassembler::SRType_RRX, 1);
+				return std::tuple<uint32_t, uint32_t>(SRType_RRX, 1);
 			} else {
-				return std::tuple<uint32_t, uint32_t>(Disassembler::SRType_ROR, imm5);
+				return std::tuple<uint32_t, uint32_t>(SRType_ROR, imm5);
 			}
 	}
 
-	return std::tuple<uint32_t, uint32_t>(Disassembler::SRType_Invalid, UINT32_MAX);
+	return std::tuple<uint32_t, uint32_t>(SRType_Invalid, UINT32_MAX);
 }
 
 // Implementation of: SRType DecodeRegShift(bits(2) type)
-inline Disassembler::shift_t DecodeRegShift(uint32_t type) {
+inline shift_t DecodeRegShift(uint32_t type) {
 	switch (type) {
 		default:
-			return Disassembler::SRType_Invalid;
+			return SRType_Invalid;
 		case 0:
-			return Disassembler::SRType_LSL;
+			return SRType_LSL;
 		case 1:
-			return Disassembler::SRType_LSR;
+			return SRType_LSR;
 		case 2:
-			return Disassembler::SRType_ASR;
+			return SRType_ASR;
 		case 3:
-			return Disassembler::SRType_ROR;
+			return SRType_ROR;
 	}
 }
 
 // Implementation of: (bits(N), bit) Shift_C(bits(N) value, SRType type, integer amount, bit carry_in)
-inline uint32_t Shift_C(uint32_t value, Disassembler::shift_t type, uint32_t amount, uint32_t carry_in,
+inline uint32_t Shift_C(uint32_t value, shift_t type, uint32_t amount, uint32_t carry_in,
 		uint32_t &carry_out) {
 	if (amount == 0) {
 		carry_out = carry_in;
@@ -158,19 +157,19 @@ inline uint32_t Shift_C(uint32_t value, Disassembler::shift_t type, uint32_t amo
 
 	uint32_t result;
 	switch (type) {
-		case Disassembler::SRType_LSL:
+		case SRType_LSL:
 			result = LSL_C(value, amount, carry_out);
 			break;
-		case Disassembler::SRType_LSR:
+		case SRType_LSR:
 			result = LSR_C(value, amount, carry_out);
 			break;
-		case Disassembler::SRType_ASR:
+		case SRType_ASR:
 			result = ASR_C(value, amount, carry_out);
 			break;
-		case Disassembler::SRType_ROR:
+		case SRType_ROR:
 			result = ROR_C(value, amount, carry_out);
 			break;
-		case Disassembler::SRType_RRX:
+		case SRType_RRX:
 			result = RRX_C(value, carry_in, carry_out);
 			break;
 		default:
@@ -181,7 +180,7 @@ inline uint32_t Shift_C(uint32_t value, Disassembler::shift_t type, uint32_t amo
 }
 
 // Implementation of: bits(N) Shift(bits(N) value, SRType type, integer amount, bit carry_in)
-inline uint32_t Shift(uint32_t value, Disassembler::shift_t type, uint32_t amount, uint32_t carry_in) {
+inline uint32_t Shift(uint32_t value, shift_t type, uint32_t amount, uint32_t carry_in) {
 	uint32_t unused;
 	return Shift_C(value, type, amount, carry_in, unused);
 }
@@ -190,7 +189,7 @@ inline uint32_t Shift(uint32_t value, Disassembler::shift_t type, uint32_t amoun
 inline std::tuple<uint32_t, uint32_t> ARMExpandImm_C(uint32_t imm12, uint32_t carry_in) {
 	uint32_t unrotated_value = get_bits(imm12, 7, 0);
 	uint32_t carry_out;
-	uint32_t imm32 = Shift_C(unrotated_value, Disassembler::SRType_ROR, 2 * get_bits(imm12, 11, 8), carry_in,
+	uint32_t imm32 = Shift_C(unrotated_value, SRType_ROR, 2 * get_bits(imm12, 11, 8), carry_in,
 			carry_out);
 	return std::tuple<uint32_t, uint32_t>(imm32, carry_out);
 }

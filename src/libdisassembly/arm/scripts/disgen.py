@@ -10,7 +10,7 @@ import argparse
 
 from parser import ARMv7Parser
 from specification import ARMv7DecodingSpec
-from ast.translators import CPPTranslatorVisitor
+from ast.translators import CPPTranslatorVisitor, indent, NeedsSemiColon
 
 DEBUG = False
 
@@ -78,6 +78,7 @@ decoder_header_h = \
 #include <memory>
 
 #include "arm/ARMDisassembler.h"
+#include "arm/ARMArch.h"
 
 '''
 
@@ -177,13 +178,6 @@ def __translate_bit_patterns__(bit_patterns):
 
     return ret
 
-def indent(lines):
-    t = ""
-    for l in lines.split("\n"):
-        t += "    %s\n" % l
-
-    return t
-
 def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
     """
     Create the ARMDecoder.h and ARMDecoder.cpp.
@@ -210,8 +204,8 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
         fd.write("        uint32_t value;\n")
         fd.write("        uint32_t variants;\n")
         fd.write("        Disassembler::ARMInstrSize ins_size;\n")
-        fd.write("        Disassembler::ARMEncoding encoding;\n")
-        fd.write("        std::shared_ptr<Disassembler::ARMInstruction> (ARMDecoder::*decoder)(uint32_t, Disassembler::ARMInstrSize ins_size, Disassembler::ARMEncoding);\n")
+        fd.write("        ARMEncoding encoding;\n")
+        fd.write("        std::shared_ptr<Disassembler::ARMInstruction> (ARMDecoder::*decoder)(uint32_t, Disassembler::ARMInstrSize ins_size, ARMEncoding);\n")
         fd.write("        const char *name;\n")
         fd.write("} ARMOpcode;\n")
         fd.write("\n")
@@ -222,8 +216,8 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
         fd.write("\n")
         fd.write("class ARMDecoder {\n")
         fd.write("    public:\n")
-        fd.write("        ARMDecoder(Disassembler::ARMVariants variant) :\n")
-        fd.write("                m_hyp_mode(false), m_opcode_mode(Disassembler::ARMMode_Invalid), m_arm_isa(variant) {\n")
+        fd.write("        ARMDecoder(ARMVariants variant) :\n")
+        fd.write("                m_hyp_mode(false), m_opcode_mode(ARMMode_Invalid), m_arm_isa(variant) {\n")
         fd.write("            // Initialize the default FP state.\n")
         fd.write("            FPSCR.LEN = 0;\n")
         fd.write("            FPSCR.STRIDE = 0;\n")
@@ -231,9 +225,9 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
         fd.write("            APSR.C = 0;\n")
         fd.write("        }\n")
         fd.write("\n")
-        fd.write("        std::shared_ptr<Disassembler::ARMInstruction> decode(uint32_t op_code, Disassembler::ARMMode mode) {\n")
+        fd.write("        std::shared_ptr<Disassembler::ARMInstruction> decode(uint32_t op_code, ARMMode mode) {\n")
         fd.write("            m_opcode_mode = mode;\n")
-        fd.write("            return (mode == Disassembler::ARMMode_ARM) ? decode_arm(op_code) : decode_thumb(op_code);\n")
+        fd.write("            return (mode == ARMMode_ARM) ? decode_arm(op_code) : decode_thumb(op_code);\n")
         fd.write("        }\n")
         fd.write("\n")
         fd.write("    private:\n")
@@ -241,16 +235,16 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
         fd.write("        bool InITBlock();\n")
         fd.write("        bool LastInITBlock();\n")
         fd.write("        bool CurrentModeIsHyp();\n")
-        fd.write("        Disassembler::ARMMode CurrentInstrSet();\n")
-        fd.write("        Disassembler::ARMVariants ArchVersion();\n")
+        fd.write("        ARMMode CurrentInstrSet();\n")
+        fd.write("        ARMVariants ArchVersion();\n")
         fd.write("\n")
         fd.write("        // Fields:\n")
         fd.write("        bool m_hyp_mode;\n")
-        fd.write("        Disassembler::ITSession m_it_session;\n")
-        fd.write("        Disassembler::ARMMode m_opcode_mode;\n")
-        fd.write("        Disassembler::ARMVariants m_arm_isa;\n")
-        fd.write("        Disassembler::apsr_t APSR;\n")
-        fd.write("        Disassembler::fpscr_t FPSCR;\n")
+        fd.write("        ITSession m_it_session;\n")
+        fd.write("        ARMMode m_opcode_mode;\n")
+        fd.write("        ARMVariants m_arm_isa;\n")
+        fd.write("        apsr_t APSR;\n")
+        fd.write("        fpscr_t FPSCR;\n")
         fd.write("\n")
         fd.write("        std::shared_ptr<Disassembler::ARMInstruction> decode_arm(uint32_t opcode);\n")
         fd.write("        std::shared_ptr<Disassembler::ARMInstruction> decode_thumb(uint32_t opcode);\n")
@@ -258,9 +252,9 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
         fd.write("    public:\n")
 
         for instruction in ARMv7DecodingSpec.instructions:
-            fd.write("        std::shared_ptr<Disassembler::ARMInstruction> %s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, Disassembler::ARMEncoding encoding);\n" % instruction_decoder_name(instruction))
+            fd.write("        std::shared_ptr<Disassembler::ARMInstruction> %s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding);\n" % instruction_decoder_name(instruction))
 
-        fd.write("        std::shared_ptr<Disassembler::ARMInstruction> decode_unknown(uint32_t opcode, Disassembler::ARMInstrSize ins_size, Disassembler::ARMEncoding encoding);\n")
+        fd.write("        std::shared_ptr<Disassembler::ARMInstruction> decode_unknown(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding);\n")
         fd.write("};\n")
 
     # Create the implementation file.
@@ -321,7 +315,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
         fd.write("};\n")
         fd.write("\n")
 
-        fd.write("shared_ptr<ARMInstruction> ARMDecoder::decode_unknown(uint32_t opcode, ARMInstrSize ins_size, ARMEncoding encoding) {\n")
+        fd.write("shared_ptr<ARMInstruction> ARMDecoder::decode_unknown(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n")
         fd.write("    return shared_ptr<ARMInstruction>(new UnknownInstruction());\n")
         fd.write("}\n")
         fd.write("\n")
@@ -367,7 +361,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
 
             # Generate the decoder function signature for the current instruction.
             decoder_name = instruction_decoder_name(instruction)
-            fd.write("shared_ptr<ARMInstruction> ARMDecoder::%s(uint32_t opcode, ARMInstrSize ins_size, ARMEncoding encoding) {\n" % decoder_name)
+            fd.write("shared_ptr<ARMInstruction> ARMDecoder::%s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n" % decoder_name)
             
             # Generate the local variables containing the bits decoded from the opcode.
             ret = __translate_bit_patterns__(instruction["pattern"].split())
@@ -388,18 +382,20 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
                 fd.write("#endif\n")
 
             # Get the AST for the decoder pseudocode and translate it to C++.
-            ret = ARMv7Parser.program.parseString(decoder, parseAll=True)
-            visitor = CPPTranslatorVisitor(input_vars=input_vars)
+            program_ast = ARMv7Parser.program.parseString(decoder, parseAll=True)
+            translator = CPPTranslatorVisitor(input_vars=input_vars)
 
             body = ""
-            for ast in ret:
-                l = visitor.accept(ast[0])
-                body += indent(l)
 
-                if type(ast[0]) == ARMv7Parser.ProcedureCall:
-                    body = body[:-1] + ";\n"
+            # For each of the statements, do a translation.
+            for ast_statement in map(lambda x: x[0], program_ast):
+                code = translator.accept(ast_statement)
+                if NeedsSemiColon(ast_statement):
+                    code += ";"
 
-            for var in visitor.define_me:
+                body += indent(code)
+
+            for var in translator.define_me:
                 type_ = "int"
                 if var == "imm64":
                     type_ = "uint64_t"
@@ -421,7 +417,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
             fd.write("    ins->encoding = encoding;\n")
 
             # Save all the variables defined inside the decoding procedure.
-            for var in visitor.define_me:
+            for var in translator.define_me:
                 ins_fields.add(var)
                 fd.write("    ins->%s = %s;\n" % (var, var))
 
@@ -1852,7 +1848,7 @@ string registers_str(unsigned registers) {
 }
 
 string shift_str(unsigned shift_t, unsigned shift_n) {
-    if (shift_t == Disassembler::SRType_RRX && shift_n == 1)
+    if (shift_t == SRType_RRX && shift_n == 1)
         return string(shift_type_str(shift_t));
 
     string shift = string(shift_type_str(shift_t)) + " #" + integer_to_string(shift_n, false);

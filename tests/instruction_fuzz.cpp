@@ -10,8 +10,10 @@
 
 #include "Utilities.h"
 
+namespace darm {
 extern "C" {
 #include <darm.h>
+}
 }
 
 #include <capstone/capstone.h>
@@ -75,8 +77,8 @@ struct InvalidChar {
 
 string darm_disassemble(uint32_t opcode, unsigned mode) {
 	string ret = "INVALID";
-	darm_t d;
-	darm_str_t str;
+	darm::darm_t d;
+	darm::darm_str_t str;
 
 	if (mode == 0) {
 		if (darm_armv7_disasm(&d, opcode) != -1) {
