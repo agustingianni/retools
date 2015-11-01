@@ -17,6 +17,10 @@
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 
+bool IsZeroBit(unsigned i) {
+	return i == 0;
+}
+
 inline bool IsHostBigEndian(void) {
 	union {
 		uint32_t i;
