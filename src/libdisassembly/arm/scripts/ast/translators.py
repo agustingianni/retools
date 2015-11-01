@@ -717,7 +717,7 @@ class CPPTranslatorVisitor(Visitor):
 
             t += "\n"
 
-        t += "} while (%s);\n\n" % self.accept(node.condition)
+        t += "} while (%s);\n" % self.accept(node.condition)
 
         return t
 
@@ -730,7 +730,7 @@ class CPPTranslatorVisitor(Visitor):
 
             t += "\n"
 
-        t += "}\n\n"
+        t += "}\n"
 
         return t
 
@@ -890,7 +890,7 @@ class CPPTranslatorVisitor(Visitor):
         for case in node.cases:
             t += indent(self.accept(case))
 
-        t += "}\n\n"
+        t += "}\n"
 
         return t
 
