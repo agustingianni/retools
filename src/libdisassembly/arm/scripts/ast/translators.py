@@ -753,7 +753,7 @@ class CPPTranslatorVisitor(Visitor):
                 for_statements += "\n"
 
         t += indent(for_statements)
-        t += "}\n\n"
+        t += "}\n"
 
         return t
 
