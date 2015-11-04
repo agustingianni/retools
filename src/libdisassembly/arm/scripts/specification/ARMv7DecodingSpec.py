@@ -5396,7 +5396,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
 } , {
     "name" : "VABS",
     "encoding" : "T2",
-    "version" : "AdvancedSIMD",
+    "version" : "VFPv2, VFPv3, VFPv4",
     "format" : "CUSTOM",
     "pattern" : "1 1 1 0 1 1 1 0 1 D#1 1 1 0 0 0 0 Vd#4 1 0 1 sz#1 1 1 M#1 0 Vm#4",
     "decoder" : """if FPSCR.LEN != '000' || FPSCR.STRIDE != '00' then SEE "VFP vectors";
@@ -5406,7 +5406,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
 } , {
     "name" : "VABS",
     "encoding" : "A2",
-    "version" : "AdvancedSIMD",
+    "version" : "VFPv2, VFPv3, VFPv4",
     "format" : "CUSTOM",
     "pattern" : "cond#4 1 1 1 0 1 D#1 1 1 0 0 0 0 Vd#4 1 0 1 sz#1 1 1 M#1 0 Vm#4",
     "decoder" : """if FPSCR.LEN != '000' || FPSCR.STRIDE != '00' then SEE "VFP vectors";
