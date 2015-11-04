@@ -446,7 +446,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
 
     # Create the union of the instruction fields.
     with open(create_decoders, "w") as fd:
-        fd.write("union InstructionFields {\n")
+        fd.write("union ARMInstructionFields {\n")
         for name, values in sorted(instruction_fields.iteritems()):
             fd.write("    struct %s {\n" % name)
             for field in sorted(values):
