@@ -107,7 +107,7 @@ void test_arm(unsigned n, unsigned start, unsigned finish, FILE *file) {
 	uint32_t op_code;
 
 	if (start == finish || finish > n_arm_opcodes) {
-		finish = n_arm_opcodes;
+		finish = n_arm_opcodes - 1;
 	}
 
 	for (unsigned i = start; i < finish; ++i) {
@@ -159,7 +159,7 @@ void test_thumb(unsigned n, unsigned start, unsigned finish, FILE *file) {
 	uint32_t op_code;
 
 	if (start == finish || finish > n_thumb_opcodes) {
-		finish = n_thumb_opcodes;
+		finish = n_thumb_opcodes - 1;
 	}
 
 	for (unsigned i = start; i < finish; ++i) {
