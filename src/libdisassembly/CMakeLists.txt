@@ -18,6 +18,7 @@ add_library(
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMDecodingTable.h
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMtoString.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMtoString.h
+	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMInstructionFields.h
 	${CMAKE_SOURCE_DIR}/src/utilities/Utilities.h
 )
 
