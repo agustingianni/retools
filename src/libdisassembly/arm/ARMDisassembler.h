@@ -17,10 +17,10 @@
 
 class ARMDecoder;
 
-#define IS_THUMB_VFP  (opcode) ((opcode & 0xec000e00) == 0xec000a00)
-#define IS_THUMB_SIMD (opcode) ((opcode & 0xef000000) == 0xef000000)
-#define IS_ARM_VFP    (opcode) ((opcode & 0x0c000e00) == 0x0c000a00)
-#define IS_ARM_SIMD   (opcode) ((opcode & 0xfe000000) == 0xf2000000)
+#define IS_THUMB_VFP(opcode) ((opcode & 0xec000e00) == 0xec000a00)
+#define IS_THUMB_SIMD(opcode) ((opcode & 0xef000000) == 0xef000000)
+#define IS_ARM_VFP(opcode) ((opcode & 0x0c000e00) == 0x0c000a00)
+#define IS_ARM_SIMD(opcode) ((opcode & 0xfe000000) == 0xf2000000)
 
 namespace Disassembler {
 	static const char *ARMRegisterToString(reg_t reg) {
