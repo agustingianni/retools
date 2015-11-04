@@ -186,6 +186,8 @@ typedef enum ARMVFPVersion {
 	VFPv4 = 1 << 17,
 	AdvancedSIMD = 1 << 18,
 	AdvancedSIMDv2 = 1 << 19,
+	VFPAll = VFPv1 | VFPv2 | VFPv3 | VFPv4,
+	AdvancedSIMDAll = AdvancedSIMD | AdvancedSIMDv2,
 	VFPv1_ABOVE = (VFPv1 | VFPv2 | VFPv3 | AdvancedSIMD),
 	VFPv2_ABOVE = (VFPv2 | VFPv3 | AdvancedSIMD),
 	VFPv2v3 = (VFPv2 | VFPv3)
