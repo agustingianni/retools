@@ -7,6 +7,7 @@ import re
 import json
 import logging
 import argparse
+from collections import defaultdict
 
 from parser import ARMv7Parser
 from specification import ARMv7DecodingSpec
@@ -178,7 +179,7 @@ def __translate_bit_patterns__(bit_patterns):
 
     return ret
 
-def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
+def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decoders):
     """
     Create the ARMDecoder.h and ARMDecoder.cpp.
     """
@@ -186,6 +187,9 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
     hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "D",
             "W", "B", "P", "U", "op", "mode", "opcode_", "mask",
             "firstcond", "Q", "size", "E", "T", "type", "reg", "cmode"]
+
+    # List of tuples with the fields defined in each different instruction.
+    instruction_fields = defaultdict(set)
 
     # Create the header file with all the declarations.
     with open(decoder_name_h, "w") as fd:
@@ -416,15 +420,20 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
             fd.write("    ins->m_decoded_by = \"ARMDecoder::%s\";\n" % instruction_decoder_name(instruction))
             fd.write("    ins->encoding = encoding;\n")
 
+            # Generate the instruction generic name.
+            ins_name = instruction_id_name(instruction)
+
             # Save all the variables defined inside the decoding procedure.
             for var in translator.define_me:
                 ins_fields.add(var)
+                instruction_fields[ins_name].add(var)
                 fd.write("    ins->%s = %s;\n" % (var, var))
 
             # Also save the hard coded variables.
             for var in input_vars:
                 if var[0] in hard:
                     ins_fields.add(var[0])
+                    instruction_fields[ins_name].add(var[0])
                     fd.write("    ins->%s = %s;\n" % (var[0], var[0]))
 
             fd.write("\n")
@@ -434,6 +443,18 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
     # Save used symbols for use in the interpreter generator.
     with open(symbols_file, "w") as fd:
         json.dump(list(ins_fields), fd)
+
+    # Create the union of the instruction fields.
+    with open(create_decoders, "w") as fd:
+        fd.write("union InstructionFields {\n")
+        for name, values in sorted(instruction_fields.iteritems()):
+            fd.write("    struct %s {\n" % name)
+            for field in sorted(values):
+                fd.write("        unsigned %s;\n" % field)
+            
+            fd.write("    };\n\n")
+
+        fd.write("} m_fields;\n")
 
     return True
 
@@ -2219,6 +2240,7 @@ def main():
     to_string_name_cpp = os.path.join(gen_dir, "ARMtoString.cpp")
     to_string_custom_name_h = os.path.join(gen_dir, "ARMtoStringCustom.h")
     to_string_custom_name_cpp = os.path.join(gen_dir, "ARMtoStringCustom.cpp")
+    instruction_fields_h = os.path.join(gen_dir, "ARMInstructionFields.h")
 
     if not os.path.exists(gen_dir):
         logging.info("Directory '%s' does not exist, creating it ..." % gen_dir)
@@ -2255,7 +2277,8 @@ def main():
         logging.info("Creating decoders at '%s'." % decoder_name_h)
         logging.info("Creating decoders at '%s'." % decoder_name_cpp)
         logging.info("Creating symbols file at '%s'." % symbols_file)
-        if not create_decoders(decoder_name_h, decoder_name_cpp, symbols_file):
+        logging.info("Creating instruction fields file at '%s'." % instruction_fields_h)
+        if not create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, instruction_fields_h):
             logging.error("Could not create the decoders.")
             return False
 
