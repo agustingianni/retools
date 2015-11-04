@@ -111,6 +111,16 @@ inline uint32_t RRX(uint32_t value, uint32_t carry_in) {
 	return RRX_C(value, carry_in, unused);
 }
 
+// Implementation of: (bits(N), bit, bit) AddWithCarry(bits(N) x, bits(N) y, bit carry_in)
+inline std::tuple<uint32_t, uint32_t, uint32_t> AddWithCarry(uint32_t x, uint32_t y, uint32_t carry_in) {
+    uint64_t unsigned_sum = static_cast<uint64_t>(x) + static_cast<uint64_t>(y) + carry_in;
+    int64_t signed_sum = static_cast<int64_t>(x) + static_cast<int64_t>(y) + carry_in;
+    uint32_t result = static_cast<uint32_t>(unsigned_sum);
+    uint32_t carry_out = (static_cast<uint32_t>(result) == unsigned_sum) ? 0 : 1;
+    uint32_t overflow_out = (static_cast<int32_t>(result) == signed_sum) ? 0 : 1;
+    return std::make_tuple(result, carry_out, overflow_out);
+}
+
 // Implementation of: (SRType, integer) DecodeImmShift(bits(2) type, bits(5) imm5)
 inline std::tuple<uint32_t, uint32_t> DecodeImmShift(uint32_t type, uint32_t imm5) {
 	switch (type) {
