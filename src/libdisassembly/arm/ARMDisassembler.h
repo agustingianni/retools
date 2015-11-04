@@ -17,10 +17,36 @@
 
 class ARMDecoder;
 
-#define IS_THUMB_VFP(opcode) ((opcode & 0xec000e00) == 0xec000a00)
-#define IS_THUMB_SIMD(opcode) ((opcode & 0xef000000) == 0xef000000)
-#define IS_ARM_VFP(opcode) ((opcode & 0x0c000e00) == 0x0c000a00)
-#define IS_ARM_SIMD(opcode) ((opcode & 0xfe000000) == 0xf2000000)
+#define IS_THUMB_VFP_OR_ASIMD_1(op) ((op & 0xef000e00) == 0xee000a00) // THUMB Floating-point data-processing instructions
+#define IS_THUMB_VFP_OR_ASIMD_2(op) ((op & 0xef000000) == 0xef000000) // THUMB Advanced SIMD data-processing instructions
+#define IS_THUMB_VFP_OR_ASIMD_3(op) ((op & 0xee000e00) == 0xec000a00) // THUMB Extension register load/store instructions VFP
+#define IS_THUMB_VFP_OR_ASIMD_4(op) ((op & 0xff100000) == 0xf9000000) // THUMB Advanced SIMD element or structure load/store instructions
+#define IS_THUMB_VFP_OR_ASIMD_5(op) ((op & 0xef000e10) == 0xee000a10) // THUMB 8, 16, and 32-bit transfer between ARM core and extension registers
+#define IS_THUMB_VFP_OR_ASIMD_6(op) ((op & 0xefe00e00) == 0xec400a00) // THUMB 64-bit transfers between ARM core and extension registers
+
+#define IS_THUMB_VFP_OR_ASIMD(op)  ( \
+	IS_THUMB_VFP_OR_ASIMD_1(op) ||   \
+	IS_THUMB_VFP_OR_ASIMD_2(op) ||   \
+	IS_THUMB_VFP_OR_ASIMD_3(op) ||   \
+	IS_THUMB_VFP_OR_ASIMD_4(op) ||   \
+	IS_THUMB_VFP_OR_ASIMD_5(op) ||   \
+	IS_THUMB_VFP_OR_ASIMD_6(op))
+
+#define IS_ARM_VFP_OR_ASIMD_1(op) ((op & 0x0f000e10) == 0x0e000a00) // ARM   Floating-point data-processing instructions
+#define IS_ARM_VFP_OR_ASIMD_2(op) ((op & 0xfe000000) == 0xf2000000) // ARM   Advanced SIMD data-processing instructions
+#define IS_ARM_VFP_OR_ASIMD_3(op) ((op & 0x0e000e00) == 0x0c000a00) // ARM   Extension register load/store instructions VFP
+#define IS_ARM_VFP_OR_ASIMD_4(op) ((op & 0xff100000) == 0xf4000000) // ARM   Advanced SIMD element or structure load/store instructions
+#define IS_ARM_VFP_OR_ASIMD_5(op) ((op & 0x0f000e10) == 0x0e000a10) // ARM   8, 16, and 32-bit transfer between ARM core and extension registers
+#define IS_ARM_VFP_OR_ASIMD_6(op) ((op & 0x0fe00e00) == 0x0c400a00) // ARM   64-bit transfers between ARM core and extension registers
+
+#define IS_ARM_VFP_OR_ASIMD(op)  ( \
+	IS_ARM_VFP_OR_ASIMD_1(op) ||   \
+	IS_ARM_VFP_OR_ASIMD_2(op) ||   \
+	IS_ARM_VFP_OR_ASIMD_3(op) ||   \
+	IS_ARM_VFP_OR_ASIMD_4(op) ||   \
+	IS_ARM_VFP_OR_ASIMD_5(op) ||   \
+	IS_ARM_VFP_OR_ASIMD_6(op))
+
 
 namespace Disassembler {
 	static const char *ARMRegisterToString(reg_t reg) {
