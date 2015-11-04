@@ -365,6 +365,11 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
 
             # Generate the decoder function signature for the current instruction.
             decoder_name = instruction_decoder_name(instruction)
+
+            # Generate the instruction generic name.
+            ins_name = instruction_id_name(instruction)
+
+            # Define the decoder.
             fd.write("shared_ptr<ARMInstruction> ARMDecoder::%s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n" % decoder_name)
             
             # Generate the local variables containing the bits decoded from the opcode.
@@ -419,9 +424,6 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
             fd.write("    ins->m_to_string = %s_to_string;\n" % instruction_decoder_name(instruction))
             fd.write("    ins->m_decoded_by = \"ARMDecoder::%s\";\n" % instruction_decoder_name(instruction))
             fd.write("    ins->encoding = encoding;\n")
-
-            # Generate the instruction generic name.
-            ins_name = instruction_id_name(instruction)
 
             # Save all the variables defined inside the decoding procedure.
             for var in translator.define_me:
