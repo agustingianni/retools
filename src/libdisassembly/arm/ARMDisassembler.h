@@ -14,6 +14,7 @@
 #include <string>
 
 #include "ARMArch.h"
+#include "gen/ARMInstructionFields.h"
 
 class ARMDecoder;
 
@@ -253,6 +254,9 @@ namespace Disassembler {
 			ARMInstrSize ins_size;
 			std::string m_decoded_by;
 			bool m_skip;
+
+			// Big union with all the fields of the different instructions.
+			ARMInstructionFields m_fields;
 
 			// Maybe this should be a union.
 			uint32_t imm32;
