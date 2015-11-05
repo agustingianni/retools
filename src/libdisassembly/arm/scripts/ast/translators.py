@@ -705,6 +705,9 @@ class CPPTranslatorVisitor(Visitor):
 
             return "SignExtend(%s, %s)" % (arguments[0], arg_bit_len)
 
+        elif str(node.name) in ["ALUWritePC"]:
+            return "ctx.%s(%s)" % (node.name, ", ".join(arguments))
+
         return "%s(%s)" % (node.name, ", ".join(arguments))
 
     def accept_RepeatUntil(self, node):
