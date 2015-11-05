@@ -11,6 +11,9 @@ class Visitor(object):
         Main dispatcher of the visitor. It will route the 'accept' call
         to the particular accept method associated with the type.
         """
+        if not node:
+            return
+
         if type(node) is BooleanValue:
             r = self.accept_BooleanValue(node)
 
@@ -90,3 +93,106 @@ class Visitor(object):
             raise RuntimeError("Invalid type: '%r' (%s)" % (type(node), str(node)))
 
         return r
+
+    def accept_ArrayAccess(self, node):
+        self.accept(node.name)
+        self.accept(node.expr1)
+        self.accept(node.expr2)
+        self.accept(node.expr3)
+
+    def accept_BinaryExpression(self, node):
+        self.accept(node.left_expr)
+        self.accept(node.right_expr)
+
+    def accept_BitExtraction(self, node):
+        self.accept(node.identifier)
+        for range in node.range:
+            self.accept(range)
+
+    def accept_BooleanValue(self, node):
+        pass
+
+    def accept_Case(self, node):
+        self.accept(node.expr)
+        for case in node.cases:
+            self.accept(case)
+
+    def accept_CaseElement(self, node):
+        self.accept(node.value)
+        for statement in node.statements:
+            self.accept(statement)
+
+    def accept_Enumeration(self, node):
+        pass
+
+    def accept_For(self, node):
+        self.accept(node.from_.left_expr)
+        self.accept(node.from_.right_expr)
+        self.accept(node.to)
+        for statement in node.statements:
+            self.accept(statement)
+
+    def accept_Identifier(self, node):
+        pass
+
+    def accept_If(self, node):
+        self.accept(node.condition)
+        for statement in node.if_statements:
+            self.accept(statement)
+
+        for statement in node.else_statements:
+            self.accept(statement)
+
+    def accept_IfExpression(self, node):
+        self.accept(node.condition)
+        self.accept(node.trueValue)
+        self.accept(node.falseValue)
+
+    def accept_Ignore(self, node):
+        pass
+
+    def accept_ImplementationDefined(self, node):
+        pass
+
+    def accept_List(self, node):
+        for value in node.values:
+            self.accept(value)
+
+    def accept_MaskedBinary(self, node):
+        pass
+
+    def accept_NumberValue(self, node):
+        pass
+
+    def accept_ProcedureCall(self, node):
+        for argument in node.arguments:
+            self.accept(argument)
+
+    def accept_RepeatUntil(self, node):
+        for statement in node.statements:
+            self.accept(statement)
+
+        self.accept(node.condition)
+
+    def accept_Return(self, node):
+        self.accept(node.value)
+
+    def accept_See(self, node):
+        pass
+
+    def accept_SubArchitectureDefined(self, node):
+        pass
+
+    def accept_UnaryExpression(self, node):
+        self.accept(node.expr)
+
+    def accept_Undefined(self, node):
+        pass
+
+    def accept_Unpredictable(self, node):
+        pass
+
+    def accept_While(self, node):
+        self.accept(node.condition)
+        for statement in node.statements:
+            self.accept(statement)
