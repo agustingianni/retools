@@ -113,6 +113,9 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += "    ARMInterpreter() {};\n\n"
         header += "    bool ConditionPassed() { return true; }\n"
         header += "    void EncodingSpecificOperations() {}\n"    
+        header += "\n"
+        header += "    apsr_t APSR;\n"
+        header += "    fpscr_t FPSCR;\n"
         
         fd.write(header)
         for instruction in ARVv7OperationSpec.instructions:
