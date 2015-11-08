@@ -366,7 +366,7 @@ class CPPTranslatorVisitor(Visitor):
             # (shift_t, shift_n) = (SRType_LSL, 0);
             # (shift_t, shift_n) = (SRType_LSL, UInt(imm2));
 
-            # Accept the unused nodes so we can have master race type checking.
+            # Accept the unused nodes so we can have type checking.
             self.accept(node.left_expr)
             self.accept(node.right_expr)
 
@@ -399,7 +399,7 @@ class CPPTranslatorVisitor(Visitor):
 
         # Handle: (a, b) = SomeFunction(arguments)
         elif type(node.left_expr) is List and type(node.right_expr) is ProcedureCall:
-            # Accept the unused nodes so we can have master race type checking.
+            # Accept the unused nodes so we can have type checking.
             left_expr = self.accept(node.left_expr)
             right_expr = self.accept(node.right_expr)
 
