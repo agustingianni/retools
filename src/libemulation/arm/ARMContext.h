@@ -30,6 +30,29 @@ public:
 	uint32_t writeMemory();
 	uint32_t readElement();
 	uint32_t writeElement();
+
+	void ALUWritePC(uint32_t address) {
+		return;
+	}
+
+	// Return the value of PC used when storing, this may be +4 or +8.
+	uint32_t PCStoreValue() {
+		return readRegularRegister(15);
+	}
+
+	void BranchWritePC(uint32_t address) {
+		if (CurrentInstrSet() == InstrSet_ARM) {
+			if (ArchVersion() < 6 && (address & 3) != 0) {
+				UNPREDICTABLE();
+			}
+
+			BranchTo(address & 0xfffffffc);
+		} else if (CurrentInstrSet() == InstrSet_Jazelle) {
+			BranchTo(address);
+		} else {
+			BranchTo(address & 1);
+		}
+	}
 };
 
 #endif /* SRC_LIBDISASSEMBLY_ARM_ARMCONTEXT_H_ */
