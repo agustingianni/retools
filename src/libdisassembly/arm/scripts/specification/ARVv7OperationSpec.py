@@ -1815,7 +1815,9 @@ if ConditionPassed() then
     if !Coproc_Accepted(cp, ThisInstr()) then
         GenerateCoprocessorException();
     else
-        (R[t2], R[t]) = Coproc_GetTwoWords(cp, ThisInstr());
+        (tmp0, tmp1) = Coproc_GetTwoWords(cp, ThisInstr());
+        R[t2] = tmp0;
+        R[t] = tmp1;
     endif
 endif
 """
