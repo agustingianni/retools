@@ -8,6 +8,7 @@
 #ifndef SRC_LIBDISASSEMBLY_ARM_ARMCONTEXT_H_
 #define SRC_LIBDISASSEMBLY_ARM_ARMCONTEXT_H_
 
+#include "arm/ARMArch.h"
 #include <cstdint>
 
 class ARMContext {
@@ -40,7 +41,40 @@ public:
 		return readRegularRegister(15);
 	}
 
-	void BranchWritePC(uint32_t address) {
+	ARMMode CurrentInstrSet() {
+	    return m_opcode_mode;
+	}
+
+	bool IsZero(unsigned i) {
+		return i == 0;
+	}
+
+	bool InITBlock() {
+	    return CurrentInstrSet() == InstrSet_Thumb && m_it_session.InITBlock();
+	}
+
+	bool LastInITBlock() {
+	    return CurrentInstrSet() == InstrSet_Thumb && m_it_session.LastInITBlock();
+	}
+
+	bool CurrentModeIsHyp() {
+		return m_hyp_mode;
+	}
+
+	ARMVariants ArchVersion() {
+		return m_arm_isa;
+	}
+
+	// TODO: Implement.
+	void BranchTo(uintptr_t address) {
+		return;
+	}
+
+	void UNPREDICTABLE() {
+		return;
+	}
+
+	void BranchWritePC(uintptr_t address) {
 		if (CurrentInstrSet() == InstrSet_ARM) {
 			if (ArchVersion() < 6 && (address & 3) != 0) {
 				UNPREDICTABLE();
@@ -53,6 +87,14 @@ public:
 			BranchTo(address & 1);
 		}
 	}
+
+private:
+    bool m_hyp_mode;
+    ITSession m_it_session;
+    ARMMode m_opcode_mode;
+    ARMVariants m_arm_isa;
+    apsr_t APSR;
+    fpscr_t FPSCR;
 };
 
 #endif /* SRC_LIBDISASSEMBLY_ARM_ARMCONTEXT_H_ */
