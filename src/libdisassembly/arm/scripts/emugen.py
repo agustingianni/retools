@@ -5,7 +5,7 @@ import logging
 import argparse
 
 from parser import ARMv7Parser
-from specification import ARVv7OperationSpec
+from specification import ARMv7OperationSpec
 from ast.translators import CPPTranslatorVisitor, indent, NeedsSemiColon
 
 DEBUG = False
@@ -118,7 +118,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += "    fpscr_t FPSCR;\n"
         
         fd.write(header)
-        for instruction in ARVv7OperationSpec.instructions:
+        for instruction in ARMv7OperationSpec.instructions:
             ins_name = instruction["name"]
             fd.write("    bool %s(ARMContext &ctx, const ARMInstruction &ins);\n" % instruction_interpreter_name(ins_name))
         
@@ -133,7 +133,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += '#include <tuple>\n\n' 
         
         fd.write(header)
-        for i, instruction in enumerate(ARVv7OperationSpec.instructions):
+        for i, instruction in enumerate(ARMv7OperationSpec.instructions):
             ins_name = instruction["name"]
             logging.info("Doing instruction '%s' (%d)" % (ins_name, i))
 
