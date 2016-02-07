@@ -5042,9 +5042,9 @@ if ConditionPassed() then
         for e = 0 to elements-1
             op = Elem[D[m+r],e,esize];
             if to_integer then
-                result = FPToFixed(op, esize, 0, unsigned, round_zero, FALSE);
+                result = FPToFixed(op, esize, 0, unsigned_, round_zero, FALSE);
             else
-                result = FixedToFP(op, esize, 0, unsigned, round_nearest, FALSE);
+                result = FixedToFP(op, esize, 0, unsigned_, round_nearest, FALSE);
             endif
             Elem[D[d+r],e,esize] = result;
         endfor
@@ -5059,15 +5059,15 @@ if ConditionPassed() then
     CheckVFPEnabled(TRUE);
     if to_integer then
         if dp_operation then
-            S[d] = FPToFixed(D[m], 32, 0, unsigned, round_zero, TRUE);
+            S[d] = FPToFixed(D[m], 32, 0, unsigned_, round_zero, TRUE);
         else
-            S[d] = FPToFixed(S[m], 32, 0, unsigned, round_zero, TRUE);
+            S[d] = FPToFixed(S[m], 32, 0, unsigned_, round_zero, TRUE);
         endif
     else
         if dp_operation then
-            D[d] = FixedToFP(S[m], 64, 0, unsigned, round_nearest, TRUE);
+            D[d] = FixedToFP(S[m], 64, 0, unsigned_, round_nearest, TRUE);
         else
-            S[d] = FixedToFP(S[m], 32, 0, unsigned, round_nearest, TRUE);
+            S[d] = FixedToFP(S[m], 32, 0, unsigned_, round_nearest, TRUE);
         endif
     endif
 endif
@@ -5082,9 +5082,9 @@ if ConditionPassed() then
         for e = 0 to elements-1
             op = Elem[D[m+r],e,esize];
             if to_fixed then
-                result = FPToFixed(op, esize, frac_bits, unsigned, round_zero, FALSE);
+                result = FPToFixed(op, esize, frac_bits, unsigned_, round_zero, FALSE);
             else
-                result = FixedToFP(op, esize, frac_bits, unsigned, round_nearest, FALSE);
+                result = FixedToFP(op, esize, frac_bits, unsigned_, round_nearest, FALSE);
             endif
             
             Elem[D[d+r],e,esize] = result;
@@ -5100,17 +5100,17 @@ if ConditionPassed() then
     CheckVFPEnabled(TRUE);
     if to_fixed then
         if dp_operation then
-            result = FPToFixed(D[d], size, frac_bits, unsigned, round_zero, TRUE);
-            D[d] = if unsigned then ZeroExtend(result, 64) else SignExtend(result, 64);
+            result = FPToFixed(D[d], size, frac_bits, unsigned_, round_zero, TRUE);
+            D[d] = if unsigned_ then ZeroExtend(result, 64) else SignExtend(result, 64);
         else
-            result = FPToFixed(S[d], size, frac_bits, unsigned, round_zero, TRUE);
-            S[d] = if unsigned then ZeroExtend(result, 32) else SignExtend(result, 32);
+            result = FPToFixed(S[d], size, frac_bits, unsigned_, round_zero, TRUE);
+            S[d] = if unsigned_ then ZeroExtend(result, 32) else SignExtend(result, 32);
         endif
     else
         if dp_operation then
-            D[d] = FixedToFP(D[d]<size-1:0>, 64, frac_bits, unsigned, round_nearest, TRUE);
+            D[d] = FixedToFP(D[d]<size-1:0>, 64, frac_bits, unsigned_, round_nearest, TRUE);
         else
-            S[d] = FixedToFP(S[d]<size-1:0>, 32, frac_bits, unsigned, round_nearest, TRUE);
+            S[d] = FixedToFP(S[d]<size-1:0>, 32, frac_bits, unsigned_, round_nearest, TRUE);
         endif
     endif
 endif
@@ -5733,7 +5733,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDOrVFPEnabled(TRUE, advsimd);
-    if unsigned then
+    if unsigned_ then
         R[t] = ZeroExtend(Elem[D[n],index,esize], 32);
     else
         R[t] = SignExtend(Elem[D[n],index,esize], 32);
