@@ -183,7 +183,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
     """
     Create the ARMDecoder.h and ARMDecoder.cpp.
     """
-    # Here we hard code some variables that are not defined in the body but need to go into the instruction.
+    # Save variables that are used by the toString methods but have no other use.
     hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "D",
             "W", "B", "P", "U", "op", "mode", "opcode_", "mask",
             "firstcond", "Q", "size", "E", "T", "type", "reg", "cmode"]
