@@ -6,6 +6,7 @@ import argparse
 
 from parser import ARMv7Parser
 from specification import ARMv7OperationSpec, ARMv7Types
+from ast.passes import IdentifierRenamer
 from ast.translators import CPPTranslatorVisitor, indent, NeedsSemiColon
 
 DEBUG = False
@@ -27,7 +28,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
     with open(symbols_file, "r") as fd:
         symbols = json.load(fd)
         for symbol in symbols:
-            known_types.append({"name" : symbol, "type" : ("int", 32)})
+            known_types.append({"name" : "ins." + symbol, "type" : ("int", 32)})
 
     with open(interpreter_name_h, "w") as fd:
         header = ""
@@ -71,6 +72,10 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
 
             # Get the AST for the decoder pseudocode and translate it to C++.            
             program_ast = ARMv7Parser.parse_program(ins_operation)
+
+            # Convert all the local variables to instance variables.
+            IdentifierRenamer(symbols, "ins.").transform(program_ast)
+
             translator = CPPTranslatorVisitor(known_types=known_types)
 
             body = ""
