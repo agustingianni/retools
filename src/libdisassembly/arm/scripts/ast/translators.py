@@ -113,20 +113,17 @@ class CPPTranslatorVisitor(Visitor):
         @known_types: Some hardcoded variable types used to "help" the type system
         to infer the type of some variables.
         """
-        self.var_bit_length = {}    # Map from variable name to bit lenght.
         self.symbol_table = set()   # Table of symbols.
         self.define_me = set()      # Variables that need to be defined.
         self.node_types = {}        # Map from Node to type.
 
         if input_vars:
             for input_var in input_vars:
-                self.var_bit_length[input_var[0]] = input_var[1]
                 self.symbol_table.add(input_var[0])
                 self.set_type(Identifier(input_var[0]), ("int", input_var[1]))
 
         if known_types:
             for type_ in known_types:
-                self.var_bit_length[type_["name"]] = type_["type"][0]
                 self.symbol_table.add(type_["name"])
                 self.set_type(Identifier(type_["name"]), type_["type"])
 
@@ -135,21 +132,17 @@ class CPPTranslatorVisitor(Visitor):
         Set the type of a node. Use a dictionary indexed by the string representation
         of the current node.
         """
-        if not self.node_types.has_key(str(node)):
-            self.node_types[str(node)] = type_
+        key = str(node.name) if type(node) is ProcedureCall else str(node)
+        if not self.node_types.has_key(key):
+            self.node_types[key] = type_
 
     def get_type(self, node):
         """
         Get the type of 'node'. 
         """
-        if self.node_types.has_key(str(node)):
-            return self.node_types[str(node)]
-
-        if type(node) is ProcedureCall and self.node_types.has_key(str(node.name)):          
-            return self.node_types[str(node.name)]
-
-        if str(node) in self.symbol_table:
-           return ("int", self.var_bit_length[str(node)])
+        key = str(node.name) if type(node) is ProcedureCall else str(node)
+        if self.node_types.has_key(key):
+            return self.node_types[key]
 
         return ("unknown", None)
 
