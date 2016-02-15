@@ -10,7 +10,7 @@ import argparse
 from collections import defaultdict
 
 from parser import ARMv7Parser
-from specification import ARMv7DecodingSpec
+from specification import ARMv7DecodingSpec, ARMv7Types
 from ast.translators import CPPTranslatorVisitor, indent, NeedsSemiColon
 
 DEBUG = False
@@ -187,6 +187,9 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
     hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "D",
             "W", "B", "P", "U", "op", "mode", "opcode_", "mask",
             "firstcond", "Q", "size", "E", "T", "type", "reg", "cmode"]
+
+    # Inherit the basic types.
+    known_types = list(ARMv7Types.known_types)
 
     # List of tuples with the fields defined in each different instruction.
     instruction_fields = defaultdict(set)
@@ -396,7 +399,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
 
             # Get the AST for the decoder pseudocode and translate it to C++.
             program_ast = ARMv7Parser.program.parseString(decoder, parseAll=True)
-            translator = CPPTranslatorVisitor(input_vars=input_vars)
+            translator = CPPTranslatorVisitor(known_types=known_types, input_vars=input_vars)
 
             body = ""
 

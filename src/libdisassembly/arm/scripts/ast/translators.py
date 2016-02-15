@@ -106,22 +106,22 @@ class CPPTranslatorVisitor(Visitor):
     will spit compilable C++ code.
     """
     def __init__(self, input_vars=None, known_types=None):
-        self.var_bit_length = {}
-        self.symbol_table = set()
-        self.define_me = set()
-        self.seen_see = set()
-        self.node_types = {}
+        """
+        @input_vars: Variables that the decoder reads from the opcode itself. These
+        variables are not defined inside the decoding pseudocode but they are used.
+
+        @known_types: Some hardcoded variable types used to "help" the type system
+        to infer the type of some variables.
+        """
+        self.var_bit_length = {}    # Map from variable name to bit lenght.
+        self.symbol_table = set()   # Table of symbols.
+        self.define_me = set()      # Variables that need to be defined.
+        self.node_types = {}        # Map from Node to type.
 
         if input_vars:
-            # Add the opcode variables and their types to the system.
             for input_var in input_vars:
-                # Map from variable name to bit lenght.
                 self.var_bit_length[input_var[0]] = input_var[1]
-                
-                # Create a new symbol.
                 self.symbol_table.add(input_var[0])
-
-                # Set the type.
                 self.set_type(Identifier(input_var[0]), ("int", input_var[1]))
 
         if known_types:
@@ -238,7 +238,6 @@ class CPPTranslatorVisitor(Visitor):
         element = self.accept(node.left_expr.expr2)
         size = self.accept(node.left_expr.expr3)
         value = self.accept(node.right_expr)
-
         return "ctxt.writeElement(%s, %s, %s, %s)" % (vector, element, size, value)
 
     def accept_ArrayAccess(self, node):
@@ -329,6 +328,8 @@ class CPPTranslatorVisitor(Visitor):
 
             return "(%s)" % (" || ".join(t))
 
+        raise RuntimeError("Invalid 'IN' expression.")
+
     def accept_ConcatenationExpression(self, node):
         # imm = a:b -> imm = Concatenate(a, b, len(b))
         left_expr = self.accept(node.left_expr)
@@ -348,8 +349,7 @@ class CPPTranslatorVisitor(Visitor):
             if type_check:
                 raise RuntimeError("Unary expresion type unknown.")
 
-        # Since all constants have the same string representation, we need to
-        # cheat a bit and use the bit_size instead of the inferred type.
+        # A 'NumberValue' parsed from a string '0b00' has 'bit_size' of 2 instead of 32 as with the default numbers.
         if type(node.right_expr) is NumberValue and right_expr_type[1] != node.right_expr.bit_size:
             right_expr_type = (right_expr_type[0], node.right_expr.bit_size)
 
@@ -362,10 +362,6 @@ class CPPTranslatorVisitor(Visitor):
     def accept_AssignmentStatement(self, node):
         # Handle: (a, b) = (1, 2)
         if type(node.left_expr) is List and type(node.right_expr) is List:
-            # It is safe to assume the types to be (uint32_t, uint32_t)
-            # (shift_t, shift_n) = (SRType_LSL, 0);
-            # (shift_t, shift_n) = (SRType_LSL, UInt(imm2));
-
             # Accept the unused nodes so we can have type checking.
             self.accept(node.left_expr)
             self.accept(node.right_expr)
@@ -377,19 +373,15 @@ class CPPTranslatorVisitor(Visitor):
             last = len(node.left_expr.values) - 1
             # For each of the left variables.
             for i, var in enumerate(node.left_expr.values):
-                if var in self.symbol_table:
-                    # Make the assignment.
-                    t += "%s %s %s" % (var, name_op[node.type], node.right_expr.values[i])
-                    if i != last:
-                        t += ", "
-
-                else:
+                if not str(var) in self.symbol_table:
                     # Declare it and initialize it.
                     self.symbol_table.add(str(var))
                     self.define_me.add(str(var))
-                    t += "%s %s %s" % (var, name_op[node.type], node.right_expr.values[i])
-                    if i != last:
-                        t += ", "
+
+                # Make the assignment.
+                t += "%s %s %s" % (var, name_op[node.type], node.right_expr.values[i])
+                if i != last:
+                    t += ", "
 
                 # Set the types of the assignee and the assigned.
                 self.set_type(var, ("int", 32))
@@ -400,26 +392,15 @@ class CPPTranslatorVisitor(Visitor):
         # Handle: (a, b) = SomeFunction(arguments)
         elif type(node.left_expr) is List and type(node.right_expr) is ProcedureCall:
             # Accept the unused nodes so we can have type checking.
-            left_expr = self.accept(node.left_expr)
+            left_expr = self.accept(node.left_expr) 
             right_expr = self.accept(node.right_expr)
 
             # Check that the lists are of the same type.
             t1 = self.get_type(node.left_expr)
             t2 = self.get_type(node.right_expr)
-
-            # We may have typing information on the function name.
             t3 = self.get_type(node.right_expr.name)
 
-            if t1 != t2 and t1 != t3:            
-                print "DEBUG(%4d):" % (lineno())
-                print "DEBUG: List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3)
-                print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
-                print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
-                print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
-                print "DEBUG: node.right_expr       = %r" % self.accept(node.right_expr)
-
-                if type_check:
-                    raise RuntimeError("List types are different: t1='%s' t2='%s' t3='%s'" % (t1, t2, t3))
+            assert t1 == t2 or t1 == t3
             
             # Small hack.
             if self.accept(node.right_expr.name) in ["SignedSatQ", "UnsignedSatQ"]:
@@ -449,10 +430,9 @@ class CPPTranslatorVisitor(Visitor):
                 return "std::tie(%s) = %s" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
 
             names = []
-            acum = ""
-            i = 0
+
             # For each of the left variables.
-            for var in node.left_expr.values:
+            for i, var in enumerate(node.left_expr.values):
                 # Set a special name for the ignored values.
                 name = ("ignored_%d" % i) if type(var) is Ignore else str(var)
 
@@ -463,27 +443,9 @@ class CPPTranslatorVisitor(Visitor):
                 
                 names.append(name)
 
-                if not type(var) is Ignore:
-                    self.set_type(var, ("int", 32))
+                self.set_type(var, ("int", 32))
 
-                i += 1
-
-            if len(node.left_expr.values) != len(names):
-                print "DEBUG(%4d):" % (lineno())
-                print "DEBUG: type(node.left_expr)  = %r" % type(node.left_expr)
-                print "DEBUG: type(node.right_expr) = %r" % type(node.right_expr)
-                print "DEBUG: node.left_expr        = %r" % self.accept(node.left_expr)
-                print "DEBUG: node.right_expr       = %r" % self.accept(node.right_expr)
-                print "DEBUG: node.left_expr.values = %r" % map(self.accept, node.left_expr.values)
-                print "DEBUG: names                 = %r" % names
-                print "DEBUG: len(node.left_expr.values) != len(names): %d != %d" % (len(node.left_expr.values), len(names))
-                
-                if type_check:
-                    raise RuntimeError("len(node.left_expr.values) != len(names): %d != %d" % \
-                        (len(node.left_expr.values), len(names)))
-
-            acum += "std::tie(%s) = %s" % (", ".join(names), right_expr)
-            return acum
+            return "std::tie(%s) = %s" % (", ".join(names), right_expr)
 
         # Handle: SomeArray[expression] = expression
         elif type(node.left_expr) is ArrayAccess:
@@ -519,23 +481,24 @@ class CPPTranslatorVisitor(Visitor):
         left_expr = self.accept(node.left_expr)
         right_expr = self.accept(node.right_expr)
 
-        # Assignment makes lhs inherit the type of rhs.
+        # Get the types.
+        left_expr_type = self.get_type(node.left_expr)
         right_expr_type = self.get_type(node.right_expr)
-        # if IsUnknownType(right_expr_type):
-        #     print "DEBUG: Assignment statement:"
-        #     print "DEBUG: node                 = %s" % (str(node))
-        #     print "DEBUG: node.left_expr       = %s" % (str(left_expr))
-        #     print "DEBUG: node.right_expr      = %s" % (str(right_expr))
-        #     print "DEBUG: node.left_expr.type  = %s" % str(self.get_type(node.left_expr))
-        #     print "DEBUG: node.right_expr.type = %s" % str(self.get_type(node.right_expr))
-        #     print
         
-        self.set_type(node.left_expr, right_expr_type)
+        # Set the type of the 'lhs' to the type of the 'rhs'.
+        if IsUnknownType(left_expr_type):
+            left_expr_type = right_expr_type
+            self.set_type(node.left_expr, right_expr_type)
 
-        # If the lhs is present at the symbol table we need not to initialize it.
-        if left_expr in self.symbol_table:
-            return "%s %s %s" % (left_expr, name_op[node.type], right_expr)
-
+        if type_check and left_expr_type != right_expr_type:
+            print "DEBUG: Assignment statement:"
+            print "DEBUG: node                 = %s" % str(node)
+            print "DEBUG: node.left_expr       = %s" % str(left_expr)
+            print "DEBUG: node.right_expr      = %s" % str(right_expr)
+            print "DEBUG: node.left_expr.type  = %s" % str(left_expr_type)
+            print "DEBUG: node.right_expr.type = %s" % str(right_expr_type)
+            print
+        
         # Add the left symbol to the symbol table.
         self.symbol_table.add(left_expr)
         self.define_me.add(left_expr)
@@ -565,42 +528,22 @@ class CPPTranslatorVisitor(Visitor):
         left_expr_type = self.get_type(node.left_expr)
         right_expr_type = self.get_type(node.right_expr)
 
-        if left_expr_type[0] != right_expr_type[0]:
-            if type_check:
-                raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (left_expr_type, right_expr_type))
-        
-            # print "DEBUG(%4d):" % (lineno())
-            # print "DEBUG: Types differ in expression = %s" % (node)
-            # print "DEBUG: left_expr.type             = %r" % str(left_expr_type)
-            # print "DEBUG: right_expr.type            = %s" % str(right_expr_type)
-            # print "DEBUG: node.left_expr             = %r" % self.accept(node.left_expr)
-            # print "DEBUG: node.right_expr            = %r" % self.accept(node.right_expr)
-        
-        self.set_type(node, left_expr_type)
+        if type_check and left_expr_type[0] != right_expr_type[0]:
+            raise RuntimeError("Types do not match: t1='%s' t2='%s'" % (left_expr_type, right_expr_type))
+                
+        # Inherit the "biggest" type.
+        self.set_type(node, max(left_expr_type, right_expr_type))
         return "(%s %s %s)" % (left_expr, op_name, right_expr)
 
     def accept_ProcedureCall(self, node):
-        """
-        We have no idea what type a procedure call
-        returns but since this pseudocode defines
-        a couple of functions we can actually list them
-        and hard code the type.
-        """
-        arguments = []
-        for arg in node.arguments:
-            arguments.append(self.accept(arg))
+        # Accept all the arguments.
+        arguments = [self.accept(arg) for arg in node.arguments]
 
         # Inherit the type of the function via its arguments.
-        if str(node.name) in ["UInt", "ThumbExpandImm"]:
-            # Assumption: the type in the manual is 'integer' so 32 bits.
-            self.set_type(node, ("int", 32))
-            return "%s(%s)" % (node.name, ", ".join(arguments))
-
-        elif str(node.name) in ["ZeroExtend", "FPZero", "SignedSat", "UnsignedSat", "Sat"]:
+        if str(node.name) in ["ZeroExtend", "FPZero", "SignedSat", "UnsignedSat", "Sat"]:
             # If the argument is an integer then it is the size of the expression.
-            argument = self.accept(node.arguments[1])
-            if argument.isdigit():
-                self.set_type(node, ("int", int(argument)))
+            if arguments[1].isdigit():
+                self.set_type(node, ("int", int(arguments[1])))
 
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
@@ -614,9 +557,8 @@ class CPPTranslatorVisitor(Visitor):
 
         elif str(node.name) in ["Zeros", "Ones"]:
             # If the argument is an integer then it is the size of the generated integer.
-            argument = self.accept(node.arguments[0])
-            if argument.isdigit():
-                self.set_type(node, ("int", int(argument)))
+            if arguments[0].isdigit():
+                self.set_type(node, ("int", int(arguments[0])))
 
             return "%s(%s)" % (node.name, ", ".join(arguments))
             
@@ -632,8 +574,8 @@ class CPPTranslatorVisitor(Visitor):
                 if IsUnknownType(arg_type):
                     print "DEBUG(%4d):" % (lineno())
                     print 'DEBUG: arg_type == ("unknown", None)'
-                    print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
-                    print "DEBUG: node.name = %s" % (str(node.name))
+                    print "DEBUG: node      = %s" % str(arguments[0])
+                    print "DEBUG: node.name = %s" % str(node.name)
 
                     if type_check:
                         raise RuntimeError("Sign extension (SInt) failed due to arg_type == ('unknown', None)")
@@ -664,14 +606,6 @@ class CPPTranslatorVisitor(Visitor):
             arg_bit_len = arg_type[1]
             return "SInt(%s, %s)" % (arguments[0], arg_bit_len)
 
-        elif str(node.name) in ["InITBlock", "LastInITBlock"]:
-            self.set_type(node, ("int", 1))
-            return "%s(%s)" % (node.name, ", ".join(arguments))
-
-        elif str(node.name) in ["DecodeImmShift", "ARMExpandImm_C", "ThumbExpandImm_C"]:
-            self.set_type(node, ("list", 2))
-            return "%s(%s)" % (node.name, ", ".join(arguments))
-
         elif str(node.name) in ["NOT"]:
             # Inherit the type of the argument.
             assert len(node.arguments) == 1
@@ -699,9 +633,8 @@ class CPPTranslatorVisitor(Visitor):
             arg_bit_len = arg_type[1]
 
             # The resulting size is the second argument.
-            argument = self.accept(node.arguments[1])
-            if argument.isdigit():
-                self.set_type(node, ("int", int(argument)))
+            if arguments[1].isdigit():
+                self.set_type(node, ("int", int(arguments[1])))
 
             return "SignExtend(%s, %s)" % (arguments[0], arg_bit_len)
 
@@ -763,10 +696,11 @@ class CPPTranslatorVisitor(Visitor):
     def accept_If(self, node):
         def hint(condition, statements):
             # Set the reason why Undefined or Unpredictable instructions are "skipped".
-            if type(statements[0]) in [Undefined, Unpredictable]:
-                statements[0].reason = condition
+            for statement in statements:
+                if type(statement) in [Undefined, Unpredictable]:
+                    statements[0].reason = condition
 
-            if len(statements) == 1 and type(statements[0]) in [Undefined, Unpredictable, See]:
+            if any(type(s) in [Undefined, Unpredictable, See] for s in statements):
                 return "unlikely(%s)" % condition
 
             return condition
@@ -839,16 +773,14 @@ class CPPTranslatorVisitor(Visitor):
         falseValue_type = self.get_type(node.falseValue)
 
         # We can't do shit.
-        if IsUnknownType(trueValue_type) and IsUnknownType(falseValue_type):
-            if type_check:
-                print "DEBUG(%4d):" % (lineno())
-                print "DEBUG: Types differ in expression = %s" % (node)
-                print "DEBUG: trueValue.type             = %s" % str(trueValue_type)
-                print "DEBUG: falseValue.type            = %s" % str(falseValue_type)
-                print "DEBUG: node.trueValue             = %r" % self.accept(node.trueValue)
-                print "DEBUG: node.falseValue            = %r" % self.accept(node.falseValue)
-
-                raise RuntimeError("Cannot infer type for IfExpression")
+        if type_check and IsUnknownType(trueValue_type) and IsUnknownType(falseValue_type):
+            print "DEBUG(%4d):" % (lineno())
+            print "DEBUG: Types differ in expression = %s" % (node)
+            print "DEBUG: trueValue.type             = %s" % str(trueValue_type)
+            print "DEBUG: falseValue.type            = %s" % str(falseValue_type)
+            print "DEBUG: node.trueValue             = %r" % self.accept(node.trueValue)
+            print "DEBUG: node.falseValue            = %r" % self.accept(node.falseValue)
+            raise RuntimeError("Cannot infer type for IfExpression")
 
         elif IsUnknownType(trueValue_type):
             self.set_type(node, falseValue_type)            
@@ -936,13 +868,4 @@ class CPPTranslatorVisitor(Visitor):
         self.set_type(node, ("list", len(node.values)))
 
         # Lists are not representable in c++.
-        return None
-
-    def accept_Enumeration(self, node):
-        raise Exception("Accepting an Enumeration, why?")
-
-    def accept_MaskedBinary(self, node):
-        raise Exception("Accepting a MaskedBinary, why?")
-
-    def accept_Ignore(self, node):
         return None
