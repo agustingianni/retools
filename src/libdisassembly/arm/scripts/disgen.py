@@ -351,10 +351,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
         # Set that contains all the fields used in _all_ the instructions.
         ins_fields = set()
 
-        i = -1
-        for instruction in ARMv7DecodingSpec.instructions:
-            i += 1
-
+        for i, instruction in enumerate(ARMv7DecodingSpec.instructions):
             input_vars = get_input_vars(instruction["pattern"])
             decoder = instruction["decoder"]
 
