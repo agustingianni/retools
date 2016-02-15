@@ -394,6 +394,10 @@ statement <<= Group(MatchFirst([t1 + SEMI, t2]))
 # Define a basic program.
 program = statement_list
 
+def parse_program(input):
+    ret = program.parseString(input, parseAll=True)
+    return map(lambda x: x[0], ret)
+
 class OptionalToken(object):
     def __init__(self, name):
         self.name = name

@@ -395,13 +395,13 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
                 fd.write("#endif\n")
 
             # Get the AST for the decoder pseudocode and translate it to C++.
-            program_ast = ARMv7Parser.program.parseString(decoder, parseAll=True)
+            program_ast = ARMv7Parser.parse_program(decoder)
             translator = CPPTranslatorVisitor(known_types=known_types, input_vars=input_vars)
 
             body = ""
 
             # For each of the statements, do a translation.
-            for ast_statement in map(lambda x: x[0], program_ast):
+            for ast_statement in program_ast:
                 code = translator.accept(ast_statement)
                 if NeedsSemiColon(ast_statement):
                     code += ";"

@@ -70,13 +70,13 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             ins_operation = os.linesep.join([s for s in ins_operation.splitlines() if not re.match(r'^\s*$', s)])
 
             # Get the AST for the decoder pseudocode and translate it to C++.            
-            program_ast = ARMv7Parser.program.parseString(ins_operation, parseAll=True)
+            program_ast = ARMv7Parser.parse_program(ins_operation)
             translator = CPPTranslatorVisitor(known_types=known_types)
 
             body = ""
 
             # For each of the statements, do a translation.
-            for ast_statement in map(lambda x: x[0], program_ast):
+            for ast_statement in program_ast:
                 code = translator.accept(ast_statement)
                 if NeedsSemiColon(ast_statement):
                     code += ";"
