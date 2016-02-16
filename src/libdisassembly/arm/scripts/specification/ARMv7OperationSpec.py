@@ -154,7 +154,7 @@ endif
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    (result, carry, overflow) = AddWithCarry(SP, imm32, '0');
+    (result, carry, overflow) = AddWithCarry(R[13], imm32, '0');
     if d == 15 then 
         ALUWritePC(result);
     else
@@ -174,7 +174,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     shifted = Shift(R[m], shift_t, shift_n, APSR.C);
-    (result, carry, overflow) = AddWithCarry(SP, shifted, '0');
+    (result, carry, overflow) = AddWithCarry(R[13], shifted, '0');
     if d == 15 then
         ALUWritePC(result);
     else
@@ -194,7 +194,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     shifted = Shift(R[m], shift_t, shift_n, APSR.C);
-    (result, carry, overflow) = AddWithCarry(SP, shifted, '0');
+    (result, carry, overflow) = AddWithCarry(R[13], shifted, '0');
     if d == 15 then
         ALUWritePC(result);
     else
@@ -213,7 +213,7 @@ endif
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    result = if add then (Align(PC,4) + imm32) else (Align(PC,4) - imm32);
+    result = if add then (Align(R[15],4) + imm32) else (Align(R[15],4) - imm32);
     if d == 15 then
         ALUWritePC(result);
     else
@@ -312,7 +312,7 @@ endif
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    BranchWritePC(PC + imm32);
+    BranchWritePC(R[15] + imm32);
 endif
 """
 }, { 
@@ -405,15 +405,15 @@ BKPTInstrDebugEvent();
 if ConditionPassed() then
     EncodingSpecificOperations();
     if CurrentInstrSet() == InstrSet_ARM then
-        LR = PC - 4;
+        LR = R[15] - 4;
     else
         LR = PC<31:1> : '1';
     endif
 
     if targetInstrSet == InstrSet_ARM then
-        targetAddress = Align(PC,4) + imm32;
+        targetAddress = Align(R[15],4) + imm32;
     else
-        targetAddress = PC + imm32;
+        targetAddress = R[15] + imm32;
     endif
 
     SelectInstrSet(targetInstrSet);
@@ -427,10 +427,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     target = R[m];
     if CurrentInstrSet() == InstrSet_ARM then
-        next_instr_addr = PC - 4;
+        next_instr_addr = R[15] - 4;
         LR = next_instr_addr;
     else
-        next_instr_addr = PC - 2;
+        next_instr_addr = R[15] - 2;
         LR = next_instr_addr<31:1> : '1';
     endif
 
@@ -473,7 +473,7 @@ endif
     "operation" : """
 EncodingSpecificOperations();
 if nonzero ^ IsZero(R[n]) then
-    BranchWritePC(PC + imm32);
+    BranchWritePC(R[15] + imm32);
 endif
 """
 }, { 
@@ -849,8 +849,8 @@ if ConditionPassed() then
         GenerateCoprocessorException();
     else
         NullCheckIfThumbEE(15);
-        offset_addr = if add then (Align(PC,4) + imm32) else (Align(PC,4) - imm32);
-        address = if index then offset_addr else Align(PC,4);
+        offset_addr = if add then (Align(R[15],4) + imm32) else (Align(R[15],4) - imm32);
+        address = if index then offset_addr else Align(R[15],4);
 
         repeat
             Coproc_SendLoadedWord(MemA[address,4], cp, ThisInstr());
@@ -1053,7 +1053,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     NullCheckIfThumbEE(15);
-    base = Align(PC,4);
+    base = Align(R[15],4);
     address = if add then (base + imm32) else (base - imm32);
     data = MemU[address,4];
 
@@ -1162,7 +1162,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     NullCheckIfThumbEE(15);
-    base = Align(PC,4);
+    base = Align(R[15],4);
     address = if add then (base + imm32) else (base - imm32);
     R[t] = ZeroExtend(MemU[address,1], 32);
 endif
@@ -1236,7 +1236,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     NullCheckIfThumbEE(15);
-    address = if add then (Align(PC,4) + imm32) else (Align(PC,4) - imm32);
+    address = if add then (Align(R[15],4) + imm32) else (Align(R[15],4) - imm32);
     if HaveLPAE() && address<2:0> == '000' then
         data = MemA[Address,8];
         if BigEndian() then
@@ -1373,7 +1373,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     NullCheckIfThumbEE(15);
-    base = Align(PC,4);
+    base = Align(R[15],4);
     address = if add then (base + imm32) else (base - imm32);
     data = MemU[address,2];
     if UnalignedSupport() || address<0> == '0' then
@@ -1450,7 +1450,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     NullCheckIfThumbEE(15);
-    base = Align(PC,4);
+    base = Align(R[15],4);
     address = if add then (base + imm32) else (base - imm32);
     R[t] = SignExtend(MemU[address,1], 32);
 endif
@@ -1518,7 +1518,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     NullCheckIfThumbEE(15);
-    base = Align(PC,4);
+    base = Align(R[15],4);
     address = if add then (base + imm32) else (base - imm32);
     data = MemU[address,2];
     
@@ -2180,7 +2180,7 @@ endif
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    address = if add then (Align(PC,4) + imm32) else (Align(PC,4) - imm32);
+    address = if add then (Align(R[15],4) + imm32) else (Align(R[15],4) - imm32);
     Hint_PreloadData(address);
 endif
 """
@@ -2203,7 +2203,7 @@ endif
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    base = if n == 15 then Align(PC,4) else R[n];
+    base = if n == 15 then Align(R[15],4) else R[n];
     address = if add then (base + imm32) else (base - imm32);
     Hint_PreloadInstr(address);
 endif
@@ -2224,7 +2224,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     NullCheckIfThumbEE(13);
-    address = SP;
+    address = R[13];
     for i = 0 to 14
         if registers<i> == '1' then
             R[i] = if UnalignedAllowed then MemU[address,4] else MemA[address,4];
@@ -2245,11 +2245,11 @@ if ConditionPassed() then
     endif
 
     if registers<13> == '0' then
-        SP = SP + 4*BitCount(registers);
+        R[13] = R[13] + 4*BitCount(registers);
     endif
 
     if registers<13> == '1' then
-        SP = UNKNOWN_VALUE;
+        R[13] = UNKNOWN_VALUE;
     endif
 endif
 """
@@ -2259,7 +2259,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     NullCheckIfThumbEE(13);
-    address = SP;
+    address = R[13];
     for i = 0 to 14
         if registers<i> == '1' then
             R[i] = if UnalignedAllowed then MemU[address,4] else MemA[address,4];
@@ -2280,11 +2280,11 @@ if ConditionPassed() then
     endif
 
     if registers<13> == '0' then
-        SP = SP + 4*BitCount(registers);
+        R[13] = R[13] + 4*BitCount(registers);
     endif
 
     if registers<13> == '1' then
-        SP = UNKNOWN_VALUE;
+        R[13] = UNKNOWN_VALUE;
     endif
 endif
 """
@@ -2294,7 +2294,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     NullCheckIfThumbEE(13);
-    address = SP - 4*BitCount(registers);
+    address = R[13] - 4*BitCount(registers);
     for i = 0 to 14
         if registers<i> == '1' then
             if i == 13 && i != LowestSetBit(registers) then
@@ -2319,7 +2319,7 @@ if ConditionPassed() then
         endif
     endif
 
-    SP = SP - 4*BitCount(registers);
+    R[13] = R[13] - 4*BitCount(registers);
 endif
 """
 }, { 
@@ -3865,7 +3865,7 @@ endif
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    (result, carry, overflow) = AddWithCarry(SP, NOT(imm32), '1');
+    (result, carry, overflow) = AddWithCarry(R[13], NOT(imm32), '1');
     if d == 15 then
         ALUWritePC(result);
     else
@@ -3885,7 +3885,7 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     shifted = Shift(R[m], shift_t, shift_n, APSR.C);
-    (result, carry, overflow) = AddWithCarry(SP, NOT(shifted), '1');
+    (result, carry, overflow) = AddWithCarry(R[13], NOT(shifted), '1');
     if d == 15 then
         ALUWritePC(result);
     else
@@ -4054,7 +4054,7 @@ if ConditionPassed() then
         halfwords = UInt(MemU[tmp, 1]);
     endif
 
-    BranchWritePC(PC + 2*halfwords);
+    BranchWritePC(R[15] + 2*halfwords);
 endif
 """
 }, { 
@@ -5573,7 +5573,7 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     CheckVFPEnabled(TRUE);
     NullCheckIfThumbEE(n);
-    base = if n == 15 then Align(PC,4) else R[n];
+    base = if n == 15 then Align(R[15],4) else R[n];
     address = if add then (base + imm32) else (base - imm32);
     if single_reg then
         S[d] = MemA[address,4];
@@ -6143,8 +6143,8 @@ if ConditionPassed() then
     CheckVFPEnabled(TRUE);
     NullCheckIfThumbEE(13);
     
-    address = SP;
-    SP = SP + imm32;
+    address = R[13];
+    R[13] = address + imm32;
     
     if single_regs then
         for r = 0 to regs-1
@@ -6169,8 +6169,8 @@ if ConditionPassed() then
     CheckVFPEnabled(TRUE);
     NullCheckIfThumbEE(13);
     
-    address = SP - imm32;
-    SP = SP - imm32;
+    address = R[13] - imm32;
+    R[13] = R[13] - imm32;
     
     if single_regs then
         for r = 0 to regs-1
