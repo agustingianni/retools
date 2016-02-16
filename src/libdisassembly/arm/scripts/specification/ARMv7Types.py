@@ -6,10 +6,12 @@ offer type information so we can generate better code.
 known_types = []
 
 # Set the types for known expressions.
-known_types.append({"name" : "UInt",                             "type" : ("int", 32)})
 known_types.append({"name" : "APSR.C",                           "type" : ("int",  1)})
+known_types.append({"name" : "APSR.GE",                          "type" : ("int",  1)})
 known_types.append({"name" : "APSR.N",                           "type" : ("int",  1)})
+known_types.append({"name" : "APSR.Q",                           "type" : ("int",  1)})
 known_types.append({"name" : "APSR.V",                           "type" : ("int",  1)})
+known_types.append({"name" : "APSR.Z",                           "type" : ("int",  1)})
 known_types.append({"name" : "ARMExpandImm",                     "type" : ("int", 32)})
 known_types.append({"name" : "ARMExpandImm_C",                   "type" : ("list", 2)})
 known_types.append({"name" : "AddWithCarry",                     "type" : ("list", 3)})
@@ -45,6 +47,8 @@ known_types.append({"name" : "FPRSqrtStep",                      "type" : ("int"
 known_types.append({"name" : "FPRecipEstimate",                  "type" : ("int", 32)})
 known_types.append({"name" : "FPRecipStep",                      "type" : ("int", 32)})
 known_types.append({"name" : "FPSCR.C",                          "type" : ("int",  1)})
+known_types.append({"name" : "FPSCR.N",                          "type" : ("int",  1)})
+known_types.append({"name" : "FPSCR.V",                          "type" : ("int",  1)})
 known_types.append({"name" : "FPSCR.Z",                          "type" : ("int",  1)})
 known_types.append({"name" : "FPSingleToDouble",                 "type" : ("int", 64)})
 known_types.append({"name" : "FPSingleToHalf",                   "type" : ("int", 16)})
@@ -84,6 +88,7 @@ known_types.append({"name" : "StandardFPSCRValue",               "type" : ("int"
 known_types.append({"name" : "ThisInstr",                        "type" : ("int", 32)})
 known_types.append({"name" : "ThumbExpandImm",                   "type" : ("int", 32)})
 known_types.append({"name" : "ThumbExpandImm_C",                 "type" : ("list", 2)})
+known_types.append({"name" : "UInt",                             "type" : ("int", 32)})
 known_types.append({"name" : "UnalignedSupport",                 "type" : ("int",  1)})
 known_types.append({"name" : "UnsignedRSqrtEstimate",            "type" : ("int", 32)})
 known_types.append({"name" : "UnsignedRecipEstimate",            "type" : ("int", 32)})
