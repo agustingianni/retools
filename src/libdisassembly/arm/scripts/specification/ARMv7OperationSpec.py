@@ -321,7 +321,9 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     if msbit >= lsbit then
-        R[d]<msbit:lsbit> = Replicate('0', msbit-lsbit+1);
+        tmp_val = R[d];
+        set_bits(tmp_val, msbit, lsbit, Replicate('0', msbit-lsbit+1));
+        R[d] = tmp_val;
     else
         UNPREDICTABLE;
     endif
@@ -334,7 +336,9 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     if msbit >= lsbit then
         tmp = msbit-lsbit;
-        R[d]<msbit:lsbit> = R[n]<tmp:0>;
+        tmp_val = R[d];
+        set_bits(tmp_val, msbit, lsbit, R[n]<tmp:0>);
+        R[d] = tmp_val;
     else
         UNPREDICTABLE;
     endif
@@ -452,7 +456,9 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     if HaveVirtExt() && !IsSecure() && !CurrentModeIsHyp() && HSTR.TJDBX == '1' then
         HSRString = Zeros(25);
-        HSRString<3:0> = m;
+        tmp_val = HSRString;
+        set_bits(tmp_val, 3, 0, m);
+        HSRString = tmp_val;
         WriteHSR('001010', HSRString);
         TakeHypTrapException();
     endif
@@ -590,19 +596,19 @@ EncodingSpecificOperations();
 if CurrentModeIsNotUser() then
     cpsr_val = CPSR;
     if enable then
-        if affectA then cpsr_val<8> = '0'; endif
-        if affectI then cpsr_val<7> = '0'; endif
-        if affectF then cpsr_val<6> = '0'; endif
+        if affectA then set_bit(cpsr_val, 8, 0); endif
+        if affectI then set_bit(cpsr_val, 7, 0); endif
+        if affectF then set_bit(cpsr_val, 6, 0); endif
     endif
 
     if disable then
-        if affectA then cpsr_val<8> = '1'; endif
-        if affectI then cpsr_val<7> = '1'; endif
-        if affectF then cpsr_val<6> = '1'; endif
+        if affectA then set_bit(cpsr_val, 8, 1); endif
+        if affectI then set_bit(cpsr_val, 7, 1); endif
+        if affectF then set_bit(cpsr_val, 6, 1); endif
     endif
 
     if changemode then
-        cpsr_val<4:0> = mode;
+        set_bits(cpsr_val, 4, 0, mode);
     endif
 
     CPSRWriteByInstr(cpsr_val, '1111', FALSE);
@@ -618,19 +624,19 @@ EncodingSpecificOperations();
 if CurrentModeIsNotUser() then
     cpsr_val = CPSR;
     if enable then
-        if affectA then cpsr_val<8> = '0'; endif
-        if affectI then cpsr_val<7> = '0'; endif
-        if affectF then cpsr_val<6> = '0'; endif
+        if affectA then set_bit(cpsr_val, 8, 0); endif
+        if affectI then set_bit(cpsr_val, 7, 0); endif
+        if affectF then set_bit(cpsr_val, 6, 0); endif
     endif
 
     if disable then
-        if affectA then cpsr_val<8> = '1'; endif
-        if affectI then cpsr_val<7> = '1'; endif
-        if affectF then cpsr_val<6> = '1'; endif
+        if affectA then set_bit(cpsr_val, 8, 1); endif
+        if affectI then set_bit(cpsr_val, 7, 1); endif
+        if affectF then set_bit(cpsr_val, 6, 1); endif
     endif
 
     if changemode then
-        cpsr_val<4:0> = mode;
+        set_bits(cpsr_val, 4, 0, mode);
     endif
     
     CPSRWriteByInstr(cpsr_val, '1111', FALSE);
@@ -813,7 +819,9 @@ endif
     "name" : "IT",
     "operation" : """
 EncodingSpecificOperations();
-ITSTATE.IT<7:0> = firstcond:mask;
+tmp_val = ITSTATE.IT;
+set_bits(tmp_val, 7, 0, firstcond:mask);
+ITSTATE.IT = tmp_val;
 """
 }, { 
     "name" : "LDC, LDC2 (immediate)",
@@ -1784,7 +1792,9 @@ endif
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    R[d]<31:16> = imm32;
+    tmp_val = R[d];
+    set_bits(tmp_val, 31, 16, imm32);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2157,8 +2167,10 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     operand2 = Shift(R[m], shift_t, shift_n, APSR.C);
-    R[d]<15:0> = if tbform then operand2<15:0> else R[n]<15:0>;
-    R[d]<31:16> = if tbform then R[n]<31:16> else operand2<31:16>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, if tbform then operand2<15:0> else R[n]<15:0>);
+    set_bits(tmp_val, 31, 16, if tbform then R[n]<31:16> else operand2<31:16>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2340,8 +2352,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum1 = SInt(R[n]<15:0>) + SInt(R[m]<15:0>);
     sum2 = SInt(R[n]<31:16>) + SInt(R[m]<31:16>);
-    R[d]<15:0> = SignedSat(sum1, 16);
-    R[d]<31:16> = SignedSat(sum2, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, SignedSat(sum1, 16));
+    set_bits(tmp_val, 31, 16, SignedSat(sum2, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2353,10 +2367,12 @@ if ConditionPassed() then
     sum2 = SInt(R[n]<15:8>) + SInt(R[m]<15:8>);
     sum3 = SInt(R[n]<23:16>) + SInt(R[m]<23:16>);
     sum4 = SInt(R[n]<31:24>) + SInt(R[m]<31:24>);
-    R[d]<7:0> = SignedSat(sum1, 8);
-    R[d]<15:8> = SignedSat(sum2, 8);
-    R[d]<23:16> = SignedSat(sum3, 8);
-    R[d]<31:24> = SignedSat(sum4, 8);
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, SignedSat(sum1, 8));
+    set_bits(tmp_val, 15, 8, SignedSat(sum2, 8));
+    set_bits(tmp_val, 23, 16, SignedSat(sum3, 8));
+    set_bits(tmp_val, 31, 24, SignedSat(sum4, 8));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2366,8 +2382,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff = SInt(R[n]<15:0>) - SInt(R[m]<31:16>);
     sum = SInt(R[n]<31:16>) + SInt(R[m]<15:0>);
-    R[d]<15:0> = SignedSat(diff, 16);
-    R[d]<31:16> = SignedSat(sum, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, SignedSat(diff, 16));
+    set_bits(tmp_val, 31, 16, SignedSat(sum, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2401,8 +2419,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum = SInt(R[n]<15:0>) + SInt(R[m]<31:16>);
     diff = SInt(R[n]<31:16>) - SInt(R[m]<15:0>);
-    R[d]<15:0> = SignedSat(sum, 16);
-    R[d]<31:16> = SignedSat(diff, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, SignedSat(sum, 16));
+    set_bits(tmp_val, 31, 16, SignedSat(diff, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2423,8 +2443,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff1 = SInt(R[n]<15:0>) - SInt(R[m]<15:0>);
     diff2 = SInt(R[n]<31:16>) - SInt(R[m]<31:16>);
-    R[d]<15:0> = SignedSat(diff1, 16);
-    R[d]<31:16> = SignedSat(diff2, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, SignedSat(diff1, 16));
+    set_bits(tmp_val, 31, 16, SignedSat(diff2, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2436,10 +2458,12 @@ if ConditionPassed() then
     diff2 = SInt(R[n]<15:8>) - SInt(R[m]<15:8>);
     diff3 = SInt(R[n]<23:16>) - SInt(R[m]<23:16>);
     diff4 = SInt(R[n]<31:24>) - SInt(R[m]<31:24>);
-    R[d]<7:0> = SignedSat(diff1, 8);
-    R[d]<15:8> = SignedSat(diff2, 8);
-    R[d]<23:16> = SignedSat(diff3, 8);
-    R[d]<31:24> = SignedSat(diff4, 8);
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, SignedSat(diff1, 8));
+    set_bits(tmp_val, 15, 8, SignedSat(diff2, 8));
+    set_bits(tmp_val, 23, 16, SignedSat(diff3, 8));
+    set_bits(tmp_val, 31, 24, SignedSat(diff4, 8));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2460,10 +2484,10 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     result = 0;
-    result<31:24> = R[m]<7:0>;
-    result<23:16> = R[m]<15:8>;
-    result<15:8> = R[m]<23:16>;
-    result<7:0> = R[m]<31:24>;
+    set_bits(result, 31, 24, R[m]<7:0>);
+    set_bits(result, 23, 16, R[m]<15:8>);
+    set_bits(result, 15, 8, R[m]<23:16>);
+    set_bits(result, 7, 0, R[m]<31:24>);
     R[d] = result;
 endif
 """
@@ -2473,10 +2497,10 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     result = 0;
-    result<31:24> = R[m]<23:16>;
-    result<23:16> = R[m]<31:24>;
-    result<15:8> = R[m]<7:0>;
-    result<7:0> = R[m]<15:8>;
+    set_bits(result, 31, 24, R[m]<23:16>);
+    set_bits(result, 23, 16, R[m]<31:24>);
+    set_bits(result, 15, 8, R[m]<7:0>);
+    set_bits(result, 7, 0, R[m]<15:8>);
     R[d] = result;
 endif
 """
@@ -2486,8 +2510,8 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     result = 0;
-    result<31:8> = SignExtend(R[m]<7:0>, 24);
-    result<7:0> = R[m]<15:8>;
+    set_bits(result, 31, 8, SignExtend(R[m]<7:0>, 24));
+    set_bits(result, 7, 0, R[m]<15:8>);
     R[d] = result;
 endif
 """
@@ -2694,10 +2718,14 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum1 = SInt(R[n]<15:0>) + SInt(R[m]<15:0>);
     sum2 = SInt(R[n]<31:16>) + SInt(R[m]<31:16>);
-    R[d]<15:0> = sum1<15:0>;
-    R[d]<31:16> = sum2<15:0>;
-    APSR.GE<1:0> = if sum1 >= 0 then '11' else '00';
-    APSR.GE<3:2> = if sum2 >= 0 then '11' else '00';
+    tmp_val = R[d];
+    set_bits(tmp_val, 15,0, sum1<15:0>);
+    set_bits(tmp_val, 31,16, sum2<15:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bits(tmp_val, 1, 0, if sum1 >= 0 then '11' else '00');
+    set_bits(tmp_val, 3, 2, if sum2 >= 0 then '11' else '00');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -2709,14 +2737,18 @@ if ConditionPassed() then
     sum2 = SInt(R[n]<15:8>) + SInt(R[m]<15:8>);
     sum3 = SInt(R[n]<23:16>) + SInt(R[m]<23:16>);
     sum4 = SInt(R[n]<31:24>) + SInt(R[m]<31:24>);
-    R[d]<7:0> = sum1<7:0>;
-    R[d]<15:8> = sum2<7:0>;
-    R[d]<23:16> = sum3<7:0>;
-    R[d]<31:24> = sum4<7:0>;
-    APSR.GE<0> = if sum1 >= 0 then '1' else '0';
-    APSR.GE<1> = if sum2 >= 0 then '1' else '0';
-    APSR.GE<2> = if sum3 >= 0 then '1' else '0';
-    APSR.GE<3> = if sum4 >= 0 then '1' else '0';
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, sum1<7:0>);
+    set_bits(tmp_val, 15, 8, sum2<7:0>);
+    set_bits(tmp_val, 23, 16, sum3<7:0>);
+    set_bits(tmp_val, 31, 24, sum4<7:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bit(tmp_val, 0, if sum1 >= 0 then '1' else '0');
+    set_bit(tmp_val, 1, if sum2 >= 0 then '1' else '0');
+    set_bit(tmp_val, 2, if sum3 >= 0 then '1' else '0');
+    set_bit(tmp_val, 3, if sum4 >= 0 then '1' else '0');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -2726,10 +2758,14 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff = SInt(R[n]<15:0>) - SInt(R[m]<31:16>);
     sum = SInt(R[n]<31:16>) + SInt(R[m]<15:0>);
-    R[d]<15:0> = diff<15:0>;
-    R[d]<31:16> = sum<15:0>;
-    APSR.GE<1:0> = if diff >= 0 then '11' else '00';
-    APSR.GE<3:2> = if sum >= 0 then '11' else '00';
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, diff<15:0>);
+    set_bits(tmp_val, 31, 16, sum<15:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bits(tmp_val, 1, 0, if diff >= 0 then '11' else '00');
+    set_bits(tmp_val, 3, 2, if sum >= 0 then '11' else '00');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -2824,10 +2860,12 @@ endif
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    R[d]<7:0> = if APSR.GE<0> == '1' then R[n]<7:0> else R[m]<7:0>;
-    R[d]<15:8> = if APSR.GE<1> == '1' then R[n]<15:8> else R[m]<15:8>;
-    R[d]<23:16> = if APSR.GE<2> == '1' then R[n]<23:16> else R[m]<23:16>;
-    R[d]<31:24> = if APSR.GE<3> == '1' then R[n]<31:24> else R[m]<31:24>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, if APSR.GE<0> == '1' then R[n]<7:0> else R[m]<7:0>);
+    set_bits(tmp_val, 15, 8, if APSR.GE<1> == '1' then R[n]<15:8> else R[m]<15:8>);
+    set_bits(tmp_val, 23, 16, if APSR.GE<2> == '1' then R[n]<23:16> else R[m]<23:16>);
+    set_bits(tmp_val, 31, 24, if APSR.GE<3> == '1' then R[n]<31:24> else R[m]<31:24>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2851,8 +2889,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum1 = SInt(R[n]<15:0>) + SInt(R[m]<15:0>);
     sum2 = SInt(R[n]<31:16>) + SInt(R[m]<31:16>);
-    R[d]<15:0> = sum1<16:1>;
-    R[d]<31:16> = sum2<16:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, sum1<16:1>);
+    set_bits(tmp_val, 31, 16, sum2<16:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2864,10 +2904,12 @@ if ConditionPassed() then
     sum2 = SInt(R[n]<15:8>) + SInt(R[m]<15:8>);
     sum3 = SInt(R[n]<23:16>) + SInt(R[m]<23:16>);
     sum4 = SInt(R[n]<31:24>) + SInt(R[m]<31:24>);
-    R[d]<7:0> = sum1<8:1>;
-    R[d]<15:8> = sum2<8:1>;
-    R[d]<23:16> = sum3<8:1>;
-    R[d]<31:24> = sum4<8:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, sum1<8:1>);
+    set_bits(tmp_val, 15, 8, sum2<8:1>);
+    set_bits(tmp_val, 23, 16, sum3<8:1>);
+    set_bits(tmp_val, 31, 24, sum4<8:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2877,8 +2919,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff = SInt(R[n]<15:0>) - SInt(R[m]<31:16>);
     sum = SInt(R[n]<31:16>) + SInt(R[m]<15:0>);
-    R[d]<15:0> = diff<16:1>;
-    R[d]<31:16> = sum<16:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, diff<16:1>);
+    set_bits(tmp_val, 31, 16, sum<16:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2888,8 +2932,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum = SInt(R[n]<15:0>) + SInt(R[m]<31:16>);
     diff = SInt(R[n]<31:16>) - SInt(R[m]<15:0>);
-    R[d]<15:0> = sum<16:1>;
-    R[d]<31:16> = diff<16:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, sum<16:1>);
+    set_bits(tmp_val, 31, 16, diff<16:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2899,8 +2945,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff1 = SInt(R[n]<15:0>) - SInt(R[m]<15:0>);
     diff2 = SInt(R[n]<31:16>) - SInt(R[m]<31:16>);
-    R[d]<15:0> = diff1<16:1>;
-    R[d]<31:16> = diff2<16:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, diff1<16:1>);
+    set_bits(tmp_val, 31, 16, diff2<16:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -2912,10 +2960,12 @@ if ConditionPassed() then
     diff2 = SInt(R[n]<15:8>) - SInt(R[m]<15:8>);
     diff3 = SInt(R[n]<23:16>) - SInt(R[m]<23:16>);
     diff4 = SInt(R[n]<31:24>) - SInt(R[m]<31:24>);
-    R[d]<7:0> = diff1<8:1>;
-    R[d]<15:8> = diff2<8:1>;
-    R[d]<23:16> = diff3<8:1>;
-    R[d]<31:24> = diff4<8:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, diff1<8:1>);
+    set_bits(tmp_val, 15, 8, diff2<8:1>);
+    set_bits(tmp_val, 23, 16, diff3<8:1>);
+    set_bits(tmp_val, 31, 24, diff4<8:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -3253,8 +3303,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     (result1, sat1) = SignedSatQ(SInt(R[n]<15:0>), saturate_to);
     (result2, sat2) = SignedSatQ(SInt(R[n]<31:16>), saturate_to);
-    R[d]<15:0> = SignExtend(result1, 16);
-    R[d]<31:16> = SignExtend(result2, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, SignExtend(result1, 16));
+    set_bits(tmp_val, 31, 16, SignExtend(result2, 16));
+    R[d] = tmp_val;
     if sat1 || sat2 then
         APSR.Q = '1';
     endif
@@ -3267,10 +3319,14 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum = SInt(R[n]<15:0>) + SInt(R[m]<31:16>);
     diff = SInt(R[n]<31:16>) - SInt(R[m]<15:0>);
-    R[d]<15:0> = sum<15:0>;
-    R[d]<31:16> = diff<15:0>;
-    APSR.GE<1:0> = if sum >= 0 then '11' else '00';
-    APSR.GE<3:2> = if diff >= 0 then '11' else '00';
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, sum<15:0>);
+    set_bits(tmp_val, 31, 16, diff<15:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bits(tmp_val, 1, 0, if sum >= 0 then '11' else '00');
+    set_bits(tmp_val, 3, 2, if diff >= 0 then '11' else '00');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -3280,10 +3336,14 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff1 = SInt(R[n]<15:0>) - SInt(R[m]<15:0>);
     diff2 = SInt(R[n]<31:16>) - SInt(R[m]<31:16>);
-    R[d]<15:0> = diff1<15:0>;
-    R[d]<31:16> = diff2<15:0>;
-    APSR.GE<1:0> = if diff1 >= 0 then '11' else '00';
-    APSR.GE<3:2> = if diff2 >= 0 then '11' else '00';
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, diff1<15:0>);
+    set_bits(tmp_val, 31, 16, diff2<15:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bits(tmp_val, 1, 0, if diff1 >= 0 then '11' else '00');
+    set_bits(tmp_val, 3, 2, if diff2 >= 0 then '11' else '00');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -3295,14 +3355,18 @@ if ConditionPassed() then
     diff2 = SInt(R[n]<15:8>) - SInt(R[m]<15:8>);
     diff3 = SInt(R[n]<23:16>) - SInt(R[m]<23:16>);
     diff4 = SInt(R[n]<31:24>) - SInt(R[m]<31:24>);
-    R[d]<7:0> = diff1<7:0>;
-    R[d]<15:8> = diff2<7:0>;
-    R[d]<23:16> = diff3<7:0>;
-    R[d]<31:24> = diff4<7:0>;
-    APSR.GE<0> = if diff1 >= 0 then '1' else '0';
-    APSR.GE<1> = if diff2 >= 0 then '1' else '0';
-    APSR.GE<2> = if diff3 >= 0 then '1' else '0';
-    APSR.GE<3> = if diff4 >= 0 then '1' else '0';
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, diff1<7:0>);
+    set_bits(tmp_val, 15, 8, diff2<7:0>);
+    set_bits(tmp_val, 23, 16, diff3<7:0>);
+    set_bits(tmp_val, 31, 24, diff4<7:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bit(tmp_val, 0, if diff1 >= 0 then '1' else '0');
+    set_bit(tmp_val, 1, if diff2 >= 0 then '1' else '0');
+    set_bit(tmp_val, 2, if diff3 >= 0 then '1' else '0');
+    set_bit(tmp_val, 3, if diff4 >= 0 then '1' else '0');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -3568,11 +3632,11 @@ if ConditionPassed() then
     if HaveLPAE() && address<2:0> == '000' then
         data = 0;
         if BigEndian() then
-            data<63:32> = R[t];
-            data<31:0> = R[t2];
+            set_bits(data,63, 32, R[t]);
+            set_bits(data,31, 0, R[t2]);
         else
-            data<31:0> = R[t];
-            data<63:32> = R[t2];
+            set_bits(data,31, 0, R[t]);
+            set_bits(data,63, 32, R[t2]);
         endif
 
         MemA[Address,8] = data;
@@ -3597,11 +3661,11 @@ if ConditionPassed() then
     if HaveLPAE() && address<2:0> == '000' then
         data = 0;
         if BigEndian() then
-            data<63:32> = R[t];
-            data<31:0> = R[t2];
+            set_bits(data, 63,32, R[t]);
+            set_bits(data, 31,0, R[t2]);
         else
-            data<31:0> = R[t];
-            data<63:32> = R[t2];
+            set_bits(data, 31,0, R[t]);
+            set_bits(data, 63,32, R[t2]);
         endif
         
         MemA[Address,8] = data;
@@ -3999,8 +4063,10 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     rotated = ROR(R[m], rotation);
-    R[d]<15:0> = R[n]<15:0> + SignExtend(rotated<7:0>, 16);
-    R[d]<31:16> = R[n]<31:16> + SignExtend(rotated<23:16>, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, R[n]<15:0> + SignExtend(rotated<7:0>, 16));
+    set_bits(tmp_val, 31, 16, R[n]<31:16> + SignExtend(rotated<23:16>, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4027,8 +4093,10 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     rotated = ROR(R[m], rotation);
-    R[d]<15:0> = SignExtend(rotated<7:0>, 16);
-    R[d]<31:16> = SignExtend(rotated<23:16>, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, SignExtend(rotated<7:0>, 16));
+    set_bits(tmp_val, 31, 16, SignExtend(rotated<23:16>, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4136,10 +4204,14 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum1 = UInt(R[n]<15:0>) + UInt(R[m]<15:0>);
     sum2 = UInt(R[n]<31:16>) + UInt(R[m]<31:16>);
-    R[d]<15:0> = sum1<15:0>;
-    R[d]<31:16> = sum2<15:0>;
-    APSR.GE<1:0> = if sum1 >= 0x10000 then '11' else '00';
-    APSR.GE<3:2> = if sum2 >= 0x10000 then '11' else '00';
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, sum1<15:0>);
+    set_bits(tmp_val, 31, 16, sum2<15:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bits(tmp_val, 1, 0, if sum1 >= 0x10000 then '11' else '00');
+    set_bits(tmp_val, 3, 2, if sum2 >= 0x10000 then '11' else '00');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -4151,14 +4223,18 @@ if ConditionPassed() then
     sum2 = UInt(R[n]<15:8>) + UInt(R[m]<15:8>);
     sum3 = UInt(R[n]<23:16>) + UInt(R[m]<23:16>);
     sum4 = UInt(R[n]<31:24>) + UInt(R[m]<31:24>);
-    R[d]<7:0> = sum1<7:0>;
-    R[d]<15:8> = sum2<7:0>;
-    R[d]<23:16> = sum3<7:0>;
-    R[d]<31:24> = sum4<7:0>;
-    APSR.GE<0> = if sum1 >= 0x100 then '1' else '0';
-    APSR.GE<1> = if sum2 >= 0x100 then '1' else '0';
-    APSR.GE<2> = if sum3 >= 0x100 then '1' else '0';
-    APSR.GE<3> = if sum4 >= 0x100 then '1' else '0';
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, sum1<7:0>);
+    set_bits(tmp_val, 15, 8, sum2<7:0>);
+    set_bits(tmp_val, 23, 16, sum3<7:0>);
+    set_bits(tmp_val, 31, 24, sum4<7:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bit(tmp_val, 0, if sum1 >= 0x100 then '1' else '0');
+    set_bit(tmp_val, 1, if sum2 >= 0x100 then '1' else '0');
+    set_bit(tmp_val, 2, if sum3 >= 0x100 then '1' else '0');
+    set_bit(tmp_val, 3, if sum4 >= 0x100 then '1' else '0');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -4168,10 +4244,14 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff = UInt(R[n]<15:0>) - UInt(R[m]<31:16>);
     sum = UInt(R[n]<31:16>) + UInt(R[m]<15:0>);
-    R[d]<15:0> = diff<15:0>;
-    R[d]<31:16> = sum<15:0>;
-    APSR.GE<1:0> = if diff >= 0 then '11' else '00';
-    APSR.GE<3:2> = if sum >= 0x10000 then '11' else '00';
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, diff<15:0>);
+    set_bits(tmp_val, 31, 16, sum<15:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bits(tmp_val, 1, 0, if diff >= 0 then '11' else '00');
+    set_bits(tmp_val, 3, 2, if sum >= 0x10000 then '11' else '00');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -4220,8 +4300,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum1 = UInt(R[n]<15:0>) + UInt(R[m]<15:0>);
     sum2 = UInt(R[n]<31:16>) + UInt(R[m]<31:16>);
-    R[d]<15:0> = sum1<16:1>;
-    R[d]<31:16> = sum2<16:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, sum1<16:1>);
+    set_bits(tmp_val, 31, 16, sum2<16:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4233,10 +4315,12 @@ if ConditionPassed() then
     sum2 = UInt(R[n]<15:8>) + UInt(R[m]<15:8>);
     sum3 = UInt(R[n]<23:16>) + UInt(R[m]<23:16>);
     sum4 = UInt(R[n]<31:24>) + UInt(R[m]<31:24>);
-    R[d]<7:0> = sum1<8:1>;
-    R[d]<15:8> = sum2<8:1>;
-    R[d]<23:16> = sum3<8:1>;
-    R[d]<31:24> = sum4<8:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, sum1<8:1>);
+    set_bits(tmp_val, 15, 8, sum2<8:1>);
+    set_bits(tmp_val, 23, 16, sum3<8:1>);
+    set_bits(tmp_val, 31, 24, sum4<8:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4246,8 +4330,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff = UInt(R[n]<15:0>) - UInt(R[m]<31:16>);
     sum = UInt(R[n]<31:16>) + UInt(R[m]<15:0>);
-    R[d]<15:0> = diff<16:1>;
-    R[d]<31:16> = sum<16:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, diff<16:1>);
+    set_bits(tmp_val, 31, 16, sum<16:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4257,8 +4343,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum = UInt(R[n]<15:0>) + UInt(R[m]<31:16>);
     diff = UInt(R[n]<31:16>) - UInt(R[m]<15:0>);
-    R[d]<15:0> = sum<16:1>;
-    R[d]<31:16> = diff<16:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, sum<16:1>);
+    set_bits(tmp_val, 31, 16, diff<16:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4268,8 +4356,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff1 = UInt(R[n]<15:0>) - UInt(R[m]<15:0>);
     diff2 = UInt(R[n]<31:16>) - UInt(R[m]<31:16>);
-    R[d]<15:0> = diff1<16:1>;
-    R[d]<31:16> = diff2<16:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, diff1<16:1>);
+    set_bits(tmp_val, 31, 16, diff2<16:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4281,10 +4371,12 @@ if ConditionPassed() then
     diff2 = UInt(R[n]<15:8>) - UInt(R[m]<15:8>);
     diff3 = UInt(R[n]<23:16>) - UInt(R[m]<23:16>);
     diff4 = UInt(R[n]<31:24>) - UInt(R[m]<31:24>);
-    R[d]<7:0> = diff1<8:1>;
-    R[d]<15:8> = diff2<8:1>;
-    R[d]<23:16> = diff3<8:1>;
-    R[d]<31:24> = diff4<8:1>;
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, diff1<8:1>);
+    set_bits(tmp_val, 15, 8, diff2<8:1>);
+    set_bits(tmp_val, 23, 16, diff3<8:1>);
+    set_bits(tmp_val, 31, 24, diff4<8:1>);
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4340,8 +4432,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum1 = UInt(R[n]<15:0>) + UInt(R[m]<15:0>);
     sum2 = UInt(R[n]<31:16>) + UInt(R[m]<31:16>);
-    R[d]<15:0> = UnsignedSat(sum1, 16);
-    R[d]<31:16> = UnsignedSat(sum2, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, UnsignedSat(sum1, 16));
+    set_bits(tmp_val, 31, 16, UnsignedSat(sum2, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4353,10 +4447,12 @@ if ConditionPassed() then
     sum2 = UInt(R[n]<15:8>) + UInt(R[m]<15:8>);
     sum3 = UInt(R[n]<23:16>) + UInt(R[m]<23:16>);
     sum4 = UInt(R[n]<31:24>) + UInt(R[m]<31:24>);
-    R[d]<7:0> = UnsignedSat(sum1, 8);
-    R[d]<15:8> = UnsignedSat(sum2, 8);
-    R[d]<23:16> = UnsignedSat(sum3, 8);
-    R[d]<31:24> = UnsignedSat(sum4, 8);
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, UnsignedSat(sum1, 8));
+    set_bits(tmp_val, 15, 8, UnsignedSat(sum2, 8));
+    set_bits(tmp_val, 23, 16, UnsignedSat(sum3, 8));
+    set_bits(tmp_val, 31, 24, UnsignedSat(sum4, 8));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4366,8 +4462,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff = UInt(R[n]<15:0>) - UInt(R[m]<31:16>);
     sum = UInt(R[n]<31:16>) + UInt(R[m]<15:0>);
-    R[d]<15:0> = UnsignedSat(diff, 16);
-    R[d]<31:16> = UnsignedSat(sum, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, UnsignedSat(diff, 16));
+    set_bits(tmp_val, 31, 16, UnsignedSat(sum, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4377,8 +4475,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum = UInt(R[n]<15:0>) + UInt(R[m]<31:16>);
     diff = UInt(R[n]<31:16>) - UInt(R[m]<15:0>);
-    R[d]<15:0> = UnsignedSat(sum, 16);
-    R[d]<31:16> = UnsignedSat(diff, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, UnsignedSat(sum, 16));
+    set_bits(tmp_val, 31, 16, UnsignedSat(diff, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4388,8 +4488,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff1 = UInt(R[n]<15:0>) - UInt(R[m]<15:0>);
     diff2 = UInt(R[n]<31:16>) - UInt(R[m]<31:16>);
-    R[d]<15:0> = UnsignedSat(diff1, 16);
-    R[d]<31:16> = UnsignedSat(diff2, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, UnsignedSat(diff1, 16));
+    set_bits(tmp_val, 31, 16, UnsignedSat(diff2, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4401,10 +4503,12 @@ if ConditionPassed() then
     diff2 = UInt(R[n]<15:8>) - UInt(R[m]<15:8>);
     diff3 = UInt(R[n]<23:16>) - UInt(R[m]<23:16>);
     diff4 = UInt(R[n]<31:24>) - UInt(R[m]<31:24>);
-    R[d]<7:0> = UnsignedSat(diff1, 8);
-    R[d]<15:8> = UnsignedSat(diff2, 8);
-    R[d]<23:16> = UnsignedSat(diff3, 8);
-    R[d]<31:24> = UnsignedSat(diff4, 8);
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, UnsignedSat(diff1, 8));
+    set_bits(tmp_val, 15, 8, UnsignedSat(diff2, 8));
+    set_bits(tmp_val, 23, 16, UnsignedSat(diff3, 8));
+    set_bits(tmp_val, 31, 24, UnsignedSat(diff4, 8));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4453,8 +4557,10 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     (result1, sat1) = UnsignedSatQ(SInt(R[n]<15:0>), saturate_to);
     (result2, sat2) = UnsignedSatQ(SInt(R[n]<31:16>), saturate_to);
-    R[d]<15:0> = ZeroExtend(result1, 16);
-    R[d]<31:16> = ZeroExtend(result2, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, ZeroExtend(result1, 16));
+    set_bits(tmp_val, 31, 16, ZeroExtend(result2, 16));
+    R[d] = tmp_val;
     if sat1 || sat2 then
         APSR.Q = '1';
     endif
@@ -4467,10 +4573,14 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     sum = UInt(R[n]<15:0>) + UInt(R[m]<31:16>);
     diff = UInt(R[n]<31:16>) - UInt(R[m]<15:0>);
-    R[d]<15:0> = sum<15:0>;
-    R[d]<31:16> = diff<15:0>;
-    APSR.GE<1:0> = if sum >= 0x10000 then '11' else '00';
-    APSR.GE<3:2> = if diff >= 0 then '11' else '00';
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, sum<15:0>);
+    set_bits(tmp_val, 31, 16, diff<15:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bits(tmp_val, 1, 0, if sum >= 0x10000 then '11' else '00');
+    set_bits(tmp_val, 3, 2, if diff >= 0 then '11' else '00');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -4480,10 +4590,14 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     diff1 = UInt(R[n]<15:0>) - UInt(R[m]<15:0>);
     diff2 = UInt(R[n]<31:16>) - UInt(R[m]<31:16>);
-    R[d]<15:0> = diff1<15:0>;
-    R[d]<31:16> = diff2<15:0>;
-    APSR.GE<1:0> = if diff1 >= 0 then '11' else '00';
-    APSR.GE<3:2> = if diff2 >= 0 then '11' else '00';
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, diff1<15:0>);
+    set_bits(tmp_val, 31, 16, diff2<15:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;
+    set_bits(tmp_val, 1, 0, if diff1 >= 0 then '11' else '00');
+    set_bits(tmp_val, 3, 2, if diff2 >= 0 then '11' else '00');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -4495,14 +4609,18 @@ if ConditionPassed() then
     diff2 = UInt(R[n]<15:8>) - UInt(R[m]<15:8>);
     diff3 = UInt(R[n]<23:16>) - UInt(R[m]<23:16>);
     diff4 = UInt(R[n]<31:24>) - UInt(R[m]<31:24>);
-    R[d]<7:0> = diff1<7:0>;
-    R[d]<15:8> = diff2<7:0>;
-    R[d]<23:16> = diff3<7:0>;
-    R[d]<31:24> = diff4<7:0>;
-    APSR.GE<0> = if diff1 >= 0 then '1' else '0';
-    APSR.GE<1> = if diff2 >= 0 then '1' else '0';
-    APSR.GE<2> = if diff3 >= 0 then '1' else '0';
-    APSR.GE<3> = if diff4 >= 0 then '1' else '0';
+    tmp_val = R[d];
+    set_bits(tmp_val, 7, 0, diff1<7:0>);
+    set_bits(tmp_val, 15, 8, diff2<7:0>);
+    set_bits(tmp_val, 23, 16, diff3<7:0>);
+    set_bits(tmp_val, 31, 24, diff4<7:0>);
+    R[d] = tmp_val;
+    tmp_val = APSR.GE;    
+    set_bit(tmp_val, 0, if diff1 >= 0 then '1' else '0');
+    set_bit(tmp_val, 1, if diff2 >= 0 then '1' else '0');
+    set_bit(tmp_val, 2, if diff3 >= 0 then '1' else '0');
+    set_bit(tmp_val, 3, if diff4 >= 0 then '1' else '0');
+    APSR.GE = tmp_val;
 endif
 """
 }, { 
@@ -4520,8 +4638,10 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     rotated = ROR(R[m], rotation);
-    R[d]<15:0> = R[n]<15:0> + ZeroExtend(rotated<7:0>, 16);
-    R[d]<31:16> = R[n]<31:16> + ZeroExtend(rotated<23:16>, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, R[n]<15:0> + ZeroExtend(rotated<7:0>, 16));
+    set_bits(tmp_val, 31, 16, R[n]<31:16> + ZeroExtend(rotated<23:16>, 16));
+    R[d] = tmp_val;
 endif
 """
 }, { 
@@ -4548,8 +4668,10 @@ endif
 if ConditionPassed() then
     EncodingSpecificOperations();
     rotated = ROR(R[m], rotation);
-    R[d]<15:0> = ZeroExtend(rotated<7:0>, 16);
-    R[d]<31:16> = ZeroExtend(rotated<23:16>, 16);
+    tmp_val = R[d];
+    set_bits(tmp_val, 15, 0, ZeroExtend(rotated<7:0>, 16));
+    set_bits(tmp_val, 31, 16, ZeroExtend(rotated<23:16>, 16));
+    R[d] = tmp_val;    
 endif
 """
 }, { 
@@ -5152,7 +5274,9 @@ if ConditionPassed() then
     if half_to_single then
         S[d] = FPHalfToSingle(S[m]<lowbit+15:lowbit>, TRUE);
     else
-        S[d]<lowbit+15:lowbit> = FPSingleToHalf(S[m], TRUE);
+        tmp_val = S[d];
+        set_bits(tmp_val, lowbit+15, lowbit, FPSingleToHalf(S[m], TRUE));
+        S[d] = tmp_val;
     endif
 endif
 """
@@ -5294,10 +5418,10 @@ if ConditionPassed() then
     for r = 0 to regs-1
         for e = 0 to elements-1
             if ebytes != 8 then
-                data<esize-1:0> = MemU[address,ebytes];
+                set_bits(data, esize-1, 0, MemU[address,ebytes]);
             else
-                data<31:0> = if BigEndian() then MemU[address+4,4] else MemU[address,4];
-                data<63:32> = if BigEndian() then MemU[address,4] else MemU[address+4,4];
+                set_bits(data, 31, 0, if BigEndian() then MemU[address+4,4] else MemU[address,4]);
+                set_bits(data, 63, 32, if BigEndian() then MemU[address,4] else MemU[address+4,4]);
             endif
 
             Elem[D[d+r],e,esize] = data<esize-1:0>;
@@ -5778,8 +5902,10 @@ if ConditionPassed() then
         R[t] = D[m]<31:0>;
         R[t2] = D[m]<63:32>;
     else
-        D[m]<31:0> = R[t];
-        D[m]<63:32> = R[t2];
+        tmp_val = D[m];
+        set_bits(tmp_val, 31, 0, R[t]);
+        set_bits(tmp_val, 63, 32, R[t2]);
+        D[m] = tmp_val;
     endif
 endif
 """
@@ -7262,8 +7388,9 @@ if ConditionPassed() then
     if EventRegistered() then
         ClearEventRegister();
     else
-        if HaveVirtExt() && !IsSecure() && !CurrentModeIsHyp() && HCR.TWE == '1' then HSRString = Zeros(25);
-            HSRString<0> = '1';
+        if HaveVirtExt() && !IsSecure() && !CurrentModeIsHyp() && HCR.TWE == '1' then
+            HSRString = Zeros(25);
+            set_bit(HSRString, 0, '1');
             WriteHSR('000001', HSRString);
             TakeHypTrapException();
         else
@@ -7280,7 +7407,7 @@ if ConditionPassed() then
     
     if HaveVirtExt() && !IsSecure() && !CurrentModeIsHyp() && HCR.TWI == '1' then
         HSRString = Zeros(25);
-        HSRString<0> = '1';
+        set_bit(HSRString, 0, '1');
         WriteHSR('000001', HSRString);
         TakeHypTrapException();
     else
