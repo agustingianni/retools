@@ -158,8 +158,7 @@ inline shift_t DecodeRegShift(uint32_t type) {
 }
 
 // Implementation of: (bits(N), bit) Shift_C(bits(N) value, SRType type, integer amount, bit carry_in)
-inline uint32_t Shift_C(uint32_t value, shift_t type, uint32_t amount, uint32_t carry_in,
-		uint32_t &carry_out) {
+inline uint32_t Shift_C(uint32_t value, shift_t type, uint32_t amount, uint32_t carry_in, uint32_t &carry_out) {
 	if (amount == 0) {
 		carry_out = carry_in;
 		return value;
@@ -189,10 +188,19 @@ inline uint32_t Shift_C(uint32_t value, shift_t type, uint32_t amount, uint32_t 
 	return result;
 }
 
+inline uint32_t Shift_C(uint32_t value, uint32_t type, uint32_t amount, uint32_t carry_in, uint32_t &carry_out) {
+	return Shift_C(value, static_cast<shift_t>(type), amount, carry_in, carry_out);
+}
+
 // Implementation of: bits(N) Shift(bits(N) value, SRType type, integer amount, bit carry_in)
 inline uint32_t Shift(uint32_t value, shift_t type, uint32_t amount, uint32_t carry_in) {
 	uint32_t unused;
 	return Shift_C(value, type, amount, carry_in, unused);
+}
+
+inline uint32_t Shift(uint32_t value, uint32_t type, uint32_t amount, uint32_t carry_in) {
+	uint32_t unused;
+	return Shift_C(value, static_cast<shift_t>(type), amount, carry_in, unused);
 }
 
 // Implementation of: (bits(32), bit) ARMExpandImm_C(bits(12) imm12, bit carry_in)
