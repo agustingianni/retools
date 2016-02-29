@@ -206,6 +206,110 @@ typedef enum ARMEncoding {
 	eEncodingT5
 } ARMEncoding;
 
+typedef enum MBReqDomain {
+    MBReqDomain_FullSystem,
+    MBReqDomain_OuterShareable,
+    MBReqDomain_InnerShareable,
+    MBReqDomain_Nonshareable
+} MBReqDomain;
+
+typedef enum MBReqTypes {
+    MBReqTypes_All,
+    MBReqTypes_Writes
+} MBReqTypes;
+
+typedef enum FPType {
+    FPType_Nonzero,
+    FPType_Zero,
+    FPType_Infinity,
+    FPType_QNaN,
+    FPType_SNaN
+} FPType;
+
+typedef enum FPExc {
+    FPExc_InvalidOp,
+    FPExc_DivideByZero,
+    FPExc_Overflow,
+    FPExc_Underflow,
+    FPExc_Inexact,
+    FPExc_InputDenorm
+} FPExc;
+
+typedef enum RName {
+    RName_0usr,
+    RName_1usr,
+    RName_2usr,
+    RName_3usr,
+    RName_4usr,
+    RName_5usr,
+    RName_6usr,
+    RName_7usr,
+    RName_8usr,
+    RName_8fiq,
+    RName_9usr,
+    RName_9fiq,
+    RName_10usr,
+    RName_10fiq,
+    RName_11usr,
+    RName_11fiq,
+    RName_12usr,
+    RName_12fiq,
+    RName_SPusr,
+    RName_SPfiq,
+    RName_SPirq,
+    RName_SPsvc,
+    RName_SPabt,
+    RName_SPund,
+    RName_SPmon,
+    RName_SPhyp,
+    RName_LRusr,
+    RName_LRfiq,
+    RName_LRirq,
+    RName_LRsvc,
+    RName_LRabt,
+    RName_LRund,
+    RName_LRmon,
+    RName_PC
+} RName;
+
+typedef enum MemType {
+    MemType_Normal,
+    MemType_Device,
+    MemType_StronglyOrdered
+} MemType;
+
+typedef enum DAbort {
+    DAbort_AccessFlag,
+    DAbort_Alignment,
+    DAbort_Background,
+    DAbort_Domain,
+    DAbort_Permission,
+    DAbort_Translation,
+    DAbort_SyncExternal,
+    DAbort_SyncExternalonWalk,
+    DAbort_SyncParity,
+    DAbort_SyncParityonWalk,
+    DAbort_AsyncParity,
+    DAbort_AsyncExternal,
+    DAbort_DebugEvent,
+    DAbort_TLBConflict,
+    DAbort_Lockdown,
+    DAbort_Coproc,
+    DAbort_ICacheMaint
+} DAbort;
+
+typedef enum TLBRecType {
+    TLBRecType_SmallPage,
+    TLBRecType_LargePage,
+    TLBRecType_Section,
+    TLBRecType_Supersection,
+    TLBRecType_MMUDisabled
+} TLBRecType;
+
+typedef enum UndefinedValue {
+	UNKNOWN_VALUE
+} UndefinedValue;
+
 class ITSession {
 	public:
 		ITSession() :
