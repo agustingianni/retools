@@ -409,9 +409,9 @@ BKPTInstrDebugEvent();
 if ConditionPassed() then
     EncodingSpecificOperations();
     if CurrentInstrSet() == InstrSet_ARM then
-        LR = R[15] - 4;
+        R[14] = R[15] - 4;
     else
-        LR = PC<31:1> : '1';
+        R[14] = PC<31:1> : '1';
     endif
 
     if targetInstrSet == InstrSet_ARM then
@@ -432,10 +432,10 @@ if ConditionPassed() then
     target = R[m];
     if CurrentInstrSet() == InstrSet_ARM then
         next_instr_addr = R[15] - 4;
-        LR = next_instr_addr;
+        R[14] = next_instr_addr;
     else
         next_instr_addr = R[15] - 2;
-        LR = next_instr_addr<31:1> : '1';
+        R[14] = next_instr_addr<31:1> : '1';
     endif
 
     BXWritePC(target);
@@ -3238,7 +3238,7 @@ if ConditionPassed() then
         endif
 
         tmp = address + 4;
-        MemA[address,4] = LR;
+        MemA[address,4] = R[14];
         MemA[tmp,4] = SPSR;
         if wback then
             Rmode[13,mode] = if increment then base+8 else base-8;
@@ -3275,7 +3275,7 @@ if ConditionPassed() then
         endif
 
         tmp = address+4;
-        MemA[address,4] = LR;
+        MemA[address,4] = R[14];
         MemA[tmp,4] = SPSR;
         if wback then
             Rmode[13,mode] = if increment then base+8 else base-8;
