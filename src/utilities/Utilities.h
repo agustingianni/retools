@@ -71,6 +71,26 @@ inline uint32_t get_bit(uint32_t val, uint32_t lsb) {
 	return (val >> lsb) & 1;
 }
 
+inline void set_bits(uint32_t &out, uint32_t msb, uint32_t lsb, uint64_t val) {
+	uint32_t lo_val = ((1 << lsb) - 1) & out;
+	uint32_t hi_val = (out >> (msb + 1)) << (msb + 1);
+	out = hi_val | (val << lsb) | lo_val;
+}
+
+inline void set_bits(int &out, uint32_t msb, uint32_t lsb, uint64_t val) {
+	uint32_t lo_val = ((1 << lsb) - 1) & out;
+	uint32_t hi_val = (out >> (msb + 1)) << (msb + 1);
+	out = (int) (hi_val | (val << lsb) | lo_val);
+}
+
+inline void set_bit(uint32_t &number, uint32_t n, uint32_t x) {
+	number ^= (-x ^ number) & (1 << n);
+}
+
+inline void set_bit(int &number, uint32_t n, uint32_t x) {
+	number ^= (-x ^ number) & (1 << n);
+}
+
 inline uint32_t UInt(uint32_t val) {
 	return val;
 }
@@ -113,6 +133,10 @@ inline unsigned Zeros(unsigned) {
 
 inline unsigned ZeroExtend(unsigned a, unsigned) {
 	return a;
+}
+
+inline bool IsZero(unsigned a) {
+	return !a;
 }
 
 inline uint32_t BitCount(uint64_t x) {
