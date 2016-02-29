@@ -411,7 +411,7 @@ if ConditionPassed() then
     if CurrentInstrSet() == InstrSet_ARM then
         R[14] = R[15] - 4;
     else
-        R[14] = PC<31:1> : '1';
+        R[14] = R[15]<31:1> : '1';
     endif
 
     if targetInstrSet == InstrSet_ARM then
