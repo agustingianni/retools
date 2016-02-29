@@ -192,6 +192,16 @@ inline uint32_t Shift_C(uint32_t value, uint32_t type, uint32_t amount, uint32_t
 	return Shift_C(value, static_cast<shift_t>(type), amount, carry_in, carry_out);
 }
 
+inline std::tuple<uint32_t, uint32_t> Shift_C(uint32_t value, shift_t type, uint32_t amount, uint32_t carry_in) {
+	uint32_t result, carry_out;
+	result = Shift_C(value, type, amount, carry_in, carry_out);
+	return std::tuple<uint32_t, uint32_t>(result, carry_out);
+}
+
+inline std::tuple<uint32_t, uint32_t> Shift_C(uint32_t value, uint32_t type, uint32_t amount, uint32_t carry_in) {
+	return Shift_C(value, static_cast<shift_t>(type), amount, carry_in);
+}
+
 // Implementation of: bits(N) Shift(bits(N) value, SRType type, integer amount, bit carry_in)
 inline uint32_t Shift(uint32_t value, shift_t type, uint32_t amount, uint32_t carry_in) {
 	uint32_t unused;
