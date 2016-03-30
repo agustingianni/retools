@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(disassembler)
+project(disassembler_py)
 
 find_package(PythonInterp REQUIRED)
 find_package(PythonLibs REQUIRED)
@@ -17,20 +17,20 @@ include_directories(
 )
 
 add_library(
-	disassembler
+	disassembler_py
 	SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/libdisassembly.cpp
 )
 
 # Enable c++11 on the target.
 set_target_properties(
-	disassembler
+	disassembler_py
 	PROPERTIES 
 	COMPILE_FLAGS "-std=c++11"
 )
 
 target_link_libraries(
-	disassembler
+	disassembler_py
 	disassembly
 	${Boost_LIBRARIES}
 	${PYTHON_LIBRARIES}
