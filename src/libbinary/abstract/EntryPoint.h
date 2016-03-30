@@ -16,16 +16,16 @@ namespace Abstract {
 class EntryPoint {
 
 private:
-    uint64_t m_address;
+    uint64_t m_offset;
 
 public:
-    EntryPoint(uint64_t address) :
-        m_address { address } {
+    EntryPoint(uint64_t offset) :
+        m_offset { offset } {
 
     }
 
     uint64_t getValue() const {
-        return m_address;
+        return m_offset;
     }
 
     std::string toString() const {

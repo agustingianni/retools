@@ -8,8 +8,6 @@
 #ifndef SRC_LIBBINARY_MACHO_SWAP_H_
 #define SRC_LIBBINARY_MACHO_SWAP_H_
 
-#include "AbstractBinary.h"
-
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>

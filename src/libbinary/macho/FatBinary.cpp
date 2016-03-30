@@ -12,7 +12,7 @@
 
 bool FatBinary::init() {
 	// Readh the fat header.
-	auto header = m_data->offset<fat_header>(0);
+	auto header = m_data.offset<fat_header>(0);
 	if (!header) {
 		LOG_ERR("Could not get a reference to the fat header");
 		return false;
@@ -46,12 +46,13 @@ bool FatBinary::init() {
 	LOG_DEBUG("magic 0x%.8x nfat_arch = 0x%.8x", m_header.magic, m_header.nfat_arch);
 
 	// Read the fat archs array.
-	auto archs = m_data->pointer<fat_arch>(header + 1, sizeof(fat_arch) * m_header.nfat_arch);
+	auto archs = m_data.pointer<fat_arch>(header + 1, sizeof(fat_arch) * m_header.nfat_arch);
 	if (!archs) {
 		LOG_ERR("Could not get a reference to the fat_arch array.");
 		return false;
 	}
 
+	// Save all the 'fat_arch' entries.
 	m_archs.assign(archs, archs + m_header.nfat_arch);
 
 	// Change endianness of the fat_arch's if necessary.
@@ -62,7 +63,7 @@ bool FatBinary::init() {
 		LOG_DEBUG("cputype = %.8x cpusubtype = %.8x offset = %.8x size = %.8x align = %.8x",
 				m_archs[i].cputype, m_archs[i].cpusubtype, m_archs[i].offset, m_archs[i].size, m_archs[i].align);
 
-		auto binary_mem = m_data->offset<unsigned char>(m_archs[i].offset, m_archs[i].size);
+		auto binary_mem = m_data.offset<unsigned char>(m_archs[i].offset, m_archs[i].size);
 		if (!binary_mem) {
 			LOG_ERR("Could not get a reference to the %uth mach-o binary", i);
 			continue;

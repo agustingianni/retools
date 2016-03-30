@@ -14,7 +14,6 @@ add_library(
     ${CMAKE_CURRENT_SOURCE_DIR}/abstract/Import.h
     ${CMAKE_CURRENT_SOURCE_DIR}/abstract/Library.h
     ${CMAKE_CURRENT_SOURCE_DIR}/abstract/Relocation.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/abstract/Segment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/abstract/Segment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/abstract/String.h
     ${CMAKE_CURRENT_SOURCE_DIR}/abstract/Symbol.h
@@ -30,7 +29,7 @@ add_library(
 set_target_properties(
     binary
     PROPERTIES 
-    COMPILE_FLAGS "-std=c++11"
+    COMPILE_FLAGS "-std=c++11 -Wno-format"
 )
 
 # Set target specific include directories.
