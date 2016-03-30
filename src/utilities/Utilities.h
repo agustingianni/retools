@@ -8,11 +8,11 @@
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
 
-#include <cassert>
-#include <sstream>
 #include <string>
-#include <iostream>
-#include <stdio.h>
+#include <sstream>
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
 
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
@@ -31,20 +31,20 @@ inline bool IsHostBigEndian(void) {
 }
 
 inline std::string exec_get_output(std::string cmd) {
-	FILE* pipe = popen(cmd.c_str(), "r");
-	if (!pipe)
-		return "ERROR";
+    auto pipe_file = popen(cmd.c_str(), "r");
+    if (!pipe_file)
+        return "ERROR";
 
-	char buffer[128];
-	std::string result = "";
+    char buffer[128];
+    std::string result = "";
 
-	while (!feof(pipe)) {
-		if (fgets(buffer, 128, pipe) != NULL)
-			result += buffer;
-	}
+    while (!feof(pipe_file)) {
+        if (fgets(buffer, 128, pipe_file) != NULL)
+            result += buffer;
+    }
 
-	pclose(pipe);
-	return result;
+    pclose(pipe_file);
+    return result;
 }
 
 inline std::string integer_to_string(unsigned long long val, bool hexa = true) {
