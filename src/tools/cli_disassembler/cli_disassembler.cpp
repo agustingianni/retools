@@ -21,15 +21,15 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    string arg_mode = argv[1];
-    string arg_opcode = argv[2];
+    string arg_mode { argv[1] };
+    string arg_opcode { argv[2] };
 
     ARMMode mode = (arg_mode == "thumb") ? ARMMode_Thumb : ARMMode_ARM;
     uint32_t opcode = std::stoul(arg_opcode, nullptr, 16);
 
-	ARMDisassembler dis;
-	shared_ptr<ARMInstruction> ins = dis.disassemble(opcode, mode);
-	cout << "Disassembled instruction: " << (void *) opcode << " -> " << ins->toString() << endl;
+    ARMDisassembler dis;
+    shared_ptr<ARMInstruction> ins = dis.disassemble(opcode, mode);
+    cout << "Disassembled instruction: " << (void *) opcode << " -> " << ins->toString() << endl;
 
-	return 0;
+    return 0;
 }
