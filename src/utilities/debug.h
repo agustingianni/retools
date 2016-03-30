@@ -10,7 +10,7 @@
 #ifdef NDEBUG
 #define LOG_DEBUG(M, ...)
 #else
-#define LOG_DEBUG(M, ...) fprintf(stdout, "[DBG] " M "\n", ##__VA_ARGS__)
+#define LOG_DEBUG(M, ...) fprintf(stdout, "[DBG] %s -> " M "\n", __FUNCTION__, ##__VA_ARGS__)
 #endif
 
 #define CLEAN_ERRNO() (errno == 0 ? "None" : (const char *) strerror(errno))
