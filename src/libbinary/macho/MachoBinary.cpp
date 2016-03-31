@@ -13,7 +13,9 @@
 #include <string>
 #include <vector>
 #include <mach-o/dyld_images.h>
- 
+
+#define NDEBUG
+
 #include "debug.h"
 #include "macho/Swap.h"
 #include "macho/ObjectiveC.h"
@@ -31,7 +33,7 @@ static void hexdump(const char *desc, void *addr, int len) {
 
     // Output description if given.
     if (desc != NULL)
-        printf("%s:\n", desc);
+        LOG_DEBUG("%s:\n", desc);
 
     // Process every byte in the data.
     for (i = 0; i < len; i++) {
@@ -40,14 +42,14 @@ static void hexdump(const char *desc, void *addr, int len) {
         if ((i % 16) == 0) {
             // Just don't print ASCII for the zeroth line.
             if (i != 0)
-                printf("  %s\n", buff);
+                LOG_DEBUG("  %s\n", buff);
 
             // Output the offset.
-            printf("  %04x ", i);
+            LOG_DEBUG("  %04x ", i);
         }
 
         // Now the hex code for the specific character.
-        printf(" %02x", pc[i]);
+        LOG_DEBUG(" %02x", pc[i]);
 
         // And store a printable ASCII character for later.
         if ((pc[i] < 0x20) || (pc[i] > 0x7e))
@@ -59,12 +61,12 @@ static void hexdump(const char *desc, void *addr, int len) {
 
     // Pad out last line if not exactly 16 characters.
     while ((i % 16) != 0) {
-        printf("   ");
+        LOG_DEBUG("   ");
         i++;
     }
 
     // And print the final ASCII bit.
-    printf("  %s\n", buff);
+    LOG_DEBUG("  %s\n", buff);
 }
 
 static int64_t read_sleb128(const uint8_t*& p, const uint8_t* end) {
@@ -2176,7 +2178,7 @@ template<typename Section_t> bool MachoBinary::parse_non_lazy_symbol_pointers(Se
         }
 
         auto value = m_data.offset<pointer_t>(offset_from_rva(addr));
-        printf("%p %p 0x%.8x NONLAZY %s\n", (void *) addr, (void *) *value, symbol_index, symbol_name.c_str());
+        LOG_DEBUG("%p %p 0x%.8x NONLAZY %s\n", (void *) addr, (void *) *value, symbol_index, symbol_name.c_str());
         addComment(offset_from_rva(addr), "NONLAZY -> " + symbol_name);
     }
 
@@ -2208,7 +2210,7 @@ template<typename Section_t> bool MachoBinary::parse_lazy_symbol_pointers(Sectio
         unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
         pointer_t addr = lc->addr + i * sizeof(pointer_t);
         string symbol_name = symbol_index < m_symbol_table_size ? &m_string_table[m_symbol_table[symbol_index].n_un.n_strx] : "invalid";
-        printf("0x%.16llx 0x%.16llx LAZY %s\n", (uint64_t) addr, (uint64_t) data[i], symbol_name.c_str());
+        LOG_DEBUG("0x%.16llx 0x%.16llx LAZY %s\n", (uint64_t) addr, (uint64_t) data[i], symbol_name.c_str());
 
         addEntryPoint(offset_from_rva(data[i]));
         addComment(offset_from_rva(addr), "LAZY_SYMBOL -> " + symbol_name);
@@ -2281,7 +2283,7 @@ template<typename Section_t> bool MachoBinary::parse_lazy_dylib_symbol_pointers(
         pointer_t addr = lc->addr + i * sizeof(pointer_t);
         string symbol_name =
             symbol_index < m_symbol_table_size ? &m_string_table[m_symbol_table[symbol_index].n_un.n_strx] : "invalid";
-        printf("0x%.16llx 0x%.16llx parse_lazy_dylib_symbol_pointers %s\n", (uint64_t) addr, (uint64_t) data[i], symbol_name.c_str());
+        LOG_DEBUG("0x%.16llx 0x%.16llx parse_lazy_dylib_symbol_pointers %s\n", (uint64_t) addr, (uint64_t) data[i], symbol_name.c_str());
     }
 
     return true;
@@ -2850,8 +2852,8 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
     string type_name = "??";
     uintptr_t address = 0;
 
-    printf("rebase information (from compressed dyld info):\n");
-    printf("segment section          address             type\n");
+    LOG_DEBUG("rebase information (from compressed dyld info):\n");
+    LOG_DEBUG("segment section          address             type\n");
 
     while (!done && p < end) {
         uint8_t imm = *p & REBASE_IMMEDIATE_MASK;
@@ -2886,7 +2888,7 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
             case REBASE_OPCODE_DO_REBASE_IMM_TIMES:
                 for (int i = 0; i < imm; ++i) {
                     sec_name = section_name(seg_index, seg_addr + seg_offset);
-                    printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_IMM_TIMES\n", seg_name.c_str(), sec_name.c_str(), seg_addr
+                    LOG_DEBUG("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_IMM_TIMES\n", seg_name.c_str(), sec_name.c_str(), seg_addr
                         + seg_offset, type_name.c_str());
                     seg_offset += pointer_size();
                 }
@@ -2894,7 +2896,7 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
 
             case REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB:
                 sec_name = section_name(seg_index, seg_addr + seg_offset);
-                printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB\n", seg_name.c_str(), sec_name.c_str(), seg_addr
+                LOG_DEBUG("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB\n", seg_name.c_str(), sec_name.c_str(), seg_addr
                     + seg_offset, type_name.c_str());
                 seg_offset += read_uleb128(p, end) + pointer_size();
                 break;
@@ -2903,7 +2905,7 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
                 count = read_uleb128(p, end);
                 for (uint32_t i = 0; i < count; ++i) {
                     sec_name = section_name(seg_index, seg_addr + seg_offset);
-                    printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ULEB_TIMES\n", seg_name.c_str(), sec_name.c_str(), seg_addr
+                    LOG_DEBUG("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ULEB_TIMES\n", seg_name.c_str(), sec_name.c_str(), seg_addr
                         + seg_offset, type_name.c_str());
                     seg_offset += pointer_size();
                 }
@@ -2914,7 +2916,7 @@ bool MachoBinary::parse_dyld_info_rebase(const uint8_t *start, const uint8_t *en
                 skip = read_uleb128(p, end);
                 for (uint32_t i = 0; i < count; ++i) {
                     sec_name = section_name(seg_index, seg_addr + seg_offset);
-                    printf("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIPPING_ULEB\n", seg_name.c_str(), sec_name.c_str(), seg_addr
+                    LOG_DEBUG("%-7s %-16s 0x%08llX  %s REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIPPING_ULEB\n", seg_name.c_str(), sec_name.c_str(), seg_addr
                         + seg_offset, type_name.c_str());
                     seg_offset += skip + pointer_size();
                 }
@@ -2984,8 +2986,8 @@ uint64_t MachoBinary::rva_from_offset(uint64_t offset) {
 }
 
 bool MachoBinary::parse_dyld_info_binding(const uint8_t *start, const uint8_t *end) {
-    printf("bind information:\n");
-    printf("segment section          address        type    addend dylib            symbol\n");
+    LOG_DEBUG("bind information:\n");
+    LOG_DEBUG("segment section          address        type    addend dylib            symbol\n");
     const uint8_t* p = start;
 
     uint8_t type = 0;
@@ -3060,19 +3062,19 @@ bool MachoBinary::parse_dyld_info_binding(const uint8_t *start, const uint8_t *e
                 segOffset += read_uleb128(p, end);
                 break;
             case BIND_OPCODE_DO_BIND:
-                printf("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n", segName.c_str(), section_name(segIndex, segStartAddr
+                LOG_DEBUG("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n", segName.c_str(), section_name(segIndex, segStartAddr
                     + segOffset).c_str(), segStartAddr + segOffset, typeName.c_str(), addend, fromDylib.c_str(), symbolName.c_str(), weak_import.c_str());
 
                 segOffset += pointer_size();
                 break;
             case BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB:
-                printf("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n", segName.c_str(), section_name(segIndex, segStartAddr
+                LOG_DEBUG("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n", segName.c_str(), section_name(segIndex, segStartAddr
                     + segOffset).c_str(), segStartAddr + segOffset, typeName.c_str(), addend, fromDylib.c_str(), symbolName.c_str(), weak_import.c_str());
 
                 segOffset += read_uleb128(p, end) + pointer_size();
                 break;
             case BIND_OPCODE_DO_BIND_ADD_ADDR_IMM_SCALED:
-                printf("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n", segName.c_str(), section_name(segIndex, segStartAddr
+                LOG_DEBUG("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n", segName.c_str(), section_name(segIndex, segStartAddr
                     + segOffset).c_str(), segStartAddr + segOffset, typeName.c_str(), addend, fromDylib.c_str(), symbolName.c_str(), weak_import.c_str());
 
                 segOffset += immediate * pointer_size() + pointer_size();
@@ -3081,7 +3083,7 @@ bool MachoBinary::parse_dyld_info_binding(const uint8_t *start, const uint8_t *e
                 count = read_uleb128(p, end);
                 skip = read_uleb128(p, end);
                 for (uint32_t i = 0; i < count; ++i) {
-                    printf("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n", segName.c_str(), section_name(segIndex, segStartAddr
+                    LOG_DEBUG("%-7s %-16s 0x%08llX %10s  %5lld %-16s %s%s\n", segName.c_str(), section_name(segIndex, segStartAddr
                         + segOffset).c_str(), segStartAddr + segOffset, typeName.c_str(), addend, fromDylib.c_str(), symbolName.c_str(), weak_import.c_str());
 
                     segOffset += skip + pointer_size();
@@ -3096,8 +3098,8 @@ bool MachoBinary::parse_dyld_info_binding(const uint8_t *start, const uint8_t *e
 }
 
 bool MachoBinary::parse_dyld_info_weak_binding(const uint8_t *start, const uint8_t *end) {
-    printf("weak binding information:\n");
-    printf("segment section          address       type     addend symbol\n");
+    LOG_DEBUG("weak binding information:\n");
+    LOG_DEBUG("segment section          address       type     addend symbol\n");
     const uint8_t* p = start;
 
     uint8_t type = 0;
@@ -3126,7 +3128,7 @@ bool MachoBinary::parse_dyld_info_weak_binding(const uint8_t *start, const uint8
                     ++p;
                 ++p;
                 if ((immediate & BIND_SYMBOL_FLAGS_NON_WEAK_DEFINITION) != 0)
-                    printf("                                       strong          %s\n", symbolName.c_str());
+                    LOG_DEBUG("                                       strong          %s\n", symbolName.c_str());
                 break;
             case BIND_OPCODE_SET_TYPE_IMM:
                 type = immediate;
@@ -3145,19 +3147,19 @@ bool MachoBinary::parse_dyld_info_weak_binding(const uint8_t *start, const uint8
                 segOffset += read_uleb128(p, end);
                 break;
             case BIND_OPCODE_DO_BIND:
-                printf("%-7s %-16s 0x%08llX %10s   %5lld %s\n", segName.c_str(), section_name(segIndex, segStartAddr
+                LOG_DEBUG("%-7s %-16s 0x%08llX %10s   %5lld %s\n", segName.c_str(), section_name(segIndex, segStartAddr
                     + segOffset).c_str(), segStartAddr + segOffset, typeName.c_str(), addend, symbolName.c_str());
 
                 segOffset += pointer_size();
                 break;
             case BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB:
-                printf("%-7s %-16s 0x%08llX %10s   %5lld %s\n", segName.c_str(), section_name(segIndex, segStartAddr
+                LOG_DEBUG("%-7s %-16s 0x%08llX %10s   %5lld %s\n", segName.c_str(), section_name(segIndex, segStartAddr
                     + segOffset).c_str(), segStartAddr + segOffset, typeName.c_str(), addend, symbolName.c_str());
 
                 segOffset += read_uleb128(p, end) + pointer_size();
                 break;
             case BIND_OPCODE_DO_BIND_ADD_ADDR_IMM_SCALED:
-                printf("%-7s %-16s 0x%08llX %10s   %5lld %s\n", segName.c_str(), section_name(segIndex, segStartAddr
+                LOG_DEBUG("%-7s %-16s 0x%08llX %10s   %5lld %s\n", segName.c_str(), section_name(segIndex, segStartAddr
                     + segOffset).c_str(), segStartAddr + segOffset, typeName.c_str(), addend, symbolName.c_str());
 
                 segOffset += immediate * pointer_size() + pointer_size();
@@ -3166,7 +3168,7 @@ bool MachoBinary::parse_dyld_info_weak_binding(const uint8_t *start, const uint8
                 count = read_uleb128(p, end);
                 skip = read_uleb128(p, end);
                 for (uint32_t i = 0; i < count; ++i) {
-                    printf("%-7s %-16s 0x%08llX %10s   %5lld %s\n", segName.c_str(), section_name(segIndex, segStartAddr
+                    LOG_DEBUG("%-7s %-16s 0x%08llX %10s   %5lld %s\n", segName.c_str(), section_name(segIndex, segStartAddr
                         + segOffset).c_str(), segStartAddr + segOffset, typeName.c_str(), addend, symbolName.c_str());
 
                     segOffset += skip + pointer_size();
@@ -3181,8 +3183,8 @@ bool MachoBinary::parse_dyld_info_weak_binding(const uint8_t *start, const uint8
 }
 
 bool MachoBinary::parse_dyld_info_lazy_binding(const uint8_t *start, const uint8_t *end) {
-    printf("lazy binding information (from lazy_bind part of dyld info):\n");
-    printf("segment section          address    index  dylib            symbol\n");
+    LOG_DEBUG("lazy binding information (from lazy_bind part of dyld info):\n");
+    LOG_DEBUG("segment section          address    index  dylib            symbol\n");
 
     uint8_t type = BIND_TYPE_POINTER;
     uint8_t segIndex = 0;
@@ -3250,7 +3252,7 @@ bool MachoBinary::parse_dyld_info_lazy_binding(const uint8_t *start, const uint8
                 segOffset += read_uleb128(p, end);
                 break;
             case BIND_OPCODE_DO_BIND:
-                printf("%-7s %-16s 0x%08llX 0x%04X %-16s %s%s\n", segName.c_str(), section_name(segIndex, segStartAddr
+                LOG_DEBUG("%-7s %-16s 0x%08llX 0x%04X %-16s %s%s\n", segName.c_str(), section_name(segIndex, segStartAddr
                     + segOffset).c_str(), segStartAddr + segOffset, lazy_offset, fromDylib.c_str(), symbolName.c_str(), weak_import.c_str());
 
                 segOffset += pointer_size();
