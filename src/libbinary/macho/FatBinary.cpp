@@ -69,7 +69,7 @@ bool FatBinary::init() {
 			continue;
 		}
 
-		MachoBinary *macho_binary = new MachoBinary(nullptr);
+		MachoBinary *macho_binary = new MachoBinary();
 		if (!macho_binary->load(binary_mem, m_archs[i].size)) {
 			LOG_ERR("Could not load the %uth mach-o binary", i);
 			continue;
