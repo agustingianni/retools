@@ -13,7 +13,7 @@
 namespace SegmentPermission {
 	constexpr int READ = 1;
 	constexpr int WRITE = 2;
-	constexpr int EXECUTE = 3;
+	constexpr int EXECUTE = 4;
 	constexpr int NONE = 0;
 
 	static std::string toString(int perm) {
