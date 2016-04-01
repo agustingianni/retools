@@ -132,7 +132,7 @@ void AbstractBinary::addDataInCode(const Abstract::DataInCode &dice) {
 }
 
 void AbstractBinary::addDataInCode(uint64_t offset, uint64_t length, Abstract::DataInCodeKind kind, std::string description) {
-    addDataInCode(offset, length, kind, description);
+    addDataInCode(Abstract::DataInCode(offset, length, kind, description));
 }
 
 void AbstractBinary::addLibrary(std::string library) {
