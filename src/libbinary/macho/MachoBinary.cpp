@@ -2171,9 +2171,14 @@ template<typename Section_t> bool MachoBinary::parse_non_lazy_symbol_pointers(Se
                 symbol_name = "INDIRECT_SYMBOL_ABS | INDIRECT_SYMBOL_LOCAL";
                 break;
             default:
-                symbol_name =
-                    symbol_index < m_symbol_table_size ?
-                        &m_string_table[m_symbol_table[symbol_index].n_un.n_strx] : "invalid";
+                symbol_name = "invalid";
+                if (symbol_index < m_symbol_table_size) {
+                    auto idx = m_symbol_table[symbol_index].n_un.n_strx;
+                    if (idx < m_string_table_size) {
+                        symbol_name = &m_string_table[idx];
+                    }
+                }
+
                 break;
         }
 
@@ -2209,7 +2214,14 @@ template<typename Section_t> bool MachoBinary::parse_lazy_symbol_pointers(Sectio
     for (unsigned i = 0; i < count; i++) {
         unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
         pointer_t addr = lc->addr + i * sizeof(pointer_t);
-        string symbol_name = symbol_index < m_symbol_table_size ? &m_string_table[m_symbol_table[symbol_index].n_un.n_strx] : "invalid";
+        string symbol_name = "invalid";
+        if (symbol_index < m_symbol_table_size) {
+            auto idx = m_symbol_table[symbol_index].n_un.n_strx;
+            if (idx < m_string_table_size) {
+                symbol_name = &m_string_table[idx];
+            }
+        }
+
         LOG_DEBUG("0x%.16llx 0x%.16llx LAZY %s\n", (uint64_t) addr, (uint64_t) data[i], symbol_name.c_str());
 
         addEntryPoint(offset_from_rva(data[i]));
@@ -2281,8 +2293,14 @@ template<typename Section_t> bool MachoBinary::parse_lazy_dylib_symbol_pointers(
     for (unsigned i = 0; i < count; i++) {
         unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
         pointer_t addr = lc->addr + i * sizeof(pointer_t);
-        string symbol_name =
-            symbol_index < m_symbol_table_size ? &m_string_table[m_symbol_table[symbol_index].n_un.n_strx] : "invalid";
+        string symbol_name = "invalid";
+        if (symbol_index < m_symbol_table_size) {
+            auto idx = m_symbol_table[symbol_index].n_un.n_strx;
+            if (idx < m_string_table_size) {
+                symbol_name = &m_string_table[idx];
+            }
+        }
+
         LOG_DEBUG("0x%.16llx 0x%.16llx parse_lazy_dylib_symbol_pointers %s\n", (uint64_t) addr, (uint64_t) data[i], symbol_name.c_str());
     }
 
@@ -2318,6 +2336,11 @@ bool MachoBinary::parse_symtab(struct load_command *lc) {
     }
 
     for (unsigned i = 0; i < cmd->nsyms; ++i) {
+        if (i >= m_symbol_table_size) {
+            LOG_ERR("Symbol table index (%u) is outside the symbol table.", i);
+            continue;
+        }
+
         // Get the symbol name.
         unsigned idx = m_symbol_table[i].n_un.n_strx;
         if (idx >= m_string_table_size) {
@@ -2383,6 +2406,11 @@ bool MachoBinary::parse_dysymtab(struct load_command *lc) {
         }
 
         unsigned idx = m_symbol_table[i].n_un.n_strx;
+        if (idx >= m_string_table_size) {
+            LOG_ERR("String table entry %u is outside the binary mapped file", idx);
+            break;
+        }
+
         LOG_DEBUG("Local symbol:");
         LOG_DEBUG("  symbol->name    = %s", idx ? &m_string_table[idx] : "(null)");
         LOG_DEBUG("  symbol->n_sect  = 0x%.2x", m_symbol_table[i].n_sect);
@@ -2399,6 +2427,11 @@ bool MachoBinary::parse_dysymtab(struct load_command *lc) {
         }
 
         unsigned idx = m_symbol_table[i].n_un.n_strx;
+        if (idx >= m_string_table_size) {
+            LOG_ERR("String table entry %u is outside the binary mapped file", idx);
+            break;
+        }
+
         LOG_DEBUG("External defined symbol:");
         LOG_DEBUG("  symbol->name    = %s", idx ? &m_string_table[idx] : "(null)");
         LOG_DEBUG("  symbol->n_sect  = 0x%.2x", m_symbol_table[i].n_sect);
@@ -2415,6 +2448,11 @@ bool MachoBinary::parse_dysymtab(struct load_command *lc) {
         }
 
         unsigned idx = m_symbol_table[i].n_un.n_strx;
+        if (idx >= m_string_table_size) {
+            LOG_ERR("String table entry %u is outside the binary mapped file", idx);
+            break;
+        }
+
         LOG_DEBUG("External undefined symbol:");
         LOG_DEBUG("  symbol->name    = %s", idx ? &m_string_table[idx] : "(null)");
         LOG_DEBUG("  symbol->n_sect  = 0x%.2x", m_symbol_table[i].n_sect);
@@ -2793,7 +2831,9 @@ bool MachoBinary::parse_dyld_info_exports(const uint8_t *export_start, const uin
         // Skip the symbol properties to get to the children.
         cur_byte += cur_node->m_terminal_size;
 
-        uint8_t child_count = *cur_byte++;
+        uint8_t child_count = *cur_byte;
+        cur_byte++;
+
         for (unsigned i = 0; i < child_count; i++) {
             // Current child label.
             const char *edge_label = (const char *) cur_byte;
