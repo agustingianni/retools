@@ -2534,34 +2534,68 @@ bool MachoBinary::parse_thread(struct load_command *lc) {
     uint32_t count = contents[1];
 
     LOG_DEBUG("flavor = 0x%.8x count = 0x%.8x", flavor, count);
+    if (!count) {
+        LOG_INFO("Count is zero which means there is no thread state.");
+        return true;
+    }
 
     switch (cputype()) {
         case CPU_TYPE_ARM:
+        {
             LOG_DEBUG("sizeof(m_thread_state.arm_32) = %lu", sizeof(m_thread_state.arm_32));
-            m_thread_state.arm_32 = *m_data.pointer<thread_state_arm_32>(&contents[2]);
+            auto ctx = m_data.pointer<thread_state_arm_32>(&contents[2]);
+            if (!ctx) {
+                LOG_ERR("Error reading ARM32 thread state.");
+                break;
+            }
+
+            m_thread_state.arm_32 = *ctx;
             debug_thread_state_arm_32(m_thread_state.arm_32);
             break;
-
+        }
         case CPU_TYPE_ARM64:
+        {
             LOG_DEBUG("sizeof(m_thread_state.arm_64) = %lu", sizeof(m_thread_state.arm_64));
-            m_thread_state.arm_64 = *m_data.pointer<thread_state_arm_64>(&contents[2]);
+            auto ctx = m_data.pointer<thread_state_arm_64>(&contents[2]);
+            if (!ctx) {
+                LOG_ERR("Error reading ARM64 thread state.");
+                break;
+            }
+
+            m_thread_state.arm_64 = *ctx;
             debug_thread_state_arm_64(m_thread_state.arm_64);
             break;
-
+        }
         case CPU_TYPE_X86:
+        {
             LOG_DEBUG("sizeof(m_thread_state.x86_32) = %lu", sizeof(m_thread_state.x86_32));
-            m_thread_state.x86_32 = *m_data.pointer<thread_state_x86_32>(&contents[2]);
+            auto ctx = m_data.pointer<thread_state_x86_32>(&contents[2]);
+            if (!ctx) {
+                LOG_ERR("Error reading x86_32 thread state.");
+                break;
+            }
+
+            m_thread_state.x86_32 = *ctx;
             debug_thread_state_x86_32(m_thread_state.x86_32);
             break;
-
+        }
         case CPU_TYPE_X86_64:
+        {
             LOG_DEBUG("sizeof(m_thread_state.x86_64) = %lu", sizeof(m_thread_state.x86_64));
-            m_thread_state.x86_64 = *m_data.pointer<thread_state_x86_64>(&contents[2]);
+            auto ctx = m_data.pointer<thread_state_x86_64>(&contents[2]);
+            if (!ctx) {
+                LOG_ERR("Error reading x86_64 thread state.");
+                break;
+            }
+
+            m_thread_state.x86_64 = *ctx;
             debug_thread_state_x86_64(m_thread_state.x86_64);
             break;
-
+        }
         default:
+        {
             break;
+        }
     }
 
     return true;
