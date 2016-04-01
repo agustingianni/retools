@@ -2236,6 +2236,11 @@ template<typename Section_t> bool MachoBinary::parse_symbol_stubs(Section_t *lc)
     // (all the same size) used for lazily binding undefined function calls at runtime.
     unsigned indirect_table_offset = lc->reserved1;
     unsigned element_size = lc->reserved2;
+    if (!element_size) {
+        LOG_ERR("Malformed symbol stubs table.");
+        return false;
+    }
+
     unsigned element_count = lc->size / element_size;
 
     for (unsigned i = 0; i < element_count; i++) {
