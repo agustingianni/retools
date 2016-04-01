@@ -2152,6 +2152,11 @@ template<typename Section_t> bool MachoBinary::parse_mod_term_func_pointers(Sect
 // US  -> 0000000100002000 0x0000000f NONLAZY dyld_stub_binder
 // IDA -> 0000000100002000 dyld_stub_binder_ptr dq offset dyld_stub_binder
 template<typename Section_t> bool MachoBinary::parse_non_lazy_symbol_pointers(Section_t *lc) {
+    if (!m_dysymtab_command) {
+        LOG_WARN("Dynamic symbol table is outside the binary mapped file.");
+        return false;
+    }
+
     using pointer_t = typename Traits<Section_t>::pointer_t;
 
     uint32_t indirect_offset = lc->reserved1;
@@ -2201,6 +2206,11 @@ template<typename Section_t> bool MachoBinary::parse_non_lazy_symbol_pointers(Se
 }
 
 template<typename Section_t> bool MachoBinary::parse_lazy_symbol_pointers(Section_t *lc) {
+    if (!m_dysymtab_command) {
+        LOG_WARN("Dynamic symbol table is outside the binary mapped file.");
+        return false;
+    }
+
     using pointer_t = typename Traits<Section_t>::pointer_t;
     uint32_t indirect_offset = lc->reserved1;
     uint32_t *indirect_symbol_table =
@@ -2287,6 +2297,11 @@ template<typename Section_t> bool MachoBinary::parse_interposing(Section_t *lc) 
 }
 
 template<typename Section_t> bool MachoBinary::parse_lazy_dylib_symbol_pointers(Section_t *lc) {
+    if (!m_dysymtab_command) {
+        LOG_WARN("Dynamic symbol table is outside the binary mapped file.");
+        return false;
+    }
+
     using pointer_t = typename Traits<Section_t>::pointer_t;
     uint32_t indirect_offset = lc->reserved1;
     uint32_t *indirect_symbol_table =
