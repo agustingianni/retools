@@ -252,9 +252,19 @@ bool MachoBinary::init() {
     // Read the header and swap it if needed.
     if (is32()) {
         m_header.header_32 = m_data.offset<mach_header>(0);
+        if (!m_header.header_32) {
+            LOG_ERR("Failed to read the mach-o header.");
+            return false;
+        }
+
         swap_if(needs_swap(), m_header.header_32);
     } else {
         m_header.header_64 = m_data.offset<mach_header_64>(0);
+        if (!m_header.header_64) {
+            LOG_ERR("Failed to read the mach-o header.");
+            return false;
+        }
+
         swap_if(needs_swap(), m_header.header_64);
     }
 
