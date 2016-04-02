@@ -1099,14 +1099,14 @@ template<typename Section_t> bool MachoBinary::parse_data_cfstring(Section_t *lc
         pointer_t size;
     };
 
-    unsigned count = lc->size / sizeof(CFString);
-    LOG_DEBUG("Number of entries %d", count);
-
     auto data = m_data.offset<CFString>(lc->offset, lc->size);
     if (!data) {
         LOG_ERR("Could not read load command contents.");
         return false;
     }
+
+    unsigned count = lc->size / sizeof(*data);
+    LOG_DEBUG("Number of entries %d", count);
 
     for (unsigned i = 0; i < count; i++) {
         auto string_data = m_data.offset<char>(offset_from_rva(data[i].cstr), data[i].size);
@@ -1151,7 +1151,7 @@ template<typename Section_t> bool MachoBinary::parse_sfi_class_reg(Section_t *lc
         return false;
     }
 
-    unsigned count = lc->size / sizeof(sfi_class_registration);
+    unsigned count = lc->size / sizeof(*registrations);
     for (unsigned i = 0; i < count; i++) {
         auto class_name = m_data.offset<char>(offset_from_rva(registrations[i].class_name));
         if (!class_name) {
@@ -1196,7 +1196,7 @@ template<typename Section_t> bool MachoBinary::parse_sysctl_set(Section_t *lc) {
         return false;
     }
 
-    unsigned count = lc->size / sizeof(pointer_t);
+    unsigned count = lc->size / sizeof(*data);
 
     for (unsigned i = 0; i < count; i++) {
         auto oid = m_data.offset<sysctl_oid>(offset_from_rva(data[i]));
@@ -2069,7 +2069,7 @@ template<typename Section_t> bool MachoBinary::parse_cstring_literals_section(Se
 
 template<typename Section_t> bool MachoBinary::parse_4byte_literals(Section_t *lc) {
     if (auto start = m_data.offset<uint32_t>(lc->offset, lc->size)) {
-        for (unsigned i = 0; i < lc->size / sizeof(uint32_t); ++i) {
+        for (unsigned i = 0; i < lc->size / sizeof(*start); ++i) {
             LOG_DEBUG("Four byte literal: off=0x%.8x 0x%.8x", lc->offset + (i * 4), start[i]);
             addComment(lc->offset + (i * 4), "uint32_t literal");
         }
@@ -2080,7 +2080,7 @@ template<typename Section_t> bool MachoBinary::parse_4byte_literals(Section_t *l
 
 template<typename Section_t> bool MachoBinary::parse_8byte_literals(Section_t *lc) {
     if (auto start = m_data.offset<uint64_t>(lc->offset, lc->size)) {
-        for (unsigned i = 0; i < lc->size / sizeof(uint64_t); ++i) {
+        for (unsigned i = 0; i < lc->size / sizeof(*start); ++i) {
             LOG_DEBUG("Eight byte literal: 0x%.16llx", start[i]);
             addComment(lc->offset + (i * 8), "uint64_t literal");
         }
@@ -2091,7 +2091,7 @@ template<typename Section_t> bool MachoBinary::parse_8byte_literals(Section_t *l
 
 template<typename Section_t> bool MachoBinary::parse_16byte_literals(Section_t *lc) {
     if (auto start = m_data.offset<uint32_t>(lc->offset, lc->size)) {
-        for (unsigned i = 0; i < lc->size / sizeof(uint32_t); i += 4) {
+        for (unsigned i = 0; i < lc->size / sizeof(*start); i += 4) {
             LOG_DEBUG("Sixteen byte literal: 0x%.8x 0x%.8x 0x%.8x 0x%.8x", start[i], start[i + 1], start[i + 2], start[i + 3]);
             addComment(lc->offset + (i * 16), "uint128_t literal");
         }
@@ -2104,14 +2104,14 @@ template<typename Section_t> bool MachoBinary::parse_16byte_literals(Section_t *
 template<typename Section_t> bool MachoBinary::parse_literal_pointers(Section_t *lc) {
     using pointer_t = typename Traits<Section_t>::pointer_t;
     if (auto start = m_data.offset<pointer_t>(lc->offset, lc->size)) {
-        for (unsigned i = 0; i < lc->size / sizeof(pointer_t); ++i) {
+        for (unsigned i = 0; i < lc->size / sizeof(*start); ++i) {
             auto name = m_data.offset<char>(offset_from_rva(start[i]));
             if (!name) {
                 LOG_ERR("Could not read POINTER name.");
                 continue;
             }
 
-            LOG_DEBUG("POINTER: 0x%.16llx -> 0x%.16llx (%s)", (uint64_t ) lc->addr + i * sizeof(pointer_t), (uint64_t ) start[i], name);
+            LOG_DEBUG("POINTER: 0x%.16llx -> 0x%.16llx (%s)", (uint64_t ) lc->addr + i * sizeof(*start), (uint64_t ) start[i], name);
         }
     }
 
@@ -2313,7 +2313,7 @@ template<typename Section_t> bool MachoBinary::parse_interposing(Section_t *lc) 
         return false;
     }
 
-    auto count = lc->size / sizeof(interposer);
+    auto count = lc->size / sizeof(*data);
     for (unsigned i = 0; i < count; i++) {
         LOG_DEBUG("Interposer from 0x%.16llx to 0x%.16llx", (uint64_t ) data[i].from, (uint64_t ) data[i].to);
         addEntryPoint(offset_from_rva(data[i].from));
@@ -2350,7 +2350,7 @@ template<typename Section_t> bool MachoBinary::parse_lazy_dylib_symbol_pointers(
         return false;
     }
 
-    auto count = lc->size / sizeof(pointer_t);
+    auto count = lc->size / sizeof(*data);
     for (unsigned i = 0; i < count; i++) {
         if ((indirect_offset + i) >= m_dysymtab_command->nindirectsyms) {
             LOG_ERR("Invalid indirect symbol entry.");
@@ -2358,7 +2358,7 @@ template<typename Section_t> bool MachoBinary::parse_lazy_dylib_symbol_pointers(
         }
 
         unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
-        pointer_t addr = lc->addr + i * sizeof(pointer_t);
+        pointer_t addr = lc->addr + i * sizeof(*data);
         string symbol_name = "invalid";
         if (symbol_index < m_symbol_table_size) {
             auto idx = m_symbol_table[symbol_index].n_un.n_strx;
