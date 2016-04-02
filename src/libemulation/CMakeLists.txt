@@ -19,7 +19,7 @@ add_library(
 set_target_properties(
 	emulation
 	PROPERTIES 
-	COMPILE_FLAGS "-std=c++11"
+	COMPILE_FLAGS "-std=c++11 -Wno-parentheses-equality"
 )
 
 # Set target specific include directories.
