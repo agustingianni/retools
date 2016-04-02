@@ -2171,6 +2171,11 @@ template<typename Section_t> bool MachoBinary::parse_non_lazy_symbol_pointers(Se
     uint32_t count = lc->size / sizeof(pointer_t);
 
     for (unsigned i = 0; i < count; ++i) {
+        if ((indirect_offset + i) >= m_dysymtab_command->nindirectsyms) {
+            LOG_ERR("Invalid indirect symbol entry.");
+            return false;
+        }
+
         unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
         pointer_t addr = lc->addr + i * sizeof(pointer_t);
         string symbol_name;
@@ -2232,6 +2237,11 @@ template<typename Section_t> bool MachoBinary::parse_lazy_symbol_pointers(Sectio
 
     auto count = lc->size / sizeof(pointer_t);
     for (unsigned i = 0; i < count; i++) {
+        if ((indirect_offset + i) >= m_dysymtab_command->nindirectsyms) {
+            LOG_ERR("Invalid indirect symbol entry.");
+            return false;
+        }
+
         unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
         pointer_t addr = lc->addr + i * sizeof(pointer_t);
         string symbol_name = "invalid";
@@ -2321,6 +2331,11 @@ template<typename Section_t> bool MachoBinary::parse_lazy_dylib_symbol_pointers(
 
     auto count = lc->size / sizeof(pointer_t);
     for (unsigned i = 0; i < count; i++) {
+        if ((indirect_offset + i) >= m_dysymtab_command->nindirectsyms) {
+            LOG_ERR("Invalid indirect symbol entry.");
+            return false;
+        }
+
         unsigned symbol_index = indirect_symbol_table[indirect_offset + i];
         pointer_t addr = lc->addr + i * sizeof(pointer_t);
         string symbol_name = "invalid";
