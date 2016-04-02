@@ -1205,7 +1205,7 @@ if ConditionPassed() then
     address = if postindex then R[n] else offset_addr;
     R[t] = ZeroExtend(MemU_unpriv[address,1],32);
     if postindex then
-        R[n] = offset_add;
+        R[n] = offset_addr;
     endif
 endif
 """
@@ -1246,7 +1246,7 @@ if ConditionPassed() then
     NullCheckIfThumbEE(15);
     address = if add then (Align(R[15],4) + imm32) else (Align(R[15],4) - imm32);
     if HaveLPAE() && address<2:0> == '000' then
-        data = MemA[Address,8];
+        data = MemA[address,8];
         if BigEndian() then
             R[t] = data<63:32>;
             R[t2] = data<31:0>;
@@ -3639,7 +3639,7 @@ if ConditionPassed() then
             set_bits(data,63, 32, R[t2]);
         endif
 
-        MemA[Address,8] = data;
+        MemA[address,8] = data;
     else
         tmp = address + 4;
         MemA[address,4] = R[t];
@@ -3668,7 +3668,7 @@ if ConditionPassed() then
             set_bits(data, 63,32, R[t2]);
         endif
         
-        MemA[Address,8] = data;
+        MemA[address,8] = data;
     else
         tmp = address + 4;
         MemA[address,4] = R[t];
