@@ -24,10 +24,22 @@ int main(int argc, char **argv) {
     string arg_mode { argv[1] };
     string arg_opcode { argv[2] };
 
-    ARMMode mode = (arg_mode == "thumb") ? ARMMode_Thumb : ARMMode_ARM;
     uint32_t opcode = std::stoul(arg_opcode, nullptr, 16);
 
-    ARMDisassembler dis;
+    ARMMode mode;
+    if (arg_mode == "thumb") {
+        mode = ARMMode_Thumb;
+        cout << "Using mode THUMB" << endl;
+
+        if (opcode > 0xffff) {
+            opcode = (opcode >> 16) | ((opcode << 16) & 0xffffffff);
+        }
+    } else {
+        mode = ARMMode_ARM;
+        cout << "Using mode THUMB" << endl;
+    }
+
+    ARMDisassembler dis { ARMv7All };
     shared_ptr<ARMInstruction> ins = dis.disassemble(opcode, mode);
     cout << "Disassembled instruction: " << (void *) opcode << " -> " << ins->toString() << endl;
 
