@@ -2874,16 +2874,30 @@ bool MachoBinary::parse_dyld_info_exports(const uint8_t *export_start, const uin
 
         // Get a pointer to the data.
         cur_byte = export_start + cur_node->m_offset;
+        if (cur_byte >= export_end) {
+            return false;
+        }
+
         cur_node->m_data = cur_byte;
 
         // Read the terminal size.
         cur_node->m_terminal_size = read_terminal_size(cur_byte, export_end);
+        if (cur_byte >= export_end) {
+            return false;
+        }
 
         // Skip the symbol properties to get to the children.
         cur_byte += cur_node->m_terminal_size;
+        if (cur_byte >= export_end) {
+            return false;
+        }
 
         uint8_t child_count = *cur_byte;
         cur_byte++;
+        if (cur_byte >= export_end) {
+            return false;
+        }
+
 
         for (unsigned i = 0; i < child_count; i++) {
             // Current child label.
@@ -2891,9 +2905,15 @@ bool MachoBinary::parse_dyld_info_exports(const uint8_t *export_start, const uin
 
             // Skip the node label.
             cur_byte += strlen(edge_label) + 1;
+            if (cur_byte >= export_end) {
+                return false;
+            }
 
             // Get the offset of the node.
             uintptr_t node_offset = read_uleb128(cur_byte, export_end);
+            if (cur_byte >= export_end) {
+                return false;
+            }
 
             Node *new_node = new Node();
             new_node->m_offset = node_offset;
@@ -3459,15 +3479,22 @@ bool MachoBinary::parse_linker_option(struct load_command *lc) {
         return false;
     }
 
-    const char *strings = m_data.pointer<const char>(cmd + 1);
+    const char *strings = m_data.pointer<const char>(cmd + 1, cmd->cmdsize);
     if (!strings) {
         LOG_ERR("Error reading strings.");
         return false;
     }
 
     for (unsigned i = 0; i < cmd->count; i++) {
-        LOG_DEBUG("Linker command: %s", strings);
-        strings += strlen(strings) + 1;
+        auto string_size = strnlen(strings, cmd->cmdsize);
+        if (!string_size || string_size == cmd->cmdsize) {
+            LOG_ERR("Invalid string.");
+            break;
+        }
+
+        LOG_INFO("Linker command: %u %p %s", string_size, strings, strings);
+
+        strings += string_size + 1;
         m_linker_commands.push_back(string(strings));
     }
 
