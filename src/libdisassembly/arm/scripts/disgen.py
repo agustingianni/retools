@@ -186,7 +186,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
     # Save variables that are used by the toString methods but have no other use.
     hard = ["cond", "coproc", "opc1", "CRd", "CRn", "CRm", "opc2", "option", "D",
             "W", "B", "P", "U", "op", "mode", "opcode_", "mask",
-            "firstcond", "Q", "size", "E", "T", "type", "reg", "cmode"]
+            "firstcond", "Q", "size", "E", "T", "type", "reg", "cmode", "write_nzcvq", "write_g"]
 
     # Inherit the basic types.
     known_types = list(ARMv7Types.known_types)
