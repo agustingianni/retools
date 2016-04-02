@@ -29,7 +29,11 @@ public:
 
     // Get a sane pointer to a given type and an offset.
     template<typename T> T *offset(uint64_t offset, size_t size = sizeof(T)) const {
-        return valid(m_memory + offset + size) ? reinterpret_cast<T *>(m_memory + offset) : nullptr;
+        if ((offset > UINT64_MAX - size) || !valid(m_memory + offset + size)) {
+            return nullptr;
+        }
+
+        return reinterpret_cast<T *>(m_memory + offset);
     }
 
     // Validate a pointer.
