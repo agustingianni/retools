@@ -34,7 +34,7 @@ public:
 
     // Validate a pointer.
     bool valid(void *ptr) const {
-        return ptr <= m_end;
+        return ptr >= m_memory && ptr <= m_end;
     }
 
     // Validate a pointer.
