@@ -17,20 +17,20 @@ public:
 	virtual ~ARMContext();
 
 	uint32_t readRegularRegister(unsigned regno);
-	uint32_t readRmode(unsigned regno);
+	uint32_t readRmode(unsigned regno, unsigned n);
 	uint32_t readSingleRegister(unsigned regno);
 	uint64_t readDoubleRegister(unsigned regno);
 	uint64_t readQuadRegister(unsigned regno);
 
-	uint32_t readMemory();
-	uint32_t writeRegularRegister();
-	uint32_t writeRmode();
-	uint32_t writeSingleRegister();
-	uint32_t writeDoubleRegister();
-	uint32_t writeQuadRegister();
-	uint32_t writeMemory();
-	uint32_t readElement();
-	uint32_t writeElement();
+	uint32_t readMemory(uintptr_t address, unsigned size);
+	uint32_t writeRegularRegister(unsigned regno, uintptr_t value);
+	uint32_t writeRmode(unsigned regno, unsigned size, uintptr_t value);
+	uint32_t writeSingleRegister(unsigned regno, float value);
+	uint32_t writeDoubleRegister(unsigned regno, double value);
+	uint32_t writeQuadRegister(unsigned regno, uint64_t value);
+	uint32_t writeMemory(uintptr_t address, unsigned size, uintptr_t value);
+	uint32_t readElement(uintptr_t address, uintptr_t value, unsigned size);
+	uint32_t writeElement(uintptr_t address, unsigned size, uintptr_t value);
 
 	void ALUWritePC(uint32_t address) {
 		return;

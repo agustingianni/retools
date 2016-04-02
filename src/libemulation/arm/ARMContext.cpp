@@ -19,7 +19,7 @@ uint32_t ARMContext::readRegularRegister(unsigned regno) {
 	return 0;
 }
 
-uint32_t ARMContext::readRmode(unsigned regno) {
+uint32_t ARMContext::readRmode(unsigned regno, unsigned n) {
 	return 0;
 }
 
@@ -35,39 +35,39 @@ uint64_t ARMContext::readQuadRegister(unsigned regno) {
 	return 0;
 }
 
-uint32_t ARMContext::readMemory() {
+uint32_t ARMContext::readMemory(uintptr_t address, unsigned size) {
 	return 0;
 }
 
-uint32_t ARMContext::writeRegularRegister() {
+uint32_t ARMContext::writeRegularRegister(unsigned regno, uintptr_t value) {
 	return 0;
 }
 
-uint32_t ARMContext::writeRmode() {
+uint32_t ARMContext::writeRmode(unsigned regno, unsigned size, uintptr_t value) {
 	return 0;
 }
 
-uint32_t ARMContext::writeSingleRegister() {
+uint32_t ARMContext::writeSingleRegister(unsigned regno, float value) {
 	return 0;
 }
 
-uint32_t ARMContext::writeDoubleRegister() {
+uint32_t ARMContext::writeDoubleRegister(unsigned regno, double value) {
 	return 0;
 }
 
-uint32_t ARMContext::writeQuadRegister() {
+uint32_t ARMContext::writeQuadRegister(unsigned regno, uint64_t value) {
 	return 0;
 }
 
-uint32_t ARMContext::writeMemory() {
+uint32_t ARMContext::writeMemory(uintptr_t address, unsigned size, uintptr_t value) {
 	return 0;
 }
 
-uint32_t ARMContext::readElement() {
+uint32_t ARMContext::readElement(uintptr_t address, uintptr_t value, unsigned size) {
 	return 0;
 }
 
-uint32_t ARMContext::writeElement() {
+uint32_t ARMContext::writeElement(uintptr_t address, unsigned size, uintptr_t value) {
 	return 0;
 }
 
