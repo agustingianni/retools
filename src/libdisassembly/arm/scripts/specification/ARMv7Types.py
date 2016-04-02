@@ -56,6 +56,7 @@ known_types.append({"name" : "HasVirtExt",                       "type" : ("int"
 known_types.append({"name" : "HaveLPAE",                         "type" : ("int",  1)})
 known_types.append({"name" : "HaveMPExt",                        "type" : ("int",  1)})
 known_types.append({"name" : "HaveVirtExt",                      "type" : ("int",  1)})
+known_types.append({"name" : "ITSTATE.IT",                       "type" : ("int",  1)})
 known_types.append({"name" : "InITBlock",                        "type" : ("int",  1)})
 known_types.append({"name" : "InstrSet_ARM",                     "type" : ("int", 32)})
 known_types.append({"name" : "InstrSet_Thumb",                   "type" : ("int", 32)})
@@ -106,3 +107,5 @@ known_types.append({"name" : "VCGTtype_unsigned",                "type" : ("int"
 known_types.append({"name" : "VFPNegMul_VNMLA",                  "type" : ("int", 32)})
 known_types.append({"name" : "VFPNegMul_VNMLS",                  "type" : ("int", 32)})
 known_types.append({"name" : "VFPNegMul_VNMUL",                  "type" : ("int", 32)})
+known_types.append({"name" : "write_g",                          "type" : ("int",  1)})
+known_types.append({"name" : "write_nzcvq",                      "type" : ("int",  1)})
