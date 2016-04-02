@@ -224,14 +224,14 @@ class CPPTranslatorVisitor(Visitor):
         if size.isdigit():
             self.set_type(node, ("int", int(size) * 8))
 
-        return "ctxt.readElement(%s, %s, %s)" % (vector, element, size)
+        return "ctx.readElement(%s, %s, %s)" % (vector, element, size)
 
     def accept_ElementWrite(self, node):
         vector = self.accept(node.left_expr.expr1)
         element = self.accept(node.left_expr.expr2)
         size = self.accept(node.left_expr.expr3)
         value = self.accept(node.right_expr)
-        return "ctxt.writeElement(%s, %s, %s, %s)" % (vector, element, size, value)
+        return "ctx.writeElement(%s, %s, %s, %s)" % (vector, element, size, value)
 
     def accept_ArrayAccess(self, node):
         node_name = str(node.name)
@@ -470,6 +470,10 @@ class CPPTranslatorVisitor(Visitor):
 
             else:
                 raise RuntimeError("Unknown node: %s" % str(node))
+        
+        # Handle: expression<hi:lo> = expression
+        elif type(node.left_expr) is BitExtraction:            
+            raise RuntimeError("Assignment to a bit extraction, please rephrase.")
 
         left_expr = self.accept(node.left_expr)
         right_expr = self.accept(node.right_expr)
@@ -493,8 +497,9 @@ class CPPTranslatorVisitor(Visitor):
             print
         
         # Add the left symbol to the symbol table.
-        self.symbol_table.add(left_expr)
-        self.define_me.add(left_expr)
+        if not left_expr in self.symbol_table:
+            self.symbol_table.add(left_expr)
+            self.define_me.add(left_expr)
 
         # Declare it and initialize it.
         return "%s %s %s" % (left_expr, name_op[node.type], right_expr)
