@@ -40,16 +40,137 @@ typedef struct fpscr {
 } fpscr_t;
 
 typedef struct apsr {
-	unsigned DNM1 :16;	// Do not modify.
-	unsigned GE :4;		// The Greater than or Equal flags.
-	unsigned DNM2 :4;	// Do not modify.
-	unsigned RAZ :3;	// ?
-	unsigned Q :1;		// Set to 1 to indicate overflow or saturation.
-	unsigned V :1;		// Overflow condition flag.
-	unsigned C :1;		// Carry condition flag.
-	unsigned Z :1;		// Zero condition flag.
-	unsigned N :1;		// Negative condition flag.
+    unsigned DNM1 :16;  // Do not modify.
+    unsigned GE :4;     // The Greater than or Equal flags.
+    unsigned DNM2 :4;   // Do not modify.
+    unsigned RAZ :3;    // ?
+    unsigned Q :1;      // Set to 1 to indicate overflow or saturation.
+    unsigned V :1;      // Overflow condition flag.
+    unsigned C :1;      // Carry condition flag.
+    unsigned Z :1;      // Zero condition flag.
+    unsigned N :1;      // Negative condition flag.
 } apsr_t;
+
+typedef struct hstr {
+    unsigned UNK :14;
+    unsigned TJDBX :1;
+    unsigned TTEE :1;
+    unsigned T15 :1;
+    unsigned T14 :1;
+    unsigned T13 :1;
+    unsigned T12 :1;
+    unsigned T11 :1;
+    unsigned T10 :1;
+    unsigned T9 :1;
+    unsigned T8 :1;
+    unsigned T7 :1;
+    unsigned T6 :1;
+    unsigned T5 :1;
+    unsigned T4 :1;
+    unsigned T3 :1;
+    unsigned T2 :1;
+    unsigned T1 :1;
+    unsigned T0 :1;
+} hstr_t;
+
+typedef struct jmcr {
+    unsigned UNK :31;
+    unsigned JE :1;
+} jmcr_t;
+
+typedef struct hcr {
+    unsigned UNK :4;
+    unsigned TGE :1;
+    unsigned TVM :1;
+    unsigned TTLB :1;
+    unsigned TPU :1;
+    unsigned TPC :1;
+    unsigned TSW :1;
+    unsigned TAC :1;
+    unsigned TIDCP :1;
+    unsigned TSC :1;
+    unsigned TID3 :1;
+    unsigned TID2 :1;
+    unsigned TID1 :1;
+    unsigned TID0 :1;
+    unsigned TWE :1;
+    unsigned TWI :1;
+    unsigned MISSING_NAME :1;
+    unsigned BSU :2;
+    unsigned FB :1;
+    unsigned VA :1;
+    unsigned VI :1;
+    unsigned VF :1;
+    unsigned AMO :1;
+    unsigned IMO :1;
+    unsigned FMO :1;
+    unsigned PTW :1;
+    unsigned SWIO :1;
+    unsigned VM :1;
+} hcr_t;
+
+typedef struct cpsr {
+    unsigned N: 1;
+    unsigned Z: 1;
+    unsigned C: 1;
+    unsigned V: 1;
+    unsigned Q: 1;
+    unsigned IT_1_0: 2;
+    unsigned J: 1;
+    unsigned RAZ: 4;
+    unsigned GE: 4;
+    unsigned IT_7_2: 6;
+    unsigned E: 1;
+    unsigned A: 1;
+    unsigned I: 1;
+    unsigned F: 1;
+    unsigned T: 1;
+    unsigned M: 5;
+
+} cpsr_t;
+
+typedef cpsr_t spsr_t;
+
+typedef struct scr {
+    unsigned UNK: 22;
+    unsigned SIF: 1;
+    unsigned HCE: 1;
+    unsigned SCD: 1;
+    unsigned nET: 1;
+    unsigned AW: 1;
+    unsigned FW: 1;
+    unsigned EA: 1;
+    unsigned FIQ: 1;
+    unsigned IRQ: 1;
+    unsigned NS: 1;
+} scr_t;
+
+typedef struct itstate {
+    unsigned IT;
+} itstate_t;
+
+typedef struct nsacr {
+    unsigned UNK: 11;
+    unsigned NSTRCDIS: 1;
+    unsigned RFR: 1;
+    unsigned IMPLEMENTATION_DEFINED: 3;
+    unsigned NSASEDIS: 1;
+    unsigned NSD32DIS: 1;
+    unsigned cp13: 1;
+    unsigned cp12: 1;
+    unsigned cp11: 1;
+    unsigned cp10: 1;
+    unsigned cp9: 1;
+    unsigned cp8: 1;
+    unsigned cp7: 1;
+    unsigned cp6: 1;
+    unsigned cp5: 1;
+    unsigned cp4: 1;
+    unsigned cp3: 1;
+    unsigned cp2: 1;
+    unsigned cp1: 1;
+    unsigned cp0: 1;
+} nsacr_t;
 
 typedef enum VCGTtype {
 	VCGTtype_signed, VCGTtype_unsigned, VCGTtype_fp
