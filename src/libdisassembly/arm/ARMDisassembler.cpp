@@ -18,13 +18,12 @@ using namespace std;
 using namespace Disassembler;
 
 namespace Disassembler {
-	ARMDisassembler::ARMDisassembler(ARMVariants variant) :
-			m_variant(variant) {
-		m_decoder = new ARMDecoder(m_variant);
-	}
+    ARMDisassembler::ARMDisassembler(ARMVariants variant) :
+        m_variant(variant) {
+        m_decoder = new ARMDecoder(m_variant);
+    }
 
-	std::shared_ptr<ARMInstruction> ARMDisassembler::disassemble(uint32_t op_code,
-			ARMMode mode) {
-		return m_decoder->decode(op_code, mode);
-	}
+    std::shared_ptr<ARMInstruction> ARMDisassembler::disassemble(uint32_t op_code, ARMMode mode) {
+        return m_decoder->decode(op_code, mode);
+    }
 } /* namespace Disassembler */
