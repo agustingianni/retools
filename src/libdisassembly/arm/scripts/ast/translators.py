@@ -105,6 +105,12 @@ class CPPTranslatorVisitor(Visitor):
     Implementation of a source to source translator that
     will spit compilable C++ code.
     """
+    def needs_cast(self, identifier):
+        return str(identifier) in self.needs_cast_
+
+    def cast(self, identifier):
+        return "*reinterpret_cast<unsigned *>(&%s)" % str(identifier)
+
     def __init__(self, input_vars=None, known_types=None):
         """
         @input_vars: Variables that the decoder reads from the opcode itself. These
@@ -116,6 +122,10 @@ class CPPTranslatorVisitor(Visitor):
         self.symbol_table = set()   # Table of symbols.
         self.define_me = set()      # Variables that need to be defined.
         self.node_types = {}        # Map from Node to type.
+
+        # Identifiers that need a cast to another type.
+        self.needs_cast_ = ["APSR", "CPSR", "SPSR", "SPSR_abt", "SPSR_fiq", \
+            "SPSR_hyp", "SPSR_irq", "SPSR_mon", "SPSR_svc", "SPSR_und", "FPSCR"]
 
         if input_vars:
             for input_var in input_vars:
@@ -264,6 +274,9 @@ class CPPTranslatorVisitor(Visitor):
         return str(node)
 
     def accept_Identifier(self, node):
+        if self.needs_cast(node):
+            return self.cast(node)
+
         return str(node)
 
     def accept_NumberValue(self, node):
