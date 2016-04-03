@@ -37,6 +37,15 @@ typedef struct fpscr {
 	unsigned C :1; // Set if comparison produces an equal, greater than, or unordered result
 	unsigned Z :1; 		// Set if comparison produces an equal result
 	unsigned N :1; 		// Set if comparison produces a less than result
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
 } fpscr_t;
 
 typedef struct apsr {
@@ -49,6 +58,15 @@ typedef struct apsr {
     unsigned C :1;      // Carry condition flag.
     unsigned Z :1;      // Zero condition flag.
     unsigned N :1;      // Negative condition flag.
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
 } apsr_t;
 
 typedef struct hstr {
@@ -71,11 +89,29 @@ typedef struct hstr {
     unsigned T2 :1;
     unsigned T1 :1;
     unsigned T0 :1;
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
 } hstr_t;
 
 typedef struct jmcr {
     unsigned UNK :31;
     unsigned JE :1;
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
 } jmcr_t;
 
 typedef struct hcr {
@@ -107,6 +143,15 @@ typedef struct hcr {
     unsigned PTW :1;
     unsigned SWIO :1;
     unsigned VM :1;
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
 } hcr_t;
 
 typedef struct cpsr {
@@ -127,6 +172,14 @@ typedef struct cpsr {
     unsigned T: 1;
     unsigned M: 5;
 
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
 } cpsr_t;
 
 typedef cpsr_t spsr_t;
@@ -143,10 +196,19 @@ typedef struct scr {
     unsigned FIQ: 1;
     unsigned IRQ: 1;
     unsigned NS: 1;
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
 } scr_t;
 
 typedef struct itstate {
-    unsigned IT;
+    unsigned char IT;
 } itstate_t;
 
 typedef struct nsacr {
@@ -170,6 +232,15 @@ typedef struct nsacr {
     unsigned cp2: 1;
     unsigned cp1: 1;
     unsigned cp0: 1;
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
 } nsacr_t;
 
 typedef enum VCGTtype {
