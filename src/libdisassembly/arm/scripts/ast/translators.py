@@ -274,9 +274,6 @@ class CPPTranslatorVisitor(Visitor):
         return str(node)
 
     def accept_Identifier(self, node):
-        if self.needs_cast(node):
-            return self.cast(node)
-
         return str(node)
 
     def accept_NumberValue(self, node):
