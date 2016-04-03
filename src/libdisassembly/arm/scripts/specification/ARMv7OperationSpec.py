@@ -3995,7 +3995,7 @@ if ConditionPassed() then
         UNPREDICTABLE;
     else
         operand2 = if register_form then Shift(R[m], shift_t, shift_n, APSR.C) else imm32;
-        case opcode of
+        case opcode_ of
             when '0000' result = R[n] AND operand2;
             when '0001' result = R[n] EOR operand2;
             when '0010' (result, -, -) = AddWithCarry(R[n], NOT(operand2), '1');
