@@ -880,3 +880,27 @@ class CPPTranslatorVisitor(Visitor):
 
         # Lists are not representable in c++.
         return None
+
+class InterpreterCPPTranslator(CPPTranslatorVisitor):
+    """
+    Especialize the translator to generate code for the interpreter.
+    """
+    def accept_Undefined(self, node):
+        self.set_type(node, ("unknown", None))
+        return "return false"
+
+    def accept_Unpredictable(self, node):
+        self.set_type(node, ("unknown", None))
+        return "return false"
+
+    def accept_See(self, node):
+        self.set_type(node, ("unknown", None))
+        return "return false"
+
+    def accept_ImplementationDefined(self, node):
+        self.set_type(node, ("unknown", None))
+        return "return false"
+
+    def accept_SubArchitectureDefined(self, node):
+        self.set_type(node, ("unknown", None))
+        return "return false"

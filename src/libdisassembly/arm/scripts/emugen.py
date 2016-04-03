@@ -7,7 +7,7 @@ import argparse
 from parser import ARMv7Parser
 from specification import ARMv7OperationSpec, ARMv7Types
 from ast.passes import IdentifierRenamer
-from ast.translators import CPPTranslatorVisitor, indent, NeedsSemiColon
+from ast.translators import InterpreterCPPTranslator, indent, NeedsSemiColon
 
 DEBUG = False
 
@@ -200,7 +200,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             IdentifierRenamer(symbols, "ins.").transform(program_ast)
 
             # Create a translator.
-            translator = CPPTranslatorVisitor(known_types=known_types)
+            translator = InterpreterCPPTranslator(known_types=known_types)
 
             body = ""
 
