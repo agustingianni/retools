@@ -30,7 +30,7 @@ public:
 	uint32_t writeQuadRegister(unsigned regno, uint64_t value);
 	uint32_t writeMemory(uintptr_t address, unsigned size, uintptr_t value);
 	uint32_t readElement(uintptr_t address, uintptr_t value, unsigned size);
-	uint32_t writeElement(uintptr_t address, unsigned size, uintptr_t value);
+	uint32_t writeElement(uintptr_t address, unsigned size, uintptr_t value, unsigned what___);
 
 	void ALUWritePC(uint32_t address) {
 		return;

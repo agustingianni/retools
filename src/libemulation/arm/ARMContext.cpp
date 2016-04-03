@@ -67,7 +67,7 @@ uint32_t ARMContext::readElement(uintptr_t address, uintptr_t value, unsigned si
 	return 0;
 }
 
-uint32_t ARMContext::writeElement(uintptr_t address, unsigned size, uintptr_t value) {
+uint32_t ARMContext::writeElement(uintptr_t address, unsigned size, uintptr_t value, unsigned what___) {
 	return 0;
 }
 
