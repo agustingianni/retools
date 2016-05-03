@@ -6,7 +6,7 @@ import argparse
 
 from parser import ARMv7Parser
 from specification import ARMv7OperationSpec, ARMv7Types
-from ast.passes import IdentifierRenamer
+from ast.passes import IdentifierRenamer, ListAssignmentRewriter
 from ast.translators import InterpreterCPPTranslator, indent, NeedsSemiColon
 
 DEBUG = False
@@ -199,6 +199,9 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             # Convert all the local variables to instance variables.
             IdentifierRenamer(symbols, "ins.").transform(program_ast)
 
+            # Fix untranslatable list assignments.
+            ListAssignmentRewriter().transform(program_ast)
+
             # Create a translator.
             translator = InterpreterCPPTranslator(known_types=known_types)
 
@@ -206,7 +209,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
 
             # For each of the statements, do a translation.
             for ast_statement in program_ast:
-                code = translator.accept(ast_statement)
+                code = translator.accept(None, ast_statement)
                 if NeedsSemiColon(ast_statement):
                     code += ";"
 
