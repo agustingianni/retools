@@ -403,7 +403,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
 
             # For each of the statements, do a translation.
             for ast_statement in program_ast:
-                code = translator.accept(ast_statement)
+                code = translator.accept(None, ast_statement)
                 if NeedsSemiColon(ast_statement):
                     code += ";"
 
