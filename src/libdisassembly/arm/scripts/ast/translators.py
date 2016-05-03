@@ -156,35 +156,35 @@ class CPPTranslatorVisitor(Visitor):
 
         return ("unknown", None)
 
-    def accept_RegularRegisterRead(self, node):
+    def accept_RegularRegisterRead(self, parent, node):
         self.set_type(node, ("int", 32))
-        register_no_expression = self.accept(node.expr1)
+        register_no_expression = self.accept(node, node.expr1)
         return "ctx.readRegularRegister(%s)" % (register_no_expression)
 
-    def accept_RmodeRead(self, node):
+    def accept_RmodeRead(self, parent, node):
         self.set_type(node, ("int", 32))
-        expr1 = self.accept(node.expr1)
-        expr2 = self.accept(node.expr2)
+        expr1 = self.accept(node, node.expr1)
+        expr2 = self.accept(node, node.expr2)
         return "ctx.readRmode(%s, %s)" % (expr1, expr2)
 
-    def accept_SingleRegisterRead(self, node):
+    def accept_SingleRegisterRead(self, parent, node):
         self.set_type(node, ("int", 32))
-        register_no_expression = self.accept(node.expr1)
+        register_no_expression = self.accept(node, node.expr1)
         return "ctx.readSingleRegister(%s)" % (register_no_expression)
 
-    def accept_DoubleRegisterRead(self, node):
+    def accept_DoubleRegisterRead(self, parent, node):
         self.set_type(node, ("int", 64))
-        register_no_expression = self.accept(node.expr1)
+        register_no_expression = self.accept(node, node.expr1)
         return "ctx.readDoubleRegister(%s)" % (register_no_expression)
 
-    def accept_QuadRegisterRead(self, node):
+    def accept_QuadRegisterRead(self, parent, node):
         self.set_type(node, ("int", 128))
-        register_no_expression = self.accept(node.expr1)
+        register_no_expression = self.accept(node, node.expr1)
         return "ctx.readQuadRegister(%s)" % (register_no_expression)
 
-    def accept_MemoryRead(self, node):
-        expr1 = self.accept(node.expr1)
-        expr2 = self.accept(node.expr2)
+    def accept_MemoryRead(self, parent, node):
+        expr1 = self.accept(node, node.expr1)
+        expr2 = self.accept(node, node.expr2)
 
         # Set the type of the memory access.
         if expr2.isdigit():
@@ -192,96 +192,96 @@ class CPPTranslatorVisitor(Visitor):
 
         return "ctx.readMemory(%s, %s)" % (expr1, expr2)
 
-    def accept_RegularRegisterWrite(self, node):
+    def accept_RegularRegisterWrite(self, parent, node):
         # Receives a BinaryExpression with an ArrayAccess and an expression.
-        register_no_expression = self.accept(node.left_expr.expr1)
-        register_value_expression = self.accept(node.right_expr)
+        register_no_expression = self.accept(node, node.left_expr.expr1)
+        register_value_expression = self.accept(node, node.right_expr)
         return "ctx.writeRegularRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
-    def accept_RmodeWrite(self, node):
+    def accept_RmodeWrite(self, parent, node):
         # Receives a BinaryExpression with an ArrayAccess and an expression.
-        expr1 = self.accept(node.left_expr.expr1)
-        expr2 = self.accept(node.left_expr.expr2)
-        value = self.accept(node.right_expr)
+        expr1 = self.accept(node, node.left_expr.expr1)
+        expr2 = self.accept(node, node.left_expr.expr2)
+        value = self.accept(node, node.right_expr)
         return "ctx.writeRmode(%s, %s, %s)" % (expr1, expr2, value)
 
-    def accept_SingleRegisterWrite(self, node):
-        register_no_expression = self.accept(node.left_expr.expr1)
-        register_value_expression = self.accept(node.right_expr)
+    def accept_SingleRegisterWrite(self, parent, node):
+        register_no_expression = self.accept(node, node.left_expr.expr1)
+        register_value_expression = self.accept(node, node.right_expr)
         return "ctx.writeSingleRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
-    def accept_DoubleRegisterWrite(self, node):
-        register_no_expression = self.accept(node.left_expr.expr1)
-        register_value_expression = self.accept(node.right_expr)
+    def accept_DoubleRegisterWrite(self, parent, node):
+        register_no_expression = self.accept(node, node.left_expr.expr1)
+        register_value_expression = self.accept(node, node.right_expr)
         return "ctx.writeDoubleRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
-    def accept_QuadRegisterWrite(self, node):
-        register_no_expression = self.accept(node.left_expr.expr1)
-        register_value_expression = self.accept(node.right_expr)
+    def accept_QuadRegisterWrite(self, parent, node):
+        register_no_expression = self.accept(node, node.left_expr.expr1)
+        register_value_expression = self.accept(node, node.right_expr)
         return "ctx.writeQuadRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
-    def accept_MemoryWrite(self, node):
-        address = self.accept(node.left_expr.expr1)
-        size = self.accept(node.left_expr.expr2)
-        value = self.accept(node.right_expr)
+    def accept_MemoryWrite(self, parent, node):
+        address = self.accept(node, node.left_expr.expr1)
+        size = self.accept(node, node.left_expr.expr2)
+        value = self.accept(node, node.right_expr)
         return "ctx.writeMemory(%s, %s, %s)" % (address, size, value)
 
-    def accept_ElementRead(self, node):
-        vector = self.accept(node.expr1)
-        element = self.accept(node.expr2)
-        size = self.accept(node.expr3)
+    def accept_ElementRead(self, parent, node):
+        vector = self.accept(node, node.expr1)
+        element = self.accept(node, node.expr2)
+        size = self.accept(node, node.expr3)
 
         if size.isdigit():
             self.set_type(node, ("int", int(size) * 8))
 
         return "ctx.readElement(%s, %s, %s)" % (vector, element, size)
 
-    def accept_ElementWrite(self, node):
-        vector = self.accept(node.left_expr.expr1)
-        element = self.accept(node.left_expr.expr2)
-        size = self.accept(node.left_expr.expr3)
-        value = self.accept(node.right_expr)
+    def accept_ElementWrite(self, parent, node):
+        vector = self.accept(node, node.left_expr.expr1)
+        element = self.accept(node, node.left_expr.expr2)
+        size = self.accept(node, node.left_expr.expr3)
+        value = self.accept(node, node.right_expr)
         return "ctx.writeElement(%s, %s, %s, %s)" % (vector, element, size, value)
 
-    def accept_ArrayAccess(self, node):
+    def accept_ArrayAccess(self, parent, node):
         node_name = str(node.name)
 
         if node_name in ["R"]: 
-            return self.accept_RegularRegisterRead(node)
+            return self.accept_RegularRegisterRead(parent, node)
 
         elif node_name in ["Rmode"]:
-            return self.accept_RmodeRead(node)
+            return self.accept_RmodeRead(parent, node)
 
         elif node_name in ["S"]:
-            return self.accept_SingleRegisterRead(node)
+            return self.accept_SingleRegisterRead(parent, node)
 
         elif node_name in ["D", "Din"]:
-            return self.accept_DoubleRegisterRead(node)
+            return self.accept_DoubleRegisterRead(parent, node)
 
         elif node_name in ["Q", "Qin"]:
-            return self.accept_QuadRegisterRead(node)
+            return self.accept_QuadRegisterRead(parent, node)
 
         elif node_name in ["Elem"]:
-            return self.accept_ElementRead(node)
+            return self.accept_ElementRead(parent, node)
 
         elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
-            return self.accept_MemoryRead(node)
+            return self.accept_MemoryRead(parent, node)
 
         raise RuntimeError("Unknown ArrayAccess name: %s" % str(node.name))
 
-    def accept_BooleanValue(self, node):
+    def accept_BooleanValue(self, parent, node):
         self.set_type(node, ("int", 1))
         return str(node)
 
-    def accept_Identifier(self, node):
+    def accept_Identifier(self, parent, node):
         return str(node)
 
-    def accept_NumberValue(self, node):
+    def accept_NumberValue(self, parent, node):
         self.set_type(node, ("int", len(node)))
         return str(node)
 
-    def accept_UnaryExpression(self, node):
-        expr_str = self.accept(node.expr)
+    def accept_UnaryExpression(self, parent, node):
+        expr_str = self.accept(node, node.expr)
         expr_type = self.get_type(node.expr)
         
         if IsUnknownType(expr_type) and type_check:
@@ -292,8 +292,8 @@ class CPPTranslatorVisitor(Visitor):
 
         return "%s%s" % (UnaryExpressionNameToOperator[node.type], expr_str)
 
-    def accept_InExpression(self, node):
-        left_expr = self.accept(node.left_expr)
+    def accept_InExpression(self, parent, node):
+        left_expr = self.accept(node, node.left_expr)
 
         # We set the type to boolean.
         self.set_type(node, ("int", 1))
@@ -327,16 +327,16 @@ class CPPTranslatorVisitor(Visitor):
         elif type(node.right_expr) in [List, Enumeration]:
             t = []
             for cond in node.right_expr.values:
-                t.append("%s == %s" % (left_expr, self.accept(cond)))
+                t.append("%s == %s" % (left_expr, self.accept(node, cond)))
 
             return "(%s)" % (" || ".join(t))
 
         raise RuntimeError("Invalid 'IN' expression.")
 
-    def accept_ConcatenationExpression(self, node):
+    def accept_ConcatenationExpression(self, parent, node):
         # imm = a:b -> imm = Concatenate(a, b, len(b))
-        left_expr = self.accept(node.left_expr)
-        right_expr = self.accept(node.right_expr)
+        left_expr = self.accept(node, node.left_expr)
+        right_expr = self.accept(node, node.right_expr)
 
         # Get the types.
         left_expr_type = self.get_type(node.left_expr)
@@ -362,12 +362,12 @@ class CPPTranslatorVisitor(Visitor):
 
         return "Concatenate(%s, %s, %d)" % (left_expr, right_expr, right_expr_type[1])
 
-    def accept_AssignmentStatement(self, node):
+    def accept_AssignmentStatement(self, parent, node):
         # Handle: (a, b) = (1, 2)
         if type(node.left_expr) is List and type(node.right_expr) is List:
             # Accept the unused nodes so we can have type checking.
-            self.accept(node.left_expr)
-            self.accept(node.right_expr)
+            self.accept(node, node.left_expr)
+            self.accept(node, node.right_expr)
 
             # Check that the lists are of the same type.
             assert self.get_type(node.left_expr) == self.get_type(node.right_expr)
@@ -395,8 +395,8 @@ class CPPTranslatorVisitor(Visitor):
         # Handle: (a, b) = SomeFunction(arguments)
         elif type(node.left_expr) is List and type(node.right_expr) is ProcedureCall:
             # Accept the unused nodes so we can have type checking.
-            left_expr = self.accept(node.left_expr) 
-            right_expr = self.accept(node.right_expr)
+            left_expr = self.accept(node, node.left_expr) 
+            right_expr = self.accept(node, node.right_expr)
 
             # Check that the lists are of the same type.
             t1 = self.get_type(node.left_expr)
@@ -406,31 +406,42 @@ class CPPTranslatorVisitor(Visitor):
             assert t1 == t2 or t1 == t3
             
             # Small hack.
-            if self.accept(node.right_expr.name) in ["SignedSatQ", "UnsignedSatQ"]:
+            if self.accept(node, node.right_expr.name) in ["SignedSatQ", "UnsignedSatQ"]:
                 # (result, sat) = UnsignedSatQ(SInt(operand), saturate_to);
                 # (result1, sat1) = UnsignedSatQ(SInt(R[n]<15:0>), saturate_to);
                 # (result2, sat2) = UnsignedSatQ(SInt(R[n]<31:16>), saturate_to);
                 
                 # Get the saturation size.
-                sat_size = self.accept(node.right_expr.arguments[1])
+                sat_size = self.accept(node, node.right_expr.arguments[1])
                 if sat_size.isdigit():
                     sat_size = int(sat_size)
 
-                arg0 = self.accept(node.left_expr.values[0])
-                arg1 = self.accept(node.left_expr.values[1])
+                arg0 = self.accept(node, node.left_expr.values[0])
+                arg1 = self.accept(node, node.left_expr.values[1])
 
                 # Set the type either to an integer or an integer expression.
                 self.set_type(arg0, ("int", sat_size))
                 self.set_type(arg1, ("int", 1))
 
-                print
-                print "XXXX: (%d)" % lineno()
-                print "XXXX: node.left_expr        ", arg0, ("int", sat_size)
-                print "XXXX: node.left_expr        ", arg1, ("int", 1)
-                print "XXXX: std::tie(%s) = %s" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
-                print
+                # print
+                # print "XXXX: (%d)" % lineno()
+                # print "XXXX: node.left_expr        ", arg0, ("int", sat_size)
+                # print "XXXX: node.left_expr        ", arg1, ("int", 1)
+                # print "XXXX: std::tie(%s) = %s" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
+                # print
 
-                return "std::tie(%s) = %s" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
+                # Accept all the function arguments.
+                tmp = []
+                for val in node.left_expr.values:
+                    name = self.accept(node.left_expr, val)
+                    tmp.append(name)
+
+                    if not name in self.symbol_table:
+                        # Declare it and initialize it.
+                        self.symbol_table.add(name)
+                        self.define_me.add(name)
+
+                return "std::tie(%s) = %s" % (", ".join(tmp), right_expr)
 
             names = []
 
@@ -457,26 +468,26 @@ class CPPTranslatorVisitor(Visitor):
             
             # It is a register.
             if node_name in ["R"]:
-                return self.accept_RegularRegisterWrite(node)
+                return self.accept_RegularRegisterWrite(parent, node)
 
             elif node_name in ["Rmode"]:
-                return self.accept_RmodeWrite(node)
+                return self.accept_RmodeWrite(parent, node)
 
             elif node_name in ["S"]:
-                return self.accept_SingleRegisterWrite(node)
+                return self.accept_SingleRegisterWrite(parent, node)
 
             elif node_name in ["D", "Din"]:
-                return self.accept_DoubleRegisterWrite(node)
+                return self.accept_DoubleRegisterWrite(parent, node)
 
             elif node_name in ["Q", "Qin"]:
-                return self.accept_QuadRegisterWrite(node)
+                return self.accept_QuadRegisterWrite(parent, node)
 
             elif node_name in ["Elem"]:
                 # TODO: This is just for testing.
-                return self.accept_ElementWrite(node)
+                return self.accept_ElementWrite(parent, node)
 
             elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
-                return self.accept_MemoryWrite(node)
+                return self.accept_MemoryWrite(parent, node)
 
             else:
                 raise RuntimeError("Unknown node: %s" % str(node))
@@ -485,8 +496,8 @@ class CPPTranslatorVisitor(Visitor):
         elif type(node.left_expr) is BitExtraction:            
             raise RuntimeError("Assignment to a bit extraction, please rephrase.")
 
-        left_expr = self.accept(node.left_expr)
-        right_expr = self.accept(node.right_expr)
+        left_expr = self.accept(node, node.left_expr)
+        right_expr = self.accept(node, node.right_expr)
 
         # Get the types.
         left_expr_type = self.get_type(node.left_expr)
@@ -514,18 +525,18 @@ class CPPTranslatorVisitor(Visitor):
         # Declare it and initialize it.
         return "%s %s %s" % (left_expr, name_op[node.type], right_expr)
 
-    def accept_BinaryExpression(self, node):
+    def accept_BinaryExpression(self, parent, node):
         if node.type == "in":
-            return self.accept_InExpression(node)
+            return self.accept_InExpression(parent, node)
 
         elif node.type == "concatenation":
-            return self.accept_ConcatenationExpression(node)
+            return self.accept_ConcatenationExpression(parent, node)
 
         elif node.type == "assign":
-            return self.accept_AssignmentStatement(node)
+            return self.accept_AssignmentStatement(parent, node)
 
-        left_expr = self.accept(node.left_expr)
-        right_expr = self.accept(node.right_expr)
+        left_expr = self.accept(node, node.left_expr)
+        right_expr = self.accept(node, node.right_expr)
         op_name = BinaryExpressionNameToOperator[node.type]
 
         # Boolean operations do not need type checking.
@@ -543,9 +554,9 @@ class CPPTranslatorVisitor(Visitor):
         self.set_type(node, max(left_expr_type, right_expr_type))
         return "(%s %s %s)" % (left_expr, op_name, right_expr)
 
-    def accept_ProcedureCall(self, node):
+    def accept_ProcedureCall(self, parent, node):
         # Accept all the arguments.
-        arguments = [self.accept(arg) for arg in node.arguments]
+        arguments = [self.accept(node, arg) for arg in node.arguments]
 
         # Inherit the type of the function via its arguments.
         if str(node.name) in ["ZeroExtend", "FPZero", "SignedSat", "UnsignedSat", "Sat"]:
@@ -595,7 +606,7 @@ class CPPTranslatorVisitor(Visitor):
                 arg_type = self.get_type(node.arguments[0])
                 if IsUnknownType(arg_type):
                     assert  type(node.arguments[0]) == ArrayAccess
-                    arg_type = ("int", self.accept(node.arguments[0].expr3))
+                    arg_type = ("int", self.accept(node, node.arguments[0].expr3))
 
                 arg_bit_len = arg_type[1]
                 return "((%s) ? %s : %s)" % (arguments[1], "UInt(%s)" % arguments[0], "SInt(%s, %s)" % (arguments[0], arg_bit_len))
@@ -605,7 +616,7 @@ class CPPTranslatorVisitor(Visitor):
             arg_type = self.get_type(node.arguments[0])
             if IsUnknownType(arg_type):
                 assert type(node.arguments[0]) == ArrayAccess
-                arg_type = ("int", self.accept(node.arguments[0].expr3))
+                arg_type = ("int", self.accept(node, node.arguments[0].expr3))
 
             # Integers are always 32 bits.
             self.set_type(node, ("int", 32))
@@ -635,7 +646,7 @@ class CPPTranslatorVisitor(Visitor):
             if IsUnknownType(arg_type):
                 print "DEBUG(%4d):" % (lineno())
                 print 'DEBUG: arg_type == ("unknown", None)'
-                print "DEBUG: node      = %s" % str(self.accept(node.arguments[0]))
+                print "DEBUG: node      = %s" % str(self.accept(node, node.arguments[0]))
                 print "DEBUG: node.name = %s" % (str(node.name))
 
             arg_bit_len = arg_type[1]
@@ -651,24 +662,24 @@ class CPPTranslatorVisitor(Visitor):
 
         return "%s(%s)" % (node.name, ", ".join(arguments))
 
-    def accept_RepeatUntil(self, node):
+    def accept_RepeatUntil(self, parent, node):
         t = "do {\n"
 
         for st in node.statements:
-            t += "    %s" % self.accept(st)
+            t += "    %s" % self.accept(node, st)
             if NeedsSemiColon(st):
                 t += ";"
 
             t += "\n"
 
-        t += "} while (%s);\n" % self.accept(node.condition)
+        t += "} while (%s);\n" % self.accept(node, node.condition)
 
         return t
 
-    def accept_While(self, node):
-        t = "while (%s) {\n" % self.accept(node.condition)
+    def accept_While(self, parent, node):
+        t = "while (%s) {\n" % self.accept(node, node.condition)
         for st in node.statements:
-            t += "    %s" % self.accept(st)
+            t += "    %s" % self.accept(node, st)
             if NeedsSemiColon(st):
                 t += ";"
 
@@ -678,18 +689,18 @@ class CPPTranslatorVisitor(Visitor):
 
         return t
 
-    def accept_For(self, node):
+    def accept_For(self, parent, node):
         assert node.from_.type == "assign"
-        var_name = self.accept(node.from_.left_expr)
-        var_value = self.accept(node.from_.right_expr)
-        to_ = self.accept(node.to)
+        var_name = self.accept(node, node.from_.left_expr)
+        var_value = self.accept(node, node.from_.right_expr)
+        to_ = self.accept(node, node.to)
 
         t = "for (unsigned %s = %s; %s < %s; ++%s) {\n" % (var_name, var_value, var_name, to_, var_name)
         
         last = len(node.statements) - 1
         for_statements = ""
         for i, st in enumerate(node.statements):
-            for_statements += self.accept(st)
+            for_statements += self.accept(node, st)
             if NeedsSemiColon(st):
                 for_statements += ";"
             
@@ -701,7 +712,7 @@ class CPPTranslatorVisitor(Visitor):
 
         return t
 
-    def accept_If(self, node):
+    def accept_If(self, parent, node):
         def hint(condition, statements):
             # Set the reason why Undefined or Unpredictable instructions are "skipped".
             for statement in statements:
@@ -714,13 +725,13 @@ class CPPTranslatorVisitor(Visitor):
             return condition
 
         # Hint unlikely expressions.
-        t = "if (%s) {\n" % hint(self.accept(node.condition), node.if_statements)
+        t = "if (%s) {\n" % hint(self.accept(node, node.condition), node.if_statements)
         
         # For each of the statements of the true branch.
         true_block = ""
         last = len(node.if_statements)
         for i, st in enumerate(node.if_statements):
-            true_block += self.accept(st)
+            true_block += self.accept(node, st)
             
             if NeedsSemiColon(st):
                 true_block += ";"
@@ -736,7 +747,7 @@ class CPPTranslatorVisitor(Visitor):
             false_block = ""
             t += " else {\n"
             for i, st in enumerate(node.else_statements):
-                false_block += self.accept(st)
+                false_block += self.accept(node, st)
 
                 if NeedsSemiColon(st):
                     false_block += ";"
@@ -749,18 +760,18 @@ class CPPTranslatorVisitor(Visitor):
         
         return t
 
-    def accept_BitExtraction(self, node):
+    def accept_BitExtraction(self, parent, node):
         # The identifier may be an expression, evaluate it.
-        node_name = self.accept(node.identifier)
+        node_name = self.accept(node, node.identifier)
 
         # The type is a one bit integer.
         if len(node.range) == 1:
             self.set_type(node, ("int", 1))
-            return "get_bit(%s, %s)" % (node_name, self.accept(node.range[0]))
+            return "get_bit(%s, %s)" % (node_name, self.accept(node, node.range[0]))
 
         # Accept the limits.
-        hi_lim = self.accept(node.range[0])
-        lo_lim = self.accept(node.range[1])
+        hi_lim = self.accept(node, node.range[0])
+        lo_lim = self.accept(node, node.range[1])
         
         # If both types are numbers we can get typing information.
         if type(node.range[0]) is NumberValue and type(node.range[1]) is NumberValue:
@@ -772,10 +783,10 @@ class CPPTranslatorVisitor(Visitor):
         self.set_type(node, ("int", 32))
         return "get_bits(%s, %s, %s)" % (node_name, hi_lim, lo_lim)
 
-    def accept_IfExpression(self, node):
-        condition = self.accept(node.condition)
-        trueValue = self.accept(node.trueValue)
-        falseValue = self.accept(node.falseValue)
+    def accept_IfExpression(self, parent, node):
+        condition = self.accept(node, node.condition)
+        trueValue = self.accept(node, node.trueValue)
+        falseValue = self.accept(node, node.falseValue)
 
         trueValue_type = self.get_type(node.trueValue)
         falseValue_type = self.get_type(node.falseValue)
@@ -786,8 +797,8 @@ class CPPTranslatorVisitor(Visitor):
             print "DEBUG: Types differ in expression = %s" % (node)
             print "DEBUG: trueValue.type             = %s" % str(trueValue_type)
             print "DEBUG: falseValue.type            = %s" % str(falseValue_type)
-            print "DEBUG: node.trueValue             = %r" % self.accept(node.trueValue)
-            print "DEBUG: node.falseValue            = %r" % self.accept(node.falseValue)
+            print "DEBUG: node.trueValue             = %r" % self.accept(node, node.trueValue)
+            print "DEBUG: node.falseValue            = %r" % self.accept(node, node.falseValue)
             raise RuntimeError("Cannot infer type for IfExpression")
 
         elif IsUnknownType(trueValue_type):
@@ -802,9 +813,9 @@ class CPPTranslatorVisitor(Visitor):
         else:
             self.set_type(node, trueValue_type)
 
-        return "%s ? %s : %s" % (condition, trueValue, falseValue)
+        return "((%s) ? %s : %s)" % (condition, trueValue, falseValue)
 
-    def accept_CaseElement(self, node):
+    def accept_CaseElement(self, parent, node):
         # The special case is when we have a masked binary that we will interpret as a range.
         if type(node.value) is MaskedBinary:
             t = "// Values of %s\n" % node.value.value
@@ -815,10 +826,10 @@ class CPPTranslatorVisitor(Visitor):
             t = "default:\n"
 
         else:
-            t = "case %s:\n" % self.accept(node.value)
+            t = "case %s:\n" % self.accept(node, node.value)
 
         for st in node.statements:
-            t += "    %s" % self.accept(st)
+            t += "    %s" % self.accept(node, st)
             if NeedsSemiColon(st):
                 t += ";"
 
@@ -828,37 +839,37 @@ class CPPTranslatorVisitor(Visitor):
 
         return t
 
-    def accept_Case(self, node):
-        t = "switch (%s) {\n" % self.accept(node.expr)
+    def accept_Case(self, parent, node):
+        t = "switch (%s) {\n" % self.accept(node, node.expr)
         for case in node.cases:
-            t += indent(self.accept(case))
+            t += indent(self.accept(node, case))
 
         t += "}\n"
 
         return t
 
-    def accept_Undefined(self, node):
+    def accept_Undefined(self, parent, node):
         self.set_type(node, ("unknown", None))
         return """return shared_ptr<ARMInstruction>(new UndefinedInstruction("Reason: %s"))""" % node.reason
 
-    def accept_Unpredictable(self, node):
+    def accept_Unpredictable(self, parent, node):
         self.set_type(node, ("unknown", None))
         return """return shared_ptr<ARMInstruction>(new UnpredictableInstruction("Reason: %s"))""" % node.reason
 
-    def accept_See(self, node):
+    def accept_See(self, parent, node):
         self.set_type(node, ("unknown", None))
         return "return shared_ptr<ARMInstruction>(new SeeInstruction(\"%s\"))" % str(node.msg)
 
-    def accept_ImplementationDefined(self, node):
+    def accept_ImplementationDefined(self, parent, node):
         self.set_type(node, ("unknown", None))
         return "return shared_ptr<ARMInstruction>(new ImplementationDefinedInstruction())"
 
-    def accept_SubArchitectureDefined(self, node):
+    def accept_SubArchitectureDefined(self, parent, node):
         self.set_type(node, ("unknown", None))
         return "return shared_ptr<ARMInstruction>(new SubArchitectureDefinedInstruction())"
 
-    def accept_Return(self, node):
-        t = "return %s;" % self.accept(node.value)
+    def accept_Return(self, parent, node):
+        t = "return %s;" % self.accept(node, node.value)
         ret_type = self.get_type(node.value)
 
         if IsUnknownType(ret_type) and type_check:
@@ -867,10 +878,10 @@ class CPPTranslatorVisitor(Visitor):
         self.set_type(node, ret_type)
         return t
 
-    def accept_List(self, node):
+    def accept_List(self, parent, node):
         # We accept every element of the list.
         for element in node.values:
-            self.accept(element)
+            self.accept(node, element)
 
         # Create the type list with the right number of elements. This is for type checking mostly.
         self.set_type(node, ("list", len(node.values)))
@@ -882,22 +893,22 @@ class InterpreterCPPTranslator(CPPTranslatorVisitor):
     """
     Especialize the translator to generate code for the interpreter.
     """
-    def accept_Undefined(self, node):
+    def accept_Undefined(self, parent, node):
         self.set_type(node, ("unknown", None))
         return "return false"
 
-    def accept_Unpredictable(self, node):
+    def accept_Unpredictable(self, parent, node):
         self.set_type(node, ("unknown", None))
         return "return false"
 
-    def accept_See(self, node):
+    def accept_See(self, parent, node):
         self.set_type(node, ("unknown", None))
         return "return false"
 
-    def accept_ImplementationDefined(self, node):
+    def accept_ImplementationDefined(self, parent, node):
         self.set_type(node, ("unknown", None))
         return "return false"
 
-    def accept_SubArchitectureDefined(self, node):
+    def accept_SubArchitectureDefined(self, parent, node):
         self.set_type(node, ("unknown", None))
         return "return false"
