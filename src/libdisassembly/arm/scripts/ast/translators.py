@@ -193,13 +193,11 @@ class CPPTranslatorVisitor(Visitor):
         return "ctx.readMemory(%s, %s)" % (expr1, expr2)
 
     def accept_RegularRegisterWrite(self, parent, node):
-        # Receives a BinaryExpression with an ArrayAccess and an expression.
         register_no_expression = self.accept(node, node.left_expr.expr1)
         register_value_expression = self.accept(node, node.right_expr)
         return "ctx.writeRegularRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
     def accept_RmodeWrite(self, parent, node):
-        # Receives a BinaryExpression with an ArrayAccess and an expression.
         expr1 = self.accept(node, node.left_expr.expr1)
         expr2 = self.accept(node, node.left_expr.expr2)
         value = self.accept(node, node.right_expr)
@@ -284,9 +282,6 @@ class CPPTranslatorVisitor(Visitor):
         expr_str = self.accept(node, node.expr)
         expr_type = self.get_type(node.expr)
         
-        if IsUnknownType(expr_type) and type_check:
-            raise RuntimeError("Unary expresion type unknown.")
-
         # Make the node inherit the type of the expression.
         self.set_type(node, expr_type)
 
@@ -317,12 +312,11 @@ class CPPTranslatorVisitor(Visitor):
             if can_optimize(cases_):
                 return "(%s >= %d && %s <= %d)" % (left_expr, cases_[0], left_expr, cases_[-1])
 
-            else:
-                t = []
-                for case in cases_:
-                    t.append("%s == %d" % (left_expr, case))
+            t = []
+            for case in cases_:
+                t.append("%s == %d" % (left_expr, case))
 
-                return "(%s)" % (" || ".join(t))
+            return "(%s)" % (" || ".join(t))
 
         elif type(node.right_expr) in [List, Enumeration]:
             t = []
@@ -342,15 +336,7 @@ class CPPTranslatorVisitor(Visitor):
         left_expr_type = self.get_type(node.left_expr)
         right_expr_type = self.get_type(node.right_expr)
 
-        if IsUnknownType(left_expr_type) or IsUnknownType(right_expr_type):
-            print "DEBUG(%4d):" % (lineno())
-            print "DEBUG: Concatenated expressions type is unknown."
-            print "DEBUG: node            = %s" % str(node)
-            print "DEBUG: node.left_expr  = %s" % str(left_expr)
-            print "DEBUG: node.right_expr = %s" % str(right_expr)
-
-            if type_check:
-                raise RuntimeError("Unary expresion type unknown.")
+        assert not (IsUnknownType(left_expr_type) or IsUnknownType(right_expr_type))
 
         # A 'NumberValue' parsed from a string '0b00' has 'bit_size' of 2 instead of 32 as with the default numbers.
         if type(node.right_expr) is NumberValue and right_expr_type[1] != node.right_expr.bit_size:
@@ -871,10 +857,6 @@ class CPPTranslatorVisitor(Visitor):
     def accept_Return(self, parent, node):
         t = "return %s;" % self.accept(node, node.value)
         ret_type = self.get_type(node.value)
-
-        if IsUnknownType(ret_type) and type_check:
-            raise RuntimeError("Type of the return statement is unknown.")
-
         self.set_type(node, ret_type)
         return t
 
