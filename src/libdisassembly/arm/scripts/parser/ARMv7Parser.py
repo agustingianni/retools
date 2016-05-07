@@ -88,7 +88,7 @@ def decode_repeat_until(x):
 
 
 def decode_for(x):
-    return For(x[1], x[3], x[4])
+    return For(x[1], x[3], [e[0] for e in x[4]])
 
 
 def decode_while(x):
@@ -381,7 +381,7 @@ repeat_until_statement = (REPEAT + EOL + statement_list + UNTIL + expr).setParse
 while_statement = (WHILE + expr + DO + statement_list).setParseAction(decode_while)
 
 # For statement.
-for_statement = (FOR + assignment_statement + TO + expr + EOL + statement_list + ENDFOR).setParseAction(decode_for)
+for_statement = (FOR + assignment_statement + TO + expr + EOL + Group(statement_list) + ENDFOR).setParseAction(decode_for)
 
 # Collect all statements. We have two kinds, the ones that end with a semicolon and other statements that do not.
 t1 = MatchFirst([undefined_statement, unpredictable_statement, see_statement, \
