@@ -191,9 +191,6 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         
         fd.write(header)
         for i, instruction in enumerate(ARMv7OperationSpec.instructions):
-            # if i == 200:
-            #     break
-
             ins_name = instruction["name"]
             logging.info("Processing instruction '%s' (%d)" % (ins_name, i))
 
@@ -226,8 +223,6 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
 
                 body += indent(code)
 
-            fd.write("\n")
-
             # TODO: Do the proper thing.
             for var in translator.define_me:
                 type_ = "int"
@@ -236,7 +231,8 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
 
                 fd.write("    %s %s = 0;\n" % (type_, var))
 
-            fd.write("\n")
+            if len(translator.define_me):
+                fd.write("\n")
                 
             # Write the translated body.
             fd.write(body)
