@@ -187,8 +187,8 @@ class CPPTranslatorVisitor(Visitor):
         expr2 = self.accept(node, node.expr2)
 
         # Set the type of the memory access.
-        if expr2.isdigit():
-            self.set_type(node, ("int", int(expr2) * 8))
+        type_width = int(expr2) * 8 if expr2.isdigit() else expr2
+        self.set_type(node, ("int", type_width))
 
         return "ctx.readMemory(%s, %s)" % (expr1, expr2)
 
@@ -229,8 +229,9 @@ class CPPTranslatorVisitor(Visitor):
         element = self.accept(node, node.expr2)
         size = self.accept(node, node.expr3)
 
-        if size.isdigit():
-            self.set_type(node, ("int", int(size) * 8))
+        # Set the type of the memory access.
+        type_width = int(size) * 8 if size.isdigit() else size
+        self.set_type(node, ("int", type_width))
 
         return "ctx.readElement(%s, %s, %s)" % (vector, element, size)
 
