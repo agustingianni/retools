@@ -399,8 +399,8 @@ class CPPTranslatorVisitor(Visitor):
                 if sat_size.isdigit():
                     sat_size = int(sat_size)
 
-                arg0 = self.accept(node, node.left_expr.values[0])
-                arg1 = self.accept(node, node.left_expr.values[1])
+                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
+                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
 
                 # Set the type either to an integer or an integer expression.
                 self.set_type(arg0, ("int", sat_size))
