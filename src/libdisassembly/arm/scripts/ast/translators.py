@@ -574,7 +574,7 @@ class CPPTranslatorVisitor(Visitor):
 
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
-        elif str(node.name) in ["ROR", "LSL", "FPNeg", "RoundTowardsZero"]:
+        elif str(node.name) in ["ROR", "LSL", "LSR", "FPNeg", "FPSqrt", "RoundTowardsZero", "Shift"]:
             # Inherit the type of the first argument.
             arg_type = self.get_type(node.arguments[0])
             if not IsUnknownType(arg_type):
@@ -722,6 +722,12 @@ class CPPTranslatorVisitor(Visitor):
 
         elif str(node.name) in ["FPSingleToHalf"]:
             self.set_type(node, ("int", 16))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["FPToFixed", "FixedToFP"]:
+            arg_type = self.get_type(node.arguments[1])
+            assert not IsUnknownType(arg_type)
+            self.set_type(node, arg_type)
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
         return "%s(%s)" % (node.name, ", ".join(arguments))
