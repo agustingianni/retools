@@ -593,9 +593,8 @@ class CPPTranslatorVisitor(Visitor):
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["Zeros", "Ones"]:
-            # If the argument is an integer then it is the size of the generated integer.
-            if arguments[0].isdigit():
-                self.set_type(node, ("int", int(arguments[0])))
+            node_type = int(arguments[0]) if arguments[0].isdigit() else arguments[0]
+            self.set_type(node, ("int", node_type))
 
             return "%s(%s)" % (node.name, ", ".join(arguments))
             
