@@ -394,10 +394,6 @@ class CPPTranslatorVisitor(Visitor):
             
             # Small hack.
             if self.accept(node, node.right_expr.name) in ["SignedSatQ", "UnsignedSatQ"]:
-                # (result, sat) = UnsignedSatQ(SInt(operand), saturate_to);
-                # (result1, sat1) = UnsignedSatQ(SInt(R[n]<15:0>), saturate_to);
-                # (result2, sat2) = UnsignedSatQ(SInt(R[n]<31:16>), saturate_to);
-                
                 # Get the saturation size.
                 sat_size = self.accept(node, node.right_expr.arguments[1])
                 if sat_size.isdigit():
@@ -409,13 +405,6 @@ class CPPTranslatorVisitor(Visitor):
                 # Set the type either to an integer or an integer expression.
                 self.set_type(arg0, ("int", sat_size))
                 self.set_type(arg1, ("int", 1))
-
-                # print
-                # print "XXXX: (%d)" % lineno()
-                # print "XXXX: node.left_expr        ", arg0, ("int", sat_size)
-                # print "XXXX: node.left_expr        ", arg1, ("int", 1)
-                # print "XXXX: std::tie(%s) = %s" % (", ".join(map(self.accept, node.left_expr.values)), right_expr)
-                # print
 
                 # Accept all the function arguments.
                 tmp = []
