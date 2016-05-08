@@ -569,17 +569,16 @@ class CPPTranslatorVisitor(Visitor):
 
         # Inherit the type of the function via its arguments.
         if str(node.name) in ["ZeroExtend", "FPZero", "SignedSat", "UnsignedSat", "Sat"]:
-            node_type = int(arguments[1]) if arguments[1].isdigit() else arguments[1]
-            self.set_type(node, ("int", node_type))
-
+            arg_type = int(arguments[1]) if arguments[1].isdigit() else arguments[1]
+            assert not IsUnknownType(arg_type)
+            self.set_type(node, ("int", arg_type))
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["ROR", "LSL", "LSR", "FPNeg", "FPSqrt", "RoundTowardsZero", "Shift"]:
             # Inherit the type of the first argument.
             arg_type = self.get_type(node.arguments[0])
-            if not IsUnknownType(arg_type):
-                self.set_type(node, arg_type)
-
+            assert not IsUnknownType(arg_type)
+            self.set_type(node, arg_type)
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["AddWithCarry", "Max", "Min", "FPMax", "FPMin", "FPSub",
@@ -648,16 +647,12 @@ class CPPTranslatorVisitor(Visitor):
             return "SInt(%s, %s)" % (arguments[0], arg_bit_len)
 
         elif str(node.name) in ["NOT"]:
-            # Inherit the type of the argument.
             arg_type = self.get_type(node.arguments[0])
-            if IsUnknownType(arg_type) and type_check:
-                raise RuntimeError("Type of NOT expression is unknown.")
-
+            assert not IsUnknownType(arg_type)
             self.set_type(node, arg_type)
             return "%s(%s, %s)" % (node.name, ", ".join(arguments), arg_type[1])
 
         elif str(node.name) in ["Abs", "Align", "FPAbs"]:
-            # Inherit the type of the first argument.
             arg_type = self.get_type(node.arguments[0])
             assert not IsUnknownType(arg_type)
             self.set_type(node, arg_type)
@@ -684,6 +679,7 @@ class CPPTranslatorVisitor(Visitor):
             return "SignExtend(%s, %s)" % (arguments[0], arg_bit_len)
 
         elif str(node.name) in ["ALUWritePC"]:
+            self.set_type(node, ("void", None))
             return "ctx.%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["CheckAdvSIMDEnabled", "CheckAdvSIMDOrVFPEnabled", "CheckVFPEnabled",
