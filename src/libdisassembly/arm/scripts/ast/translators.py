@@ -583,6 +583,15 @@ class CPPTranslatorVisitor(Visitor):
 
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
+        elif str(node.name) in ["Max", "Min", "FPMax", "FPMin"]:
+            t0 = self.get_type(node.arguments[0])
+            t1 = self.get_type(node.arguments[1])
+            
+            assert t0 == t1
+
+            self.set_type(node, t0)
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
         elif str(node.name) in ["Zeros", "Ones"]:
             # If the argument is an integer then it is the size of the generated integer.
             if arguments[0].isdigit():
