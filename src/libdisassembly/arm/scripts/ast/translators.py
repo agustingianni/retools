@@ -569,9 +569,8 @@ class CPPTranslatorVisitor(Visitor):
 
         # Inherit the type of the function via its arguments.
         if str(node.name) in ["ZeroExtend", "FPZero", "SignedSat", "UnsignedSat", "Sat"]:
-            # If the argument is an integer then it is the size of the expression.
-            if arguments[1].isdigit():
-                self.set_type(node, ("int", int(arguments[1])))
+            node_type = int(arguments[1]) if arguments[1].isdigit() else arguments[1]
+            self.set_type(node, ("int", node_type))
 
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
