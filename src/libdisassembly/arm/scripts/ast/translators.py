@@ -582,7 +582,7 @@ class CPPTranslatorVisitor(Visitor):
 
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
-        elif str(node.name) in ["Max", "Min", "FPMax", "FPMin", "FPSub", "FPAdd", "FPDiv", "FPMul", "FPMulAdd", "FPCompare", "FPCompareEQ", "FPCompareGE", "FPCompareGT"]:
+        elif str(node.name) in ["AddWithCarry", "Max", "Min", "FPMax", "FPMin", "FPSub", "FPAdd", "FPDiv", "FPMul", "FPMulAdd", "FPCompare", "FPCompareEQ", "FPCompareGE", "FPCompareGT"]:
             t0 = self.get_type(node.arguments[0])
             t1 = self.get_type(node.arguments[1])
 
@@ -684,6 +684,43 @@ class CPPTranslatorVisitor(Visitor):
 
         elif str(node.name) in ["ALUWritePC"]:
             return "ctx.%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["CheckAdvSIMDEnabled", "CheckAdvSIMDOrVFPEnabled", "CheckVFPEnabled",
+            "ConditionPassed", "Coproc_Accepted", "Coproc_DoneLoading", "Coproc_DoneStoring",
+            "CurrentModeIsHyp", "CurrentModeIsNotUser", "CurrentModeIsUserOrSystem", "HasVirtExt",
+            "HaveLPAE", "HaveSecurityExt", "HaveVirtExt", "IsSecure", "IsZero", "IsZeroBit",
+            "JazelleAcceptsExecution", "NullCheckIfThumbEE", "UnalignedSupport", "EventRegistered",
+            "ExclusiveMonitorsPass", "IntegerZeroDivideTrappingEnabled", "BigEndian"]:
+            self.set_type(node, ("int", 1))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["BKPTInstrDebugEvent", "BXWritePC", "BankedRegisterAccessValid",
+            "BranchWritePC", "CPSRWriteByInstr", "CallHypervisor", "CallSupervisor",
+            "ClearEventRegister", "ClearExclusiveLocal", "Coproc_InternalOperation",
+            "Coproc_SendLoadedWord", "Coproc_SendOneWord", "Coproc_SendTwoWords", "DataMemoryBarrier",
+            "DataSynchronizationBarrier", "EncodingSpecificOperations", "GenerateAlignmentException",
+            "GenerateCoprocessorException", "GenerateIntegerZeroDivide", "Hint_Debug", "Hint_PreloadData",
+            "Hint_PreloadDataForWrite", "Hint_PreloadInstr", "Hint_Yield", "InstructionSynchronizationBarrier",
+            "LoadWritePC", "SPSRaccessValid", "SelectInstrSet", "SendEvent", "SerializeVFP",
+            "SetExclusiveMonitors", "SwitchToJazelleExecution", "TakeHypTrapException", "TakeSMCException",
+            "VFPExcBarrier", "WaitForEvent", "WaitForInterrupt", "WriteHSR"]:
+            self.set_type(node, ("void", None))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["ArchVersion", "BitCount", "Coproc_GetOneWord", "Coproc_GetWordToStore",
+            "CountLeadingSignBits", "CountLeadingZeroBits", "CurrentInstrSet", "FPDoubleToSingle",
+            "FPHalfToSingle", "FPRSqrtEstimate", "FPRSqrtStep", "FPRecipEstimate", "FPRecipStep",
+            "LowestSetBit", "PCStoreValue", "ProcessorID", "UnsignedRSqrtEstimate", "UnsignedRecipEstimate"]:
+            self.set_type(node, ("int", 32))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["FPSingleToDouble"]:
+            self.set_type(node, ("int", 64))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["FPSingleToHalf"]:
+            self.set_type(node, ("int", 16))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
 
         return "%s(%s)" % (node.name, ", ".join(arguments))
 
