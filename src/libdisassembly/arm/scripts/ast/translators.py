@@ -392,9 +392,9 @@ class CPPTranslatorVisitor(Visitor):
 
             assert t1 == t2 or t1 == t3
             
-            # Small hack.
-            if self.accept(node, node.right_expr.name) in ["SignedSatQ", "UnsignedSatQ"]:
-                # Get the saturation size.
+            # For some functions we need to extract additional data for assigning the right types.
+            function_name = self.accept(node, node.right_expr.name)
+            if function_name in ["SignedSatQ", "UnsignedSatQ"]:
                 sat_size = self.accept(node, node.right_expr.arguments[1])
                 if sat_size.isdigit():
                     sat_size = int(sat_size)
@@ -402,22 +402,57 @@ class CPPTranslatorVisitor(Visitor):
                 arg0 = self.accept(node.left_expr, node.left_expr.values[0])
                 arg1 = self.accept(node.left_expr, node.left_expr.values[1])
 
-                # Set the type either to an integer or an integer expression.
                 self.set_type(arg0, ("int", sat_size))
                 self.set_type(arg1, ("int", 1))
+            
+            elif function_name in ["ARMExpandImm_C", "ThumbExpandImm_C"]:
+                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
+                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
 
-                # Accept all the function arguments.
-                tmp = []
-                for val in node.left_expr.values:
-                    name = self.accept(node.left_expr, val)
-                    tmp.append(name)
+                self.set_type(arg0, ("int", 32))
+                self.set_type(arg1, ("int", 1))
 
-                    if not name in self.symbol_table:
-                        # Declare it and initialize it.
-                        self.symbol_table.add(name)
-                        self.define_me.add(name)
+            elif function_name in ["DecodeImmShift", "Coproc_GetTwoWords"]:
+                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
+                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
 
-                return "std::tie(%s) = %s" % (", ".join(tmp), right_expr)
+                self.set_type(arg0, ("int", 32))
+                self.set_type(arg1, ("int", 32))
+
+            elif function_name in ["AddWithCarry"]:
+                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
+                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
+                arg2 = self.accept(node.left_expr, node.left_expr.values[2])
+
+                t0 = self.get_type(node.right_expr.arguments[0])
+                t1 = self.get_type(node.right_expr.arguments[1])
+
+                assert t0 == t1 and not IsUnknownType(t0) and not IsUnknownType(t1)
+
+                self.set_type(arg0, t0)
+                self.set_type(arg1, ("int", 1))
+                self.set_type(arg2, ("int", 1))
+
+            elif function_name in ["Shift_C"]:
+                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
+                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
+                t0 = self.accept(node, node.right_expr.arguments[0])
+
+                assert not IsUnknownType(t0)
+
+                self.set_type(arg0, t0)
+                self.set_type(arg1, ("int", 1))
+
+            elif function_name in ["FPCompare"]:
+                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
+                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
+                arg2 = self.accept(node.left_expr, node.left_expr.values[2])
+                arg3 = self.accept(node.left_expr, node.left_expr.values[3])
+
+                self.set_type(arg0, ("int", 1))
+                self.set_type(arg1, ("int", 1))
+                self.set_type(arg2, ("int", 1))
+                self.set_type(arg3, ("int", 1))
 
             names = []
 
@@ -432,8 +467,6 @@ class CPPTranslatorVisitor(Visitor):
                     self.define_me.add(name)
                 
                 names.append(name)
-
-                self.set_type(var, ("int", 32))
 
             return "std::tie(%s) = %s" % (", ".join(names), right_expr)
 
