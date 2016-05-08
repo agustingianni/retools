@@ -151,6 +151,10 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += "    bool FPCompareGE(unsigned op1, unsigned op2, bool fpscr_controlled) { return false; }\n"
         header += "    std::tuple<bool, bool, bool, bool> FPCompare(unsigned op1, unsigned op2, bool quiet_nan_exc, bool fpscr_controlled) { return std::tuple<bool, bool, bool, bool>(false, false, false, false); }\n"
         header += "    bool FPCompareEQ(unsigned op1, unsigned op2, bool fpscr_controlled) { return false; }\n"
+        header += "    template<class T> const T& Max(const T& a, const T& b) { return (a < b) ? b : a; }\n"
+        header += "    template<class T> const T& Min(const T& a, const T& b) { return (a < b) ? a : b; }\n"
+        header += "    template<class T> const T& FPMax(const T& a, const T& b, bool val) { return (a < b) ? b : a; }\n"
+        header += "    template<class T> const T& FPMin(const T& a, const T& b, bool val) { return (a < b) ? a : b; }\n"
 
         header += "\n"
         header += "    fpscr_t FPSCR;\n"
