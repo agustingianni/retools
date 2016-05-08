@@ -662,14 +662,12 @@ class CPPTranslatorVisitor(Visitor):
             if IsUnknownType(arg_type):
                 print "DEBUG(%4d):" % (lineno())
                 print 'DEBUG: arg_type == ("unknown", None)'
-                print "DEBUG: node      = %s" % str(self.accept(node, node.arguments[0]))
-                print "DEBUG: node.name = %s" % (str(node.name))
+                print "DEBUG: node      = %s" % str(node)
 
             arg_bit_len = arg_type[1]
 
-            # The resulting size is the second argument.
-            if arguments[1].isdigit():
-                self.set_type(node, ("int", int(arguments[1])))
+            node_type = int(arguments[1]) if arguments[1].isdigit() else arguments[1]
+            self.set_type(node, ("int", node_type))
 
             return "SignExtend(%s, %s)" % (arguments[0], arg_bit_len)
 
