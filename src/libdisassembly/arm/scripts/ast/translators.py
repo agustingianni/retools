@@ -574,7 +574,7 @@ class CPPTranslatorVisitor(Visitor):
 
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
-        elif str(node.name) in ["ROR", "LSL", "FPNeg", "FPMul", "RoundTowardsZero"]:
+        elif str(node.name) in ["ROR", "LSL", "FPNeg", "RoundTowardsZero"]:
             # Inherit the type of the first argument.
             arg_type = self.get_type(node.arguments[0])
             if not IsUnknownType(arg_type):
@@ -582,11 +582,16 @@ class CPPTranslatorVisitor(Visitor):
 
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
-        elif str(node.name) in ["Max", "Min", "FPMax", "FPMin"]:
+        elif str(node.name) in ["Max", "Min", "FPMax", "FPMin", "FPSub", "FPAdd", "FPDiv", "FPMul", "FPMulAdd", "FPCompare", "FPCompareEQ", "FPCompareGE", "FPCompareGT"]:
             t0 = self.get_type(node.arguments[0])
             t1 = self.get_type(node.arguments[1])
-            
-            assert t0 == t1
+
+            if t0 != t1:
+                print "DEBUG(%4d):" % (lineno())
+                print "DEBUG: Operands type for %s do not match" % node.name
+                print 'DEBUG:   t0 =', t0
+                print 'DEBUG:   t1 =', t1
+                print "DEBUG: node =", str(node)
 
             self.set_type(node, t0)
             return "%s(%s)" % (node.name, ", ".join(arguments))
@@ -643,13 +648,19 @@ class CPPTranslatorVisitor(Visitor):
 
         elif str(node.name) in ["NOT"]:
             # Inherit the type of the argument.
-            assert len(node.arguments) == 1
             arg_type = self.get_type(node.arguments[0])
             if IsUnknownType(arg_type) and type_check:
                 raise RuntimeError("Type of NOT expression is unknown.")
 
             self.set_type(node, arg_type)
-            return "NOT(%s, %s)" % (", ".join(arguments), arg_type[1])
+            return "%s(%s, %s)" % (node.name, ", ".join(arguments), arg_type[1])
+
+        elif str(node.name) in ["Abs", "Align", "FPAbs"]:
+            # Inherit the type of the first argument.
+            arg_type = self.get_type(node.arguments[0])
+            assert not IsUnknownType(arg_type)
+            self.set_type(node, arg_type)
+            return "%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) == "Consistent":
             self.set_type(node, ("int", 1))
