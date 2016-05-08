@@ -4699,7 +4699,7 @@ if ConditionPassed() then
             op1 = Elem[val1, e, esize];
             op2 = Elem[val2, e, esize];
             
-            absdiff = Abs(Int(op1,unsigned) - Int(op2,unsigned));
+            absdiff = Abs(Int(op1,unsigned_) - Int(op2,unsigned_));
             if long_destination then
                 ds = d >> 1;
                 esize2 = 2 * esize;
@@ -4730,7 +4730,7 @@ if ConditionPassed() then
             val2 = Din[mpr];
             op1 = Elem[val1,e,esize];
             op2 = Elem[val2,e,esize];
-            absdiff = Abs(Int(op1,unsigned) - Int(op2,unsigned));
+            absdiff = Abs(Int(op1,unsigned_) - Int(op2,unsigned_));
             if long_destination then
                 ds = d >> 1;
                 esize2 = 2 * esize;
@@ -4887,12 +4887,12 @@ if ConditionPassed() then
     for e = 0 to elements-1
         if is_vaddw then
             ns1 = n >> 1;
-            op1 = Int(Elem[Qin[n>>1],e,2*esize], unsigned);
+            op1 = Int(Elem[Qin[n>>1],e,2*esize], unsigned_);
         else
-            op1 = Int(Elem[Din[n],e,esize], unsigned);
+            op1 = Int(Elem[Din[n],e,esize], unsigned_);
         endif
 
-        result = op1 + Int(Elem[Din[m],e,esize],unsigned);
+        result = op1 + Int(Elem[Din[m],e,esize],unsigned_);
         Elem[Q[d>>1],e,2*esize] = result<2*esize-1:0>;
     endfor
 endif
@@ -5391,8 +5391,8 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
     for r = 0 to regs-1
         for e = 0 to elements-1
-            op1 = Int(Elem[D[n+r],e,esize], unsigned);
-            op2 = Int(Elem[D[m+r],e,esize], unsigned);
+            op1 = Int(Elem[D[n+r],e,esize], unsigned_);
+            op2 = Int(Elem[D[m+r],e,esize], unsigned_);
             result = if add then op1+op2 else op1-op2;
             Elem[D[d+r],e,esize] = result<esize:1>;
         endfor
@@ -5716,8 +5716,8 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
     for r = 0 to regs-1
         for e = 0 to elements-1
-            op1 = Int(Elem[D[n+r],e,esize], unsigned);
-            op2 = Int(Elem[D[m+r],e,esize], unsigned);
+            op1 = Int(Elem[D[n+r],e,esize], unsigned_);
+            op2 = Int(Elem[D[m+r],e,esize], unsigned_);
             result = if maximum then Max(op1,op2) else Min(op1,op2);
             Elem[D[d+r],e,esize] = result<esize-1:0>;
         endfor
@@ -5747,7 +5747,7 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
     for r = 0 to regs-1
         for e = 0 to elements-1
-            product = Int(Elem[Din[n+r],e,esize],unsigned) * Int(Elem[Din[m+r],e,esize],unsigned);
+            product = Int(Elem[Din[n+r],e,esize],unsigned_) * Int(Elem[Din[m+r],e,esize],unsigned_);
             addend = if add then product else -product;
             if long_destination then
                 Elem[Q[d>>1],e,2*esize] = Elem[Qin[d>>1],e,2*esize] + addend;
@@ -5790,12 +5790,12 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
     op2 = Elem[Din[m],index,esize];
-    op2val = Int(op2, unsigned);
+    op2val = Int(op2, unsigned_);
     
     for r = 0 to regs-1
         for e = 0 to elements-1
             op1 = Elem[Din[n+r],e,esize];
-            op1val = Int(op1, unsigned);
+            op1val = Int(op1, unsigned_);
 
             if floating_point then
                 fp_addend = if add then FPMul(op1,op2,FALSE) else FPNeg(FPMul(op1,op2,FALSE));
@@ -5916,7 +5916,7 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
     for e = 0 to elements-1
-        result = Int(Elem[Din[m],e,esize], unsigned);
+        result = Int(Elem[Din[m],e,esize], unsigned_);
         Elem[Q[d>>1],e,2*esize] = result<2*esize-1:0>;
     endfor
 endif
@@ -5971,9 +5971,9 @@ if ConditionPassed() then
     for r = 0 to regs-1
         for e = 0 to elements-1
             op1 = Elem[Din[n+r],e,esize];
-            op1val = Int(op1, unsigned);
+            op1val = Int(op1, unsigned_);
             op2 = Elem[Din[m+r],e,esize];
-            op2val = Int(op2, unsigned);
+            op2val = Int(op2, unsigned_);
 
             if polynomial then
                 product = PolynomialMult(op1,op2);
@@ -6019,12 +6019,12 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
     op2 = Elem[Din[m],index,esize];
-    op2val = Int(op2, unsigned);
+    op2val = Int(op2, unsigned_);
 
     for r = 0 to regs-1
         for e = 0 to elements-1
             op1 = Elem[Din[n+r],e,esize];
-            op1val = Int(op1, unsigned);
+            op1val = Int(op1, unsigned_);
 
             if floating_point then
                 Elem[D[d+r],e,esize] = FPMul(op1, op2, FALSE);
@@ -6163,7 +6163,7 @@ if ConditionPassed() then
         for e = 0 to h-1
             op1 = Elem[D[m+r],2*e,esize];
             op2 = Elem[D[m+r],2*e+1,esize];
-            result = Int(op1, unsigned) + Int(op2, unsigned);
+            result = Int(op1, unsigned_) + Int(op2, unsigned_);
             Elem[D[d+r],e,2*esize] = Elem[D[d+r],e,2*esize] + result;
         endfor
     endfor
@@ -6213,7 +6213,7 @@ if ConditionPassed() then
         for e = 0 to h-1
             op1 = Elem[D[m+r],2*e,esize];
             op2 = Elem[D[m+r],2*e+1,esize];
-            result = Int(op1, unsigned) + Int(op2, unsigned);
+            result = Int(op1, unsigned_) + Int(op2, unsigned_);
             Elem[D[d+r],e,2*esize] = result<2*esize-1:0>;
         endfor
     endfor
@@ -6229,12 +6229,12 @@ if ConditionPassed() then
     dest = 0;
     h = elements/2;
     for e = 0 to h-1
-        op1 = Int(Elem[D[n],2*e,esize], unsigned);
-        op2 = Int(Elem[D[n],2*e+1,esize], unsigned);
+        op1 = Int(Elem[D[n],2*e,esize], unsigned_);
+        op2 = Int(Elem[D[n],2*e+1,esize], unsigned_);
         result = if maximum then Max(op1,op2) else Min(op1,op2);
         Elem[dest,e,esize] = result<esize-1:0>;
-        op1 = Int(Elem[D[m],2*e,esize], unsigned);
-        op2 = Int(Elem[D[m],2*e+1,esize], unsigned);
+        op1 = Int(Elem[D[m],2*e,esize], unsigned_);
+        op2 = Int(Elem[D[m],2*e+1,esize], unsigned_);
         result = if maximum then Max(op1,op2) else Min(op1,op2);
         Elem[dest,e+h,esize] = result<esize-1:0>;
         D[d] = dest;
@@ -6338,8 +6338,8 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
     for r = 0 to regs-1
         for e = 0 to elements-1
-            sum = Int(Elem[D[n+r],e,esize], unsigned) + Int(Elem[D[m+r],e,esize], unsigned);
-            (Elem[D[d+r],e,esize], sat) = SatQ(sum, esize, unsigned);
+            sum = Int(Elem[D[n+r],e,esize], unsigned_) + Int(Elem[D[m+r],e,esize], unsigned_);
+            (Elem[D[d+r],e,esize], sat) = SatQ(sum, esize, unsigned_);
             if sat then
                 FPSCR.QC = '1';
             endif
@@ -6503,8 +6503,8 @@ if ConditionPassed() then
         for e = 0 to elements-1
             shift = SInt(Elem[D[n+r],e,esize]<7:0>);
             round_const = 1 << (-1-shift);
-            operand = Int(Elem[D[m+r],e,esize], unsigned);
-            (result, sat) = SatQ((operand + round_const) << shift, esize, unsigned);
+            operand = Int(Elem[D[m+r],e,esize], unsigned_);
+            (result, sat) = SatQ((operand + round_const) << shift, esize, unsigned_);
             Elem[D[d+r],e,esize] = result;
             if sat then
                 FPSCR.QC = '1';
@@ -6541,8 +6541,8 @@ if ConditionPassed() then
     for r = 0 to regs-1
         for e = 0 to elements-1
             shift = SInt(Elem[D[n+r],e,esize]<7:0>);
-            operand = Int(Elem[D[m+r],e,esize], unsigned);
-            (result,sat) = SatQ(operand << shift, esize, unsigned);
+            operand = Int(Elem[D[m+r],e,esize], unsigned_);
+            (result,sat) = SatQ(operand << shift, esize, unsigned_);
             Elem[D[d+r],e,esize] = result;
             if sat then
                 FPSCR.QC = '1';
@@ -6596,8 +6596,8 @@ if ConditionPassed() then
 
     for r = 0 to regs-1
         for e = 0 to elements-1
-            diff = Int(Elem[D[n+r],e,esize], unsigned) - Int(Elem[D[m+r],e,esize], unsigned);
-            (Elem[D[d+r],e,esize], sat) = SatQ(diff, esize, unsigned);
+            diff = Int(Elem[D[n+r],e,esize], unsigned_) - Int(Elem[D[m+r],e,esize], unsigned_);
+            (Elem[D[d+r],e,esize], sat) = SatQ(diff, esize, unsigned_);
             if sat then
                 FPSCR.QC = '1';
             endif
@@ -6680,8 +6680,8 @@ if ConditionPassed() then
     
     for r = 0 to regs-1
         for e = 0 to elements-1
-            op1 = Int(Elem[D[n+r],e,esize], unsigned);
-            op2 = Int(Elem[D[m+r],e,esize], unsigned);
+            op1 = Int(Elem[D[n+r],e,esize], unsigned_);
+            op2 = Int(Elem[D[m+r],e,esize], unsigned_);
             result = op1 + op2 + 1;
             Elem[D[d+r],e,esize] = result<esize:1>;
         endfor
@@ -6699,7 +6699,7 @@ if ConditionPassed() then
         for e = 0 to elements-1
             shift = SInt(Elem[D[n+r],e,esize]<7:0>);
             round_const = 1 << (-shift-1);
-            result = (Int(Elem[D[m+r],e,esize], unsigned) + round_const) << shift;
+            result = (Int(Elem[D[m+r],e,esize], unsigned_) + round_const) << shift;
             Elem[D[d+r],e,esize] = result<esize-1:0>;
         endfor
     endfor
@@ -6715,7 +6715,7 @@ if ConditionPassed() then
     round_const = 1 << (shift_amount - 1);
     for r = 0 to regs-1
         for e = 0 to elements-1
-            result = (Int(Elem[D[m+r],e,esize], unsigned) + round_const) >> shift_amount;
+            result = (Int(Elem[D[m+r],e,esize], unsigned_) + round_const) >> shift_amount;
             Elem[D[d+r],e,esize] = result<esize-1:0>;
         endfor
     endfor
@@ -6777,7 +6777,7 @@ if ConditionPassed() then
     round_const = 1 << (shift_amount - 1);
     for r = 0 to regs-1
         for e = 0 to elements-1
-            result = (Int(Elem[D[m+r],e,esize], unsigned) + round_const) >> shift_amount;
+            result = (Int(Elem[D[m+r],e,esize], unsigned_) + round_const) >> shift_amount;
             Elem[D[d+r],e,esize] = Elem[D[d+r],e,esize] + result;
         endfor
     endfor
@@ -6821,7 +6821,7 @@ if ConditionPassed() then
     for r = 0 to regs-1
         for e = 0 to elements-1
             shift = SInt(Elem[D[n+r],e,esize]<7:0>);
-            result = Int(Elem[D[m+r],e,esize], unsigned) << shift;
+            result = Int(Elem[D[m+r],e,esize], unsigned_) << shift;
             Elem[D[d+r],e,esize] = result<esize-1:0>;
         endfor
     endfor
@@ -6834,7 +6834,7 @@ if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
     for e = 0 to elements-1
-        result = Int(Elem[Din[m],e,esize], unsigned) << shift_amount;
+        result = Int(Elem[Din[m],e,esize], unsigned_) << shift_amount;
         Elem[Q[d>>1],e,2*esize] = result<2*esize-1:0>;
     endfor
 endif
@@ -6848,7 +6848,7 @@ if ConditionPassed() then
     
     for r = 0 to regs-1
         for e = 0 to elements-1
-            result = Int(Elem[D[m+r],e,esize], unsigned) >> shift_amount;
+            result = Int(Elem[D[m+r],e,esize], unsigned_) >> shift_amount;
             Elem[D[d+r],e,esize] = result<esize-1:0>;
         endfor
     endfor
@@ -6906,7 +6906,7 @@ if ConditionPassed() then
 
     for r = 0 to regs-1
         for e = 0 to elements-1
-            result = Int(Elem[D[m+r],e,esize], unsigned) >> shift_amount;
+            result = Int(Elem[D[m+r],e,esize], unsigned_) >> shift_amount;
             Elem[D[d+r],e,esize] = Elem[D[d+r],e,esize] + result;
         endfor
     endfor
@@ -7217,12 +7217,12 @@ if ConditionPassed() then
 
     for e = 0 to elements-1
         if is_vsubw then
-            op1 = Int(Elem[Qin[n>>1],e,2*esize], unsigned);
+            op1 = Int(Elem[Qin[n>>1],e,2*esize], unsigned_);
         else
-            op1 = Int(Elem[Din[n],e,esize], unsigned);
+            op1 = Int(Elem[Din[n],e,esize], unsigned_);
         endif
 
-        result = op1 - Int(Elem[Din[m],e,esize], unsigned);
+        result = op1 - Int(Elem[Din[m],e,esize], unsigned_);
         Elem[Q[d>>1],e,2*esize] = result<2*esize-1:0>;
     endfor
 endif
