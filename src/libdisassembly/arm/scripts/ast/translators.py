@@ -583,8 +583,7 @@ class CPPTranslatorVisitor(Visitor):
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["AddWithCarry", "Max", "Min", "FPMax", "FPMin", "FPSub",
-            "FPAdd", "FPDiv", "FPMul", "FPMulAdd", "FPCompare", "FPCompareEQ", "FPCompareGE",
-            "FPCompareGT"]:
+            "FPAdd", "FPDiv", "FPMul", "FPMulAdd"]:
             t0 = self.get_type(node.arguments[0])
             t1 = self.get_type(node.arguments[1])
 
@@ -692,7 +691,8 @@ class CPPTranslatorVisitor(Visitor):
             "CurrentModeIsHyp", "CurrentModeIsNotUser", "CurrentModeIsUserOrSystem", "HasVirtExt",
             "HaveLPAE", "HaveSecurityExt", "HaveVirtExt", "IsSecure", "IsZero", "IsZeroBit",
             "JazelleAcceptsExecution", "NullCheckIfThumbEE", "UnalignedSupport", "EventRegistered",
-            "ExclusiveMonitorsPass", "IntegerZeroDivideTrappingEnabled", "BigEndian"]:
+            "ExclusiveMonitorsPass", "IntegerZeroDivideTrappingEnabled", "BigEndian", "FPCompareEQ",
+            "FPCompareGE", "FPCompareGT"]:
             self.set_type(node, ("int", 1))
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
