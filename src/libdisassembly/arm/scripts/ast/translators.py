@@ -436,7 +436,7 @@ class CPPTranslatorVisitor(Visitor):
             elif function_name in ["Shift_C"]:
                 arg0 = self.accept(node.left_expr, node.left_expr.values[0])
                 arg1 = self.accept(node.left_expr, node.left_expr.values[1])
-                t0 = self.accept(node, node.right_expr.arguments[0])
+                t0 = self.get_type(node.right_expr.arguments[0])
 
                 assert not IsUnknownType(t0)
 
