@@ -273,7 +273,7 @@ class CPPTranslatorVisitor(Visitor):
         expr_str = self.accept(node, node.expr)
         expr_type = self.get_type(node.expr)
         
-        # Make the node inherit the type of the expression.
+        assert not IsUnknownType(expr_type)
         self.set_type(node, expr_type)
 
         return "%s%s" % (UnaryExpressionNameToOperator[node.type], expr_str)
