@@ -250,14 +250,14 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description='Generator.')
-    parser.add_argument("--gendir", default="../gen/", help="Directory where the generated files will be placed.")
-    parser.add_argument("--geninterpreter", action='store_true', help="Generate ARMInterpreter[.h|.cpp]")
-    parser.add_argument("--debug", action='store_true', help="Enable debugging information, just for developers.")
+    parser.add_argument("-o", "--directory", default="../gen/", help="Directory where the generated files will be placed.")
+    parser.add_argument("-g", "--generate", action='store_true', help="Generate ARMInterpreter[.h|.cpp]")
+    parser.add_argument("-d", "--debug", action='store_true', help="Enable debugging information, just for developers.")
 
     args = parser.parse_args()
 
     DEBUG = args.debug
-    gen_decoder = args.geninterpreter
+    gen_decoder = args.generate
 
     if not gen_decoder:
         logging.error("Nothing to generate, please choose one option")
@@ -265,7 +265,7 @@ def main():
         return False
 
     # Filenames and path's.
-    gen_dir = os.path.abspath(args.gendir)
+    gen_dir = os.path.abspath(args.directory)
     symbols_file = os.path.join(gen_dir, "symbols.sym")
     interpreter_name_h = os.path.join(gen_dir, "ARMInterpreter.h")
     interpreter_name_cpp = os.path.join(gen_dir, "ARMInterpreter.cpp")
