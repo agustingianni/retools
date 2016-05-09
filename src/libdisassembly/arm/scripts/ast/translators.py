@@ -386,63 +386,49 @@ class CPPTranslatorVisitor(Visitor):
             function_name = self.accept(node, node.right_expr.name)
             if function_name in ["SignedSatQ", "UnsignedSatQ"]:
                 sat_size = self.accept(node, node.right_expr.arguments[1])
-                if sat_size.isdigit():
-                    sat_size = int(sat_size)
+                sat_size = int(sat_size) if sat_size.isdigit() else sat_size
 
-                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
-                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
-
-                self.set_type(arg0, ("int", sat_size))
-                self.set_type(arg1, ("int", 1))
+                self.set_type(node.left_expr.values[0], ("int", sat_size))
+                self.set_type(node.left_expr.values[1], ("int", 1))
             
             elif function_name in ["ARMExpandImm_C", "ThumbExpandImm_C"]:
-                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
-                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
-
-                self.set_type(arg0, ("int", 32))
-                self.set_type(arg1, ("int", 1))
+                self.set_type(node.left_expr.values[0], ("int", 32))
+                self.set_type(node.left_expr.values[1], ("int", 1))
 
             elif function_name in ["DecodeImmShift", "Coproc_GetTwoWords"]:
-                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
-                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
-
-                self.set_type(arg0, ("int", 32))
-                self.set_type(arg1, ("int", 32))
+                self.set_type(node.left_expr.values[0], ("int", 32))
+                self.set_type(node.left_expr.values[1], ("int", 32))
 
             elif function_name in ["AddWithCarry"]:
-                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
-                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
-                arg2 = self.accept(node.left_expr, node.left_expr.values[2])
-
                 t0 = self.get_type(node.right_expr.arguments[0])
                 t1 = self.get_type(node.right_expr.arguments[1])
 
                 assert t0 == t1 and not IsUnknownType(t0) and not IsUnknownType(t1)
 
-                self.set_type(arg0, t0)
-                self.set_type(arg1, ("int", 1))
-                self.set_type(arg2, ("int", 1))
+                self.set_type(node.left_expr.values[0], t0)
+                self.set_type(node.left_expr.values[1], ("int", 1))
+                self.set_type(node.left_expr.values[2], ("int", 1))
 
             elif function_name in ["Shift_C"]:
-                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
-                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
                 t0 = self.get_type(node.right_expr.arguments[0])
 
                 assert not IsUnknownType(t0)
 
-                self.set_type(arg0, t0)
-                self.set_type(arg1, ("int", 1))
+                self.set_type(node.left_expr.values[0], t0)
+                self.set_type(node.left_expr.values[1], ("int", 1))
 
             elif function_name in ["FPCompare"]:
-                arg0 = self.accept(node.left_expr, node.left_expr.values[0])
-                arg1 = self.accept(node.left_expr, node.left_expr.values[1])
-                arg2 = self.accept(node.left_expr, node.left_expr.values[2])
-                arg3 = self.accept(node.left_expr, node.left_expr.values[3])
+                self.set_type(node.left_expr.values[0], ("int", 1))
+                self.set_type(node.left_expr.values[1], ("int", 1))
+                self.set_type(node.left_expr.values[2], ("int", 1))
+                self.set_type(node.left_expr.values[3], ("int", 1))
 
-                self.set_type(arg0, ("int", 1))
-                self.set_type(arg1, ("int", 1))
-                self.set_type(arg2, ("int", 1))
-                self.set_type(arg3, ("int", 1))
+            elif function_name in ["SatQ"]:
+                t1 = self.get_type(node.right_expr.arguments[1])
+                assert not IsUnknownType(t1)
+
+                self.set_type(node.left_expr.values[0], t1)
+                self.set_type(node.left_expr.values[1], ("int", 1))
 
             names = []
 
