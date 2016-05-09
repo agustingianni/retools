@@ -132,6 +132,7 @@ class CPPTranslatorVisitor(Visitor):
         Set the type of a node. Use a dictionary indexed by the string representation
         of the current node.
         """
+        assert type(node) != type("")
         key = str(node.name) if type(node) is ProcedureCall else str(node)
         if not self.node_types.has_key(key):
             self.node_types[key] = type_
@@ -140,6 +141,7 @@ class CPPTranslatorVisitor(Visitor):
         """
         Get the type of 'node'. 
         """
+        assert type(node) != type("")
         key = str(node.name) if type(node) is ProcedureCall else str(node)
         if self.node_types.has_key(key):
             return self.node_types[key]
