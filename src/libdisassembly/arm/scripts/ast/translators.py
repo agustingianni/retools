@@ -630,7 +630,7 @@ class CPPTranslatorVisitor(Visitor):
             self.set_type(node, arg_type)
             return "%s(%s, %s)" % (node.name, ", ".join(arguments), arg_type[1])
 
-        elif str(node.name) in ["Abs", "Align", "FPAbs"]:
+        elif str(node.name) in ["Abs", "Align", "FPAbs", "UInt"]:
             arg_type = self.get_type(node.arguments[0])
             assert not IsUnknownType(arg_type)
             self.set_type(node, arg_type)
@@ -666,7 +666,7 @@ class CPPTranslatorVisitor(Visitor):
             "HaveLPAE", "HaveSecurityExt", "HaveVirtExt", "IsSecure", "IsZero", "IsZeroBit",
             "JazelleAcceptsExecution", "NullCheckIfThumbEE", "UnalignedSupport", "EventRegistered",
             "ExclusiveMonitorsPass", "IntegerZeroDivideTrappingEnabled", "BigEndian", "FPCompareEQ",
-            "FPCompareGE", "FPCompareGT"]:
+            "FPCompareGE", "FPCompareGT", "InITBlock", "LastInITBlock"]:
             self.set_type(node, ("int", 1))
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
@@ -679,18 +679,19 @@ class CPPTranslatorVisitor(Visitor):
             "Hint_PreloadDataForWrite", "Hint_PreloadInstr", "Hint_Yield", "InstructionSynchronizationBarrier",
             "LoadWritePC", "SPSRaccessValid", "SelectInstrSet", "SendEvent", "SerializeVFP",
             "SetExclusiveMonitors", "SwitchToJazelleExecution", "TakeHypTrapException", "TakeSMCException",
-            "VFPExcBarrier", "WaitForEvent", "WaitForInterrupt", "WriteHSR"]:
+            "VFPExcBarrier", "WaitForEvent", "WaitForInterrupt", "WriteHSR", "NOP", "set_bit", "set_bits"]:
             self.set_type(node, ("void", None))
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["ArchVersion", "BitCount", "Coproc_GetOneWord", "Coproc_GetWordToStore",
             "CountLeadingSignBits", "CountLeadingZeroBits", "CurrentInstrSet", "FPDoubleToSingle",
             "FPHalfToSingle", "FPRSqrtEstimate", "FPRSqrtStep", "FPRecipEstimate", "FPRecipStep",
-            "LowestSetBit", "PCStoreValue", "ProcessorID", "UnsignedRSqrtEstimate", "UnsignedRecipEstimate"]:
+            "LowestSetBit", "PCStoreValue", "ProcessorID", "UnsignedRSqrtEstimate", "UnsignedRecipEstimate",
+            "ARMExpandImm", "ThumbExpandImm", "DecodeRegShift", "ThisInstr"]:
             self.set_type(node, ("int", 32))
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
-        elif str(node.name) in ["FPSingleToDouble"]:
+        elif str(node.name) in ["FPSingleToDouble", "AdvSIMDExpandImm"]:
             self.set_type(node, ("int", 64))
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
@@ -702,6 +703,20 @@ class CPPTranslatorVisitor(Visitor):
             arg_type = self.get_type(node.arguments[1])
             assert not IsUnknownType(arg_type)
             self.set_type(node, arg_type)
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["VFPExpandImm"]:
+            node_type = int(arguments[1]) if arguments[1].isdigit() else arguments[1]
+            self.set_type(node, ("int", node_type))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["Coproc_GetTwoWords", "SatQ", "Shift_C", "SignedSatQ", "UnsignedSatQ",
+            "ARMExpandImm_C", "ThumbExpandImm_C", "DecodeImmShift"]:
+            self.set_type(node, ("list", 2))
+            return "%s(%s)" % (node.name, ", ".join(arguments))
+
+        elif str(node.name) in ["FPCompare"]:
+            self.set_type(node, ("list", 4))
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
         return "%s(%s)" % (node.name, ", ".join(arguments))
