@@ -5134,10 +5134,12 @@ if ConditionPassed() then
     CheckVFPEnabled(TRUE);
     if dp_operation then
         op2 = if with_zero then FPZero('0',64) else D[m];
-        (FPSCR.N, FPSCR.Z, FPSCR.C, FPSCR.V) = FPCompare(D[d], op2, quiet_nan_exc, TRUE);
+        (tmp_N, tmp_Z, tmp_C, tmp_V) = FPCompare(D[d], op2, quiet_nan_exc, TRUE);
+        (FPSCR.N, FPSCR.Z, FPSCR.C, FPSCR.V) = (tmp_N, tmp_Z, tmp_C, tmp_V);
     else
         op2 = if with_zero then FPZero('0',32) else S[m];
-        (FPSCR.N, FPSCR.Z, FPSCR.C, FPSCR.V) = FPCompare(S[d], op2, quiet_nan_exc, TRUE);
+        (tmp_N, tmp_Z, tmp_C, tmp_V) = FPCompare(S[d], op2, quiet_nan_exc, TRUE);
+        (FPSCR.N, FPSCR.Z, FPSCR.C, FPSCR.V) = (tmp_N, tmp_Z, tmp_C, tmp_V);
     endif
 endif
 """
