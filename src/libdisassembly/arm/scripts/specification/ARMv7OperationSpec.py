@@ -5417,6 +5417,7 @@ if ConditionPassed() then
         R[n] = R[n] + (if register_index then R[m] else 8*regs);
     endif
 
+    data = Zeros(64);
     for r = 0 to regs-1
         for e = 0 to elements-1
             if ebytes != 8 then
