@@ -155,6 +155,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += "    template<class T> const T& Min(const T& a, const T& b) { return (a < b) ? a : b; }\n"
         header += "    template<class T> const T& FPMax(const T& a, const T& b, bool val) { return (a < b) ? b : a; }\n"
         header += "    template<class T> const T& FPMin(const T& a, const T& b, bool val) { return (a < b) ? a : b; }\n"
+        header += "    unsigned PolynomialMult(unsigned op1, unsigned op2) { return 0; }\n"
 
         header += "\n"
         header += "    fpscr_t FPSCR;\n"
