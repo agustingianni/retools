@@ -4373,7 +4373,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "version" : "ARMv6T2, ARMv7",
     "format" : "TBB<c> [<Rn>, <Rm>]",
     "pattern" : "1 1 1 0 1 0 0 0 1 1 0 1 Rn#4 1 1 1 1 0 0 0 0 0 0 0 0 Rm#4",
-    "decoder" : """n = UInt(Rn); m = UInt(Rm);
+    "decoder" : """n = UInt(Rn); m = UInt(Rm); is_tbh = 0;
     if n == 13 || m IN {13,15} then UNPREDICTABLE;
     if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
 } , {
@@ -4382,7 +4382,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "version" : "ARMv6T2, ARMv7",
     "format" : "TBH<c> [<Rn>, <Rm>, LSL #1]",
     "pattern" : "1 1 1 0 1 0 0 0 1 1 0 1 Rn#4 1 1 1 1 0 0 0 0 0 0 0 1 Rm#4",
-    "decoder" : """n = UInt(Rn); m = UInt(Rm);
+    "decoder" : """n = UInt(Rn); m = UInt(Rm); is_tbh = 1;
     if n == 13 || m IN {13,15} then UNPREDICTABLE;
     if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
 } , {
