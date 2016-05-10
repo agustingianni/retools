@@ -2234,9 +2234,8 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "version" : "ARMv4All, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MSR<c> <spec_reg>, #<imm32>",
     "pattern" : "cond#4 00110 R#1 10 mask#4 1111 imm12#12",
-    "decoder" : """if mask == '0000' && R == '0' then SEE "Related encodings";
-    imm32 = ARMExpandImm(imm12); write_spsr = (R == '1');
-if mask == '0000' then UNPREDICTABLE;"""
+    "decoder" : """if mask == '00' then SEE "Related encodings";
+    imm32 = ARMExpandImm(imm12); write_nzcvq = (mask<1> == '1'); write_g = (mask<0> == '1');"""
 } , {
     "name" : "MSR (register)",
     "encoding" : "T1",
