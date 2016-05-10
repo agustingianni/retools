@@ -7,12 +7,10 @@
 
 #include "ARMEmulator.h"
 
-ARMEmulator::ARMEmulator() {
-	// TODO Auto-generated constructor stub
+namespace Emulator {
+    ARMEmulator::ARMEmulator() {
+    }
 
+    ARMEmulator::~ARMEmulator() {
+    }
 }
-
-ARMEmulator::~ARMEmulator() {
-	// TODO Auto-generated destructor stub
-}
-
