@@ -38,7 +38,9 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += '#include <memory>\n\n'
         header += 'using namespace Disassembler;\n\n' 
         header += "class ARMInterpreter {\n"
+        header += "public:\n"
         header += "    ARMInterpreter() {};\n\n"
+        header += "private:\n"
         header += "    bool ConditionPassed() { return true; }\n"
         header += "    bool CurrentModeIsHyp() { return false; }\n"
         header += "    bool CurrentModeIsNotUser() { return false; }\n"
