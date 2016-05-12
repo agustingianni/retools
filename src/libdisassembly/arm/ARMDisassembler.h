@@ -238,9 +238,8 @@ namespace Disassembler {
 
 	class ARMInstruction {
 		public:
-			static std::shared_ptr<ARMInstruction> create() {
-				std::shared_ptr<ARMInstruction> ins(new ARMInstruction());
-				return ins;
+			static ARMInstruction create() {
+				return ARMInstruction {};
 			}
 			
 			virtual ~ARMInstruction() {
@@ -450,7 +449,7 @@ namespace Disassembler {
 	class ARMDisassembler {
 		public:
 			ARMDisassembler(ARMVariants variant = ARMvAll);
-			std::shared_ptr<ARMInstruction> disassemble(uint32_t opcode, ARMMode mode = ARMMode_ARM);
+			ARMInstruction disassemble(uint32_t opcode, ARMMode mode = ARMMode_ARM);
 
 		private:
 			ARMVariants m_variant;

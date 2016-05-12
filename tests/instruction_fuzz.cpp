@@ -4,7 +4,6 @@
 #include <random>
 #include <limits>
 #include <cassert>
-#include <memory>
 #include <cstdio>
 #include <boost/algorithm/string.hpp>
 
@@ -96,9 +95,9 @@ string darm_disassemble(uint32_t opcode, unsigned mode) {
 
 string retools_disassemble(uint32_t opcode, unsigned mode, string &decoder) {
 	ARMDisassembler dis(ARMvAll);
-	shared_ptr<ARMInstruction> ins = dis.disassemble(opcode, mode == 0 ? ARMMode_ARM : ARMMode_Thumb);
-	decoder = ins->m_decoded_by;
-	return ins->toString();
+	ARMInstruction ins = dis.disassemble(opcode, mode == 0 ? ARMMode_ARM : ARMMode_Thumb);
+	decoder = ins.m_decoded_by;
+	return ins.toString();
 }
 
 void test_arm(unsigned n, unsigned start, unsigned finish, FILE *file) {
@@ -233,7 +232,7 @@ void gen_shit(unsigned i, unsigned j) {
 	unsigned ok = 0, fail=0;
 
 	ARMDisassembler dis(ARMv7);
-	shared_ptr<ARMInstruction> ins;
+	ARMInstruction ins;
 
 	cs_open(CS_ARCH_ARM, CS_MODE_ARM, &handle);
 	{
@@ -245,7 +244,7 @@ void gen_shit(unsigned i, unsigned j) {
 
 				// Our disassembly.
 				ins = dis.disassemble(opcode, ARMMode_ARM);
-				dis_retools = ins->toString();
+				dis_retools = ins.toString();
 				boost::algorithm::to_lower(dis_retools);
 
 				if (dis_retools.find(", lsl #0") != string::npos) {

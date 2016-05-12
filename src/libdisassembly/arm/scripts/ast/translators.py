@@ -910,23 +910,23 @@ class CPPTranslatorVisitor(Visitor):
 
     def accept_Undefined(self, parent, node):
         self.set_type(node, ("unknown", None))
-        return """return shared_ptr<ARMInstruction>(new UndefinedInstruction("Reason: %s"))""" % node.reason
+        return """return UndefinedInstruction("Reason: %s")""" % node.reason
 
     def accept_Unpredictable(self, parent, node):
         self.set_type(node, ("unknown", None))
-        return """return shared_ptr<ARMInstruction>(new UnpredictableInstruction("Reason: %s"))""" % node.reason
+        return """return UnpredictableInstruction("Reason: %s")""" % node.reason
 
     def accept_See(self, parent, node):
         self.set_type(node, ("unknown", None))
-        return "return shared_ptr<ARMInstruction>(new SeeInstruction(\"%s\"))" % str(node.msg)
+        return "return SeeInstruction(\"%s\")" % str(node.msg)
 
     def accept_ImplementationDefined(self, parent, node):
         self.set_type(node, ("unknown", None))
-        return "return shared_ptr<ARMInstruction>(new ImplementationDefinedInstruction())"
+        return "return ImplementationDefinedInstruction()"
 
     def accept_SubArchitectureDefined(self, parent, node):
         self.set_type(node, ("unknown", None))
-        return "return shared_ptr<ARMInstruction>(new SubArchitectureDefinedInstruction())"
+        return "return SubArchitectureDefinedInstruction()"
 
     def accept_Return(self, parent, node):
         t = "return %s;" % self.accept(node, node.value)

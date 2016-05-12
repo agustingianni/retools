@@ -7,7 +7,6 @@
 
 #include "arm/ARMDisassembler.h"
 
-#include <memory>
 #include <string>
 #include <cstdint>
 #include <iostream>
@@ -40,8 +39,8 @@ int main(int argc, char **argv) {
     }
 
     ARMDisassembler dis { ARMv7All };
-    shared_ptr<ARMInstruction> ins = dis.disassemble(opcode, mode);
-    cout << "Disassembled instruction: " << (void *) opcode << " -> " << ins->toString() << endl;
+    ARMInstruction ins = dis.disassemble(opcode, mode);
+    cout << "Disassembled instruction: " << (void *) opcode << " -> " << ins.toString() << endl;
 
     return 0;
 }

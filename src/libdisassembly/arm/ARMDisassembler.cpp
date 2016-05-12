@@ -23,7 +23,7 @@ namespace Disassembler {
         m_decoder = new ARMDecoder(m_variant);
     }
 
-    std::shared_ptr<ARMInstruction> ARMDisassembler::disassemble(uint32_t op_code, ARMMode mode) {
+    ARMInstruction ARMDisassembler::disassemble(uint32_t op_code, ARMMode mode) {
         return m_decoder->decode(op_code, mode);
     }
 } /* namespace Disassembler */
