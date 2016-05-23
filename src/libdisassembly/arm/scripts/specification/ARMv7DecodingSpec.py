@@ -262,7 +262,8 @@ instructions = [
     "pattern" : "11110 i#1 00000 S#1 Rn#4 0 imm3#3 Rd#4 imm8#8",
     "decoder" : """if Rd == '1111' && S == '1' then SEE TST (immediate);
     d = UInt(Rd); n = UInt(Rn); setflags = (S == '1');
-    (imm32, carry) = ThumbExpandImm_C(i:imm3:imm8, APSR.C);
+    imm12 = i:imm3:imm8;
+    imm32 = ThumbExpandImm(imm12);
     if d == 13 || (d == 15 && S == '0') || n IN {13,15} then UNPREDICTABLE;"""
 } , {
     "name" : "AND (immediate)",
@@ -272,7 +273,7 @@ instructions = [
     "pattern" : "cond#4 0010000 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
     d = UInt(Rd); n = UInt(Rn); setflags = (S == '1');
-    (imm32, carry) = ARMExpandImm_C(imm12, APSR.C);"""
+    imm32 = ARMExpandImm(imm12);"""
 } , {
     "name" : "AND (register)",
     "encoding" : "T1",
@@ -432,7 +433,7 @@ instructions = [
     "version" : "ARMv6T2, ARMv7",
     "format" : "BIC{S}<c> <Rd>, <Rn>, #<imm32>",
     "pattern" : "11110 i#1 00001 S#1 Rn#4 0 imm3#3 Rd#4 imm8#8",
-    "decoder" : """d = UInt(Rd); n = UInt(Rn); setflags = (S == '1'); (imm32, carry) = ThumbExpandImm_C(i:imm3:imm8, APSR.C);
+    "decoder" : """d = UInt(Rd); n = UInt(Rn); setflags = (S == '1'); imm12 = i:imm3:imm8; imm32 = ThumbExpandImm(imm12);
     if d IN {13,15} || n IN {13,15} then UNPREDICTABLE;"""
 } , {
     "name" : "BIC (immediate)",
@@ -442,7 +443,7 @@ instructions = [
     "pattern" : "cond#4 0011110 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
     d = UInt(Rd); n = UInt(Rn); setflags = (S == '1');
-    (imm32, carry) = ARMExpandImm_C(imm12, APSR.C);"""
+    imm32 = ARMExpandImm(imm12);"""
 } , {
     "name" : "BIC (register)",
     "encoding" : "T1",
@@ -853,7 +854,8 @@ if (imod == '00' && M == '0') || imod == '01' then UNPREDICTABLE;"""
     "pattern" : "11110 i#1 00100 S#1 Rn#4 0 imm3#3 Rd#4 imm8#8",
     "decoder" : """if Rd == '1111' && S == '1' then SEE TEQ (immediate);
     d = UInt(Rd); n = UInt(Rn); setflags = (S == '1');
-    (imm32, carry) = ThumbExpandImm_C(i:imm3:imm8, APSR.C);
+    imm12 = i:imm3:imm8;
+    imm32 = ThumbExpandImm(imm12);
     if d == 13 || (d == 15 && S == '0') || n IN {13,15} then UNPREDICTABLE;"""
 } , {
     "name" : "EOR (immediate)",
@@ -863,7 +865,7 @@ if (imod == '00' && M == '0') || imod == '01' then UNPREDICTABLE;"""
     "pattern" : "cond#4 0010001 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
     d = UInt(Rd); n = UInt(Rn); setflags = (S == '1');
-    (imm32, carry) = ARMExpandImm_C(imm12, APSR.C);"""
+    imm32 = ARMExpandImm(imm12);"""
 } , {
     "name" : "EOR (register)",
     "encoding" : "T1",
@@ -2054,14 +2056,14 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
     "format" : "MOVS <Rd>, #<imm32>:MOV<c> <Rd>, #<imm32>",
     "pattern" : "00100 Rd#3 imm8#8",
-    "decoder" : """d = UInt(Rd); setflags = !InITBlock(); imm32 = ZeroExtend(imm8, 32); carry = APSR.C;"""
+    "decoder" : """d = UInt(Rd); setflags = !InITBlock(); imm12 = imm8; imm32 = ZeroExtend(imm8, 32);"""
 } , {
     "name" : "MOV (immediate)",
     "encoding" : "T2",
     "version" : "ARMv6T2, ARMv7",
     "format" : "MOV{S}<c>.W <Rd>, #<imm32>",
     "pattern" : "11110 i#1 00010 S#1 11110 imm3#3 Rd#4 imm8#8",
-    "decoder" : """d = UInt(Rd); setflags = (S == '1'); (imm32, carry) = ThumbExpandImm_C(i:imm3:imm8, APSR.C);
+    "decoder" : """d = UInt(Rd); setflags = (S == '1'); imm12 = i:imm3:imm8; imm32 = ThumbExpandImm(imm12);
     if d IN {13,15} then UNPREDICTABLE;"""
 } , {
     "name" : "MOV (immediate)",
@@ -2078,7 +2080,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "format" : "MOV{S}<c> <Rd>, #<imm32>",
     "pattern" : "cond#4 0011101 S#1 0000 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
-    d = UInt(Rd); setflags = (S == '1'); (imm32, carry) = ARMExpandImm_C(imm12, APSR.C);"""
+    d = UInt(Rd); setflags = (S == '1'); imm32 = ARMExpandImm(imm12);"""
 } , {
     "name" : "MOV (immediate)",
     "encoding" : "A2",
@@ -2286,7 +2288,8 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "format" : "MVN{S}<c> <Rd>, #<imm32>",
     "pattern" : "11110 i#1 00011 S#1 11110 imm3#3 Rd#4 imm8#8",
     "decoder" : """d = UInt(Rd); setflags = (S == '1');
-    (imm32, carry) = ThumbExpandImm_C(i:imm3:imm8, APSR.C);
+    imm12 = i:imm3:imm8;
+    imm32 = ThumbExpandImm(imm12);
     if d IN {13,15} then UNPREDICTABLE;"""
 } , {
     "name" : "MVN (immediate)",
@@ -2296,7 +2299,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "pattern" : "cond#4 0011111 S#1 0000 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
     d = UInt(Rd); setflags = (S == '1');
-    (imm32, carry) = ARMExpandImm_C(imm12, APSR.C);"""
+    imm32 = ARMExpandImm(imm12);"""
 } , {
     "name" : "MVN (register)",
     "encoding" : "T1",
@@ -2358,7 +2361,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "format" : "ORN{S}<c> <Rd>, <Rn>, #<imm32>",
     "pattern" : "11110 i#1 00011 S#1 Rn#4 0 imm3#3 Rd#4 imm8#8",
     "decoder" : """if Rn == '1111' then SEE MVN (immediate);
-    d = UInt(Rd); n = UInt(Rn); setflags = (S == '1'); (imm32, carry) = ThumbExpandImm_C(i:imm3:imm8, APSR.C);
+    d = UInt(Rd); n = UInt(Rn); setflags = (S == '1'); imm12 = i:imm3:imm8; imm32 = ThumbExpandImm(imm12);
     if d IN {13,15} || n == 13 then UNPREDICTABLE;"""
 } , {
     "name" : "ORN (register)",
@@ -2376,7 +2379,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "format" : "ORR{S}<c> <Rd>, <Rn>, #<imm32>",
     "pattern" : "11110 i#1 00010 S#1 Rn#4 0 imm3#3 Rd#4 imm8#8",
     "decoder" : """if Rn == '1111' then SEE MOV (immediate);
-    d = UInt(Rd); n = UInt(Rn); setflags = (S == '1'); (imm32, carry) = ThumbExpandImm_C(i:imm3:imm8, APSR.C);
+    d = UInt(Rd); n = UInt(Rn); setflags = (S == '1'); imm12 = i:imm3:imm8; imm32 = ThumbExpandImm(imm12);
     if d IN {13,15} || n == 13 then UNPREDICTABLE;"""
 } , {
     "name" : "ORR (immediate)",
@@ -2386,7 +2389,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "pattern" : "cond#4 0011100 S#1 Rn#4 Rd#4 imm12#12",
     "decoder" : """if Rd == '1111' && S == '1' then SEE SUBS PC, LR and related instructions;
     d = UInt(Rd); n = UInt(Rn); setflags = (S == '1');
-    (imm32, carry) = ARMExpandImm_C(imm12, APSR.C);"""
+    imm32 = ARMExpandImm(imm12);"""
 } , {
     "name" : "ORR (register)",
     "encoding" : "T1",
@@ -4392,7 +4395,8 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "format" : "TEQ<c> <Rn>, #<imm32>",
     "pattern" : "1 1 1 1 0 i#1 0 0 1 0 0 1 Rn#4 0 imm3#3 1 1 1 1 imm8#8",
     "decoder" : """n = UInt(Rn);
-    (imm32, carry) = ThumbExpandImm_C(i:imm3:imm8, APSR.C);
+    imm12 = i:imm3:imm8;
+    imm32 = ThumbExpandImm(imm12);
     if n IN {13,15} then UNPREDICTABLE;"""
 } , {
     "name" : "TEQ (immediate)",
@@ -4401,7 +4405,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "format" : "TEQ<c> <Rn>, #<imm32>",
     "pattern" : "cond#4 0 0 1 1 0 0 1 1 Rn#4 0 0 0 0 imm12#12",
     "decoder" : """n = UInt(Rn);
-    (imm32, carry) = ARMExpandImm_C(imm12, APSR.C);"""
+    imm32 = ARMExpandImm(imm12);"""
 } , {
     "name" : "TEQ (register)",
     "encoding" : "T1",
@@ -4435,7 +4439,8 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "format" : "TST<c> <Rn>, #<imm32>",
     "pattern" : "1 1 1 1 0 i#1 0 0 0 0 0 1 Rn#4 0 imm3#3 1 1 1 1 imm8#8",
     "decoder" : """n = UInt(Rn);
-    (imm32, carry) = ThumbExpandImm_C(i:imm3:imm8, APSR.C);
+    imm12 = i:imm3:imm8;
+    imm32 = ThumbExpandImm(imm12);
     if n IN {13,15} then UNPREDICTABLE;"""
 } , {
     "name" : "TST (immediate)",
@@ -4444,7 +4449,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     "format" : "TST<c> <Rn>, #<imm32>",
     "pattern" : "cond#4 0 0 1 1 0 0 0 1 Rn#4 0 0 0 0 imm12#12",
     "decoder" : """n = UInt(Rn);
-    (imm32, carry) = ARMExpandImm_C(imm12, APSR.C);"""
+    imm32 = ARMExpandImm(imm12);"""
 } , {
     "name" : "TST (register)",
     "encoding" : "T1",

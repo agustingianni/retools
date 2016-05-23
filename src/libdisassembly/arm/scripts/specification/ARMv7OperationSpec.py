@@ -234,7 +234,7 @@ if ConditionPassed() then
         if setflags then
             APSR.N = result<31>;
             APSR.Z = IsZeroBit(result);
-            APSR.C = carry;
+            APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
         endif
     endif
 endif
@@ -357,7 +357,7 @@ if ConditionPassed() then
         if setflags then
             APSR.N = result<31>;
             APSR.Z = IsZeroBit(result);
-            APSR.C = carry;
+            APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
         endif
     endif
 endif
@@ -730,7 +730,7 @@ if ConditionPassed() then
         if setflags then
             APSR.N = result<31>;
             APSR.Z = IsZeroBit(result);
-            APSR.C = carry;
+            APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
         endif
     endif
 endif
@@ -1748,7 +1748,7 @@ if ConditionPassed() then
         if setflags then
             APSR.N = result<31>;
             APSR.Z = IsZeroBit(result);
-            APSR.C = carry;
+            APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
         endif
     endif
 endif
@@ -2032,7 +2032,7 @@ if ConditionPassed() then
         if setflags then
             APSR.N = result<31>;
             APSR.Z = IsZeroBit(result);
-            APSR.C = carry;
+            APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
         endif
     endif
 endif
@@ -2089,7 +2089,7 @@ if ConditionPassed() then
     if setflags then
         APSR.N = result<31>;
         APSR.Z = IsZeroBit(result);
-        APSR.C = carry;
+        APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
     endif
 endif
 """
@@ -2121,7 +2121,7 @@ if ConditionPassed() then
         if setflags then
             APSR.N = result<31>;
             APSR.Z = IsZeroBit(result);
-            APSR.C = carry;
+            APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
         endif
     endif
 endif
@@ -4133,7 +4133,7 @@ if ConditionPassed() then
     result = R[n] EOR imm32;
     APSR.N = result<31>;
     APSR.Z = IsZeroBit(result);
-    APSR.C = carry;
+    APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
 endif
 """
 }, { 
@@ -4169,7 +4169,7 @@ if ConditionPassed() then
     result = R[n] AND imm32;
     APSR.N = result<31>;
     APSR.Z = IsZeroBit(result);
-    APSR.C = carry;
+    APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
 endif
 """
 }, { 
