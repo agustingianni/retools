@@ -182,7 +182,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         fd.write(header)
         for instruction in ARMv7OperationSpec.instructions:
             ins_name = instruction["name"]
-            fd.write("    bool %s(ARMContext &ctx, ARMInstruction &ins);\n" % method_name(ins_name))
+            fd.write("    bool %s(ARMContext &ctx, const ARMInstruction &ins);\n" % method_name(ins_name))
         
         fd.write("};\n")
     
@@ -201,7 +201,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             ins_name = instruction["name"]
             logging.info("Processing instruction '%s' (%d)" % (ins_name, i))
 
-            fd.write("bool ARMInterpreter::%s(ARMContext &ctx, ARMInstruction &ins) {\n" % method_name(ins_name))
+            fd.write("bool ARMInterpreter::%s(ARMContext &ctx, const ARMInstruction &ins) {\n" % method_name(ins_name))
             
             ins_operation = instruction["operation"]
 
