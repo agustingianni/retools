@@ -348,7 +348,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
         fd.write("}\n\n")
 
         # Set that contains all the fields used in _all_ the instructions.
-        ins_fields = set()
+        ins_fields = set(["encoding"])
 
         for i, instruction in enumerate(ARMv7DecodingSpec.instructions):
             input_vars = get_input_vars(instruction["pattern"])
@@ -430,6 +430,10 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
 
             # Save all the variables defined inside the decoding procedure.
             for var in translator.define_me:
+                # Ignored variables should not be propagated.
+                if "ignored" in var:
+                    continue
+
                 ins_fields.add(var)
                 instruction_fields[ins_name].add(var)
                 fd.write("    ins.%s = %s;\n" % (var, var))
