@@ -4047,19 +4047,24 @@ if ConditionPassed() then
 endif
 """
 }, { 
-    "name" : "TBB, TBH",
+    "name" : "TBB",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     NullCheckIfThumbEE(n);
-    if is_tbh then
-        tmp = R[n] + LSL(R[m], 1);
-        halfwords = UInt(MemU[tmp, 2]);
-    else
-        tmp = R[n] + R[m];
-        halfwords = UInt(MemU[tmp, 1]);
-    endif
-
+    tmp = R[n] + R[m];
+    halfwords = UInt(MemU[tmp, 1]);
+    BranchWritePC(R[15] + 2*halfwords);
+endif
+"""
+}, { 
+    "name" : "TBH",
+    "operation" : """
+if ConditionPassed() then
+    EncodingSpecificOperations();
+    NullCheckIfThumbEE(n);
+    tmp = R[n] + LSL(R[m], 1);
+    halfwords = UInt(MemU[tmp, 2]);
     BranchWritePC(R[15] + 2*halfwords);
 endif
 """
