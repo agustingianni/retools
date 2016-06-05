@@ -5243,7 +5243,7 @@ wback = (W == '1'); increment = TRUE; wordhigher = FALSE;"""
     "pattern" : "cond#4 100 P#1 U#1 100 Rn#4 register_list#16",
     "decoder" : """n = UInt(Rn); registers = register_list; increment = (U == '1'); wordhigher = (P == U); if n == 15 || BitCount(registers) < 1 then UNPREDICTABLE;"""
 } , {
-    "name" : "SUBS PC, LR and related instructions, Thumb",
+    "name" : "SUBS PC, LR, Thumb",
     "encoding" : "T1",
     "version" : "ARMv6T2, ARMv7",
     "format" : "SUBS<c> PC, LR, #<imm32>",
