@@ -1939,68 +1939,6 @@ if ConditionPassed() then
 endif
 """
 }, { 
-    "name" : "MSR (Banked register)",
-    "operation" : """
-if ConditionPassed() then
-    EncodingSpecificOperations();
-    if !CurrentModeIsNotUser() then
-        UNPREDICTABLE;
-    else
-        mode = CPSR.M;
-        if write_spsr then
-            SPSRaccessValid(SYSm, mode);
-            case SYSm of
-                when '01110' SPSR_fiq = R[n];
-                when '10000' SPSR_irq = R[n];
-                when '10010' SPSR_svc = R[n];
-                when '10100' SPSR_abt = R[n];
-                when '10110' SPSR_und = R[n];
-                when '11100' SPSR_mon = R[n];
-                when '11110' SPSR_hyp = R[n];
-            endcase
-        else
-            BankedRegisterAccessValid(SYSm, mode);
-            if SYSm<4:3> == '00' then
-                m = UInt(SYSm<2:0>) + 8;
-                Rmode[m,16] = R[n];
-            endif
-
-            if SYSm<4:3> == '01' then
-                m = UInt(SYSm<2:0>) + 8;
-                Rmode[m,17] = R[n];
-            endif
-
-            if SYSm<4:3> == '11' then
-                if SYSm<1> == '0' then
-                    m = UInt(SYSm<0>) + 13;
-                    Rmode[m,22] = R[n];
-                else
-                    if SYSm<0> == '0' then
-                        Rmode[13,26] = R[n];
-                    else
-                        ELR_hyp = R[n];
-                    endif
-                endif
-            else
-                targetmode = 0;
-                targetmode = (targetmode << 1) OR 1;
-                targetmode = (targetmode << 1) OR (SYSm<2> AND SYSm<1>);
-                targetmode = (targetmode << 1) OR (SYSm<2> AND ~SYSm<1>);
-                targetmode = (targetmode << 1) OR 1;
-                targetmode = (targetmode << 1) OR (SYSm<2> OR SYSm<1>);
-
-                if mode == targetmode then
-                    UNPREDICTABLE;
-                else
-                    m = UInt(SYSm<0>) + 13;
-                    Rmode[m,targetmode] = R[n];
-                endif
-            endif
-        endif
-    endif
-endif
-"""
-}, { 
     "name" : "MUL",
     "operation" : """
 if ConditionPassed() then
