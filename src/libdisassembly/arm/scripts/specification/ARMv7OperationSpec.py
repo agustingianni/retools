@@ -5100,7 +5100,7 @@ if ConditionPassed() then
 endif
 """
 }, { 
-    "name" : "VCVT (between floating-point and integer, Advanced SIMD)",
+    "name" : "VCVT (between floating-point and integer, AdvancedSIMD)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
@@ -5140,7 +5140,7 @@ if ConditionPassed() then
 endif
 """
 }, { 
-    "name" : "VCVT (between floating-point and fixed-point, Advanced SIMD)",
+    "name" : "VCVT (between floating-point and fixed-point, AdvancedSIMD)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
@@ -5196,7 +5196,7 @@ if ConditionPassed() then
 endif
 """
 }, { 
-    "name" : "VCVT (between half-precision and single-precision, Advanced SIMD)",
+    "name" : "VCVT (between half-precision and single-precision, AdvancedSIMD)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
