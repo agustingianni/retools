@@ -5438,7 +5438,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     or_equal = (op == '0'); esize = 32; elements = 2;
     d = UInt(D:Vd); n = UInt(N:Vn); m = UInt(M:Vm); regs = if Q == '0' then 1 else 2;"""
 } , {
-    "name" : "VADD",
+    "name" : "VADD (integer)",
     "encoding" : "T1",
     "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
@@ -5447,7 +5447,7 @@ if InITBlock() && !LastInITBlock() then UNPREDICTABLE;"""
     esize = 8 << UInt(size); elements = 64 DIV esize;
     d = UInt(D:Vd); n = UInt(N:Vn); m = UInt(M:Vm); regs = if Q == '0' then 1 else 2;"""
 } , {
-    "name" : "VADD",
+    "name" : "VADD (integer)",
     "encoding" : "A1",
     "version" : "AdvancedSIMD",
     "format" : "CUSTOM",
