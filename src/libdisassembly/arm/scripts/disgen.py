@@ -483,8 +483,8 @@ using namespace std;
 
 string banked_reg(const ARMInstruction *ins) {
     string tmp = "UNPREDICTABLE";
-    if (ins.read_spsr == 0) {
-        switch(ins.SYSm) {
+    if (ins->read_spsr == 0) {
+        switch(ins->SYSm) {
             case 0: // 0b0
                 tmp = "R8_usr";
                 break;
@@ -568,7 +568,7 @@ string banked_reg(const ARMInstruction *ins) {
                 break;
         }
     } else {
-        switch(ins.SYSm) {
+        switch(ins->SYSm) {
                 case 14: // 0b01110
                     tmp = "SPSR_fiq";
                     break;
@@ -600,17 +600,17 @@ string banked_reg(const ARMInstruction *ins) {
 }
 
 string effect_str(const ARMInstruction *ins) {
-    if (ins.enable) 
+    if (ins->enable) 
         return "IE";
         
-    if (ins.disable) 
+    if (ins->disable) 
         return "ID";
         
     return "";
 }
 
 string align_str(const ARMInstruction *ins) {
-    switch(ins.id) {
+    switch(ins->id) {
         case vst4_multiple_4_element_structures:
         case vst3_multiple_3_element_structures:
         case vst1_multiple_single_elements:
@@ -618,7 +618,7 @@ string align_str(const ARMInstruction *ins) {
         case vld1_multiple_single_elements:         // VLD1 (multiple single elements)
         case vld2_multiple_2_element_structures:    // VLD2 (multiple 2-element structures)
         case vld4_multiple_4_element_structures:    // VLD4 (multiple 4-element structures)
-            switch(get_bits(ins.opcode, 5, 4)) { // align
+            switch(get_bits(ins->opcode, 5, 4)) { // align
                 case 0:  return "";
                 case 1:  return ":0x40";
                 case 2:  return ":0x80";
@@ -628,16 +628,16 @@ string align_str(const ARMInstruction *ins) {
 
         case vld1_single_element_to_one_lane:   // VLD1 (single element to one lane)
         case vld1_single_element_to_all_lanes:  // VLD1 (single element to all lanes)
-            switch(ins.size) {
-                case 1:  return get_bit(ins.opcode, 4) ? ":0x10" : "";  // a
-                case 2:  return get_bit(ins.opcode, 4) ? ":0x20" : "";  // a
+            switch(ins->size) {
+                case 1:  return get_bit(ins->opcode, 4) ? ":0x10" : "";  // a
+                case 2:  return get_bit(ins->opcode, 4) ? ":0x20" : "";  // a
                 default: return  "";
             }
 
         case vst2_single_2_element_structure_from_one_lane:
         case vst1_single_element_from_one_lane:
         case vld2_single_2_element_structure_to_one_lane:   // VLD2 (single 2-element structure to one lane)
-            switch(ins.alignment) {
+            switch(ins->alignment) {
                 case 2:  return ":0x10";
                 case 4:  return ":0x20";
                 case 8:  return ":0x40";
@@ -645,22 +645,22 @@ string align_str(const ARMInstruction *ins) {
             }
 
         case vld2_single_2_element_structure_to_all_lanes:  // VLD2 (single 2-element structure to all lanes)
-            switch(ins.size) {
-                case 0:  return get_bit(ins.opcode, 4) ? ":0x10" : "";
-                case 1:  return get_bit(ins.opcode, 4) ? ":0x20" : "";
-                case 2:  return get_bit(ins.opcode, 4) ? ":0x40" : "";
+            switch(ins->size) {
+                case 0:  return get_bit(ins->opcode, 4) ? ":0x10" : "";
+                case 1:  return get_bit(ins->opcode, 4) ? ":0x20" : "";
+                case 2:  return get_bit(ins->opcode, 4) ? ":0x40" : "";
                 default: return  "";
             }
 
         case vld3_multiple_3_element_structures:    // VLD3 (multiple 3-element structures)
-            switch(get_bits(ins.opcode, 5, 4)) {
+            switch(get_bits(ins->opcode, 5, 4)) {
                 case 1:   return ":0x40";
                 default: return  "";
             }
 
         case vst4_single_4_element_structure_from_one_lane:
         case vld4_single_4_element_structure_to_one_lane:   // VLD4 (single 4-element structure to one lane)
-            switch(ins.alignment) {
+            switch(ins->alignment) {
                 case 2:  return ":0x10";
                 case 4:  return ":0x20";
                 case 8:  return ":0x40";
@@ -669,11 +669,11 @@ string align_str(const ARMInstruction *ins) {
             }
 
         case vld4_single_4_element_structure_to_all_lanes:  // VLD4 (single 4-element structure to all lanes)
-            switch(ins.size) {
-                case 0:  return get_bit(ins.opcode, 4) ? ":0x20" : "";
-                case 1:  return get_bit(ins.opcode, 4) ? ":0x40" : "";
-                case 2:  return get_bit(ins.opcode, 4) ? ":0x40" : "";
-                case 3:  return get_bit(ins.opcode, 4) ? ":0x80" : "";
+            switch(ins->size) {
+                case 0:  return get_bit(ins->opcode, 4) ? ":0x20" : "";
+                case 1:  return get_bit(ins->opcode, 4) ? ":0x40" : "";
+                case 2:  return get_bit(ins->opcode, 4) ? ":0x40" : "";
+                case 3:  return get_bit(ins->opcode, 4) ? ":0x80" : "";
                 default: return  "";
             }
 
@@ -701,80 +701,80 @@ string range(unsigned i, unsigned n, const string &pre) {
 }
 
 string list_str(const ARMInstruction *ins) {
-    switch(ins.id) {
+    switch(ins->id) {
         case vldm: {
             // Get the value of imm8.
-            unsigned n = ins.imm32 >> 2;
-            if (!ins.single_regs) {
+            unsigned n = ins->imm32 >> 2;
+            if (!ins->single_regs) {
                 n /= 2;
             }
 
-            return "{" + range(ins.d, ins.d + n, ins.single_regs ? "S" : "D") + "}";
+            return "{" + range(ins->d, ins->d + n, ins->single_regs ? "S" : "D") + "}";
         }
 
         case vld3_multiple_3_element_structures:
-            switch(ins.type) {
+            switch(ins->type) {
                 case 4:
-                    return "{D" + to_string(ins.d) +
-                        ", D" + to_string(ins.d + 1) +
-                        ", D" + to_string(ins.d + 2) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
+                        ", D" + to_string(ins->d + 2) +
                         "}";
                 case 5:
-                    return "{D" + to_string(ins.d) +
-                        ", D" + to_string(ins.d + 2) +
-                        ", D" + to_string(ins.d + 4) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 2) +
+                        ", D" + to_string(ins->d + 4) +
                         "}";
                 default:
-                    return "INVALID:" + to_string(ins.type);
+                    return "INVALID:" + to_string(ins->type);
             }
             break;
 
         case vst3_single_3_element_structure_from_one_lane:
         case vld3_single_3_element_structure_to_one_lane:
-            return "{D" + to_string(ins.d) + "["  + to_string(ins.index) + "], " +
-                    "D" + to_string(ins.d + ins.inc) + "["  + to_string(ins.index) + "], " +
-                    "D" + to_string(ins.d + ins.inc * 2) + "["  + to_string(ins.index) + "]" + "}";
+            return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "], " +
+                    "D" + to_string(ins->d + ins->inc) + "["  + to_string(ins->index) + "], " +
+                    "D" + to_string(ins->d + ins->inc * 2) + "["  + to_string(ins->index) + "]" + "}";
 
         case vld3_single_3_element_structure_to_all_lanes:
-            return "{D" + to_string(ins.d) + "[], " +
-                    "D" + to_string(ins.d + ins.inc) + "[], " +
-                    "D" + to_string(ins.d + ins.inc * 2) + "[]" + "}";
+            return "{D" + to_string(ins->d) + "[], " +
+                    "D" + to_string(ins->d + ins->inc) + "[], " +
+                    "D" + to_string(ins->d + ins->inc * 2) + "[]" + "}";
 
         case vld4_multiple_4_element_structures:
-            return "{D" + to_string(ins.d) + ", " +
-                    "D" + to_string(ins.d + ins.inc) + ", " +
-                    "D" + to_string(ins.d + ins.inc * 2) + ", " +
-                    "D" + to_string(ins.d + ins.inc * 3) + "}";
+            return "{D" + to_string(ins->d) + ", " +
+                    "D" + to_string(ins->d + ins->inc) + ", " +
+                    "D" + to_string(ins->d + ins->inc * 2) + ", " +
+                    "D" + to_string(ins->d + ins->inc * 3) + "}";
 
         case vst4_single_4_element_structure_from_one_lane:
         case vld4_single_4_element_structure_to_one_lane:
-            return "{D" + to_string(ins.d) + "["  + to_string(ins.index) + "], " +
-                    "D" + to_string(ins.d + ins.inc) + "["  + to_string(ins.index) + "], " +
-                    "D" + to_string(ins.d + ins.inc * 2) + "["  + to_string(ins.index) + "], " +
-                    "D" + to_string(ins.d + ins.inc * 3) + "["  + to_string(ins.index) + "]" + "}";
+            return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "], " +
+                    "D" + to_string(ins->d + ins->inc) + "["  + to_string(ins->index) + "], " +
+                    "D" + to_string(ins->d + ins->inc * 2) + "["  + to_string(ins->index) + "], " +
+                    "D" + to_string(ins->d + ins->inc * 3) + "["  + to_string(ins->index) + "]" + "}";
 
         case vld4_single_4_element_structure_to_all_lanes:
-            return "{D" + to_string(ins.d) + "[], " +
-                    "D" + to_string(ins.d + ins.inc) + "[], " +
-                    "D" + to_string(ins.d + ins.inc * 2) + "[], " +
-                    "D" + to_string(ins.d + ins.inc * 3) + "[]" + "}";
+            return "{D" + to_string(ins->d) + "[], " +
+                    "D" + to_string(ins->d + ins->inc) + "[], " +
+                    "D" + to_string(ins->d + ins->inc * 2) + "[], " +
+                    "D" + to_string(ins->d + ins->inc * 3) + "[]" + "}";
 
         case vld2_single_2_element_structure_to_all_lanes:
-            return "{D" + to_string(ins.d) + "[], D" + to_string(ins.d + ins.inc) + "[]}";
+            return "{D" + to_string(ins->d) + "[], D" + to_string(ins->d + ins->inc) + "[]}";
 
         case vst2_single_2_element_structure_from_one_lane:
         case vld2_single_2_element_structure_to_one_lane:
-            return "{D" + to_string(ins.d) + "["  + to_string(ins.index) + "], D" + to_string(ins.d + ins.inc) + "["  + to_string(ins.index) + "]}";
+            return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "], D" + to_string(ins->d + ins->inc) + "["  + to_string(ins->index) + "]}";
 
         case vld1_single_element_to_all_lanes:
-            if (!ins.T) {
-                return "{D" + to_string(ins.d) + "[]}";
+            if (!ins->T) {
+                return "{D" + to_string(ins->d) + "[]}";
             }
-            return "{D" + to_string(ins.d) + "[], D" + to_string(ins.d + 1) + "[]}";
+            return "{D" + to_string(ins->d) + "[], D" + to_string(ins->d + 1) + "[]}";
 
         case vst1_single_element_from_one_lane:
         case vld1_single_element_to_one_lane:
-            return "{D" + to_string(ins.d) + "["  + to_string(ins.index) + "]}";
+            return "{D" + to_string(ins->d) + "["  + to_string(ins->index) + "]}";
 
         case vld2_multiple_2_element_structures:
         case vld1_multiple_single_elements:
@@ -782,81 +782,81 @@ string list_str(const ARMInstruction *ins) {
         case vst4_multiple_4_element_structures:
         case vst2_multiple_2_element_structures:
         case vst3_multiple_3_element_structures:
-            switch(ins.type) {
+            switch(ins->type) {
                 case 1:
-                    return "{D" + to_string(ins.d) +
-                        ", D" + to_string(ins.d + 2) +
-                        ", D" + to_string(ins.d + 4) +
-                        ", D" + to_string(ins.d + 6) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 2) +
+                        ", D" + to_string(ins->d + 4) +
+                        ", D" + to_string(ins->d + 6) +
                         "}";                
                 case 5:
-                    return "{D" + to_string(ins.d) +
-                        ", D" + to_string(ins.d + 2) +
-                        ", D" + to_string(ins.d + 4) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 2) +
+                        ", D" + to_string(ins->d + 4) +
                         "}";                
                 case 8:
-                    return "{D" + to_string(ins.d) +
-                        ", D" + to_string(ins.d + 1) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
                         "}";
                 case 9:
-                    return "{D" + to_string(ins.d) +
-                        ", D" + to_string(ins.d + 2) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 2) +
                         "}";
                 case 3:
-                    return "{D" + to_string(ins.d) +
-                        ", D" + to_string(ins.d + 1) +
-                        ", D" + to_string(ins.d + 2) +
-                        ", D" + to_string(ins.d + 3) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
+                        ", D" + to_string(ins->d + 2) +
+                        ", D" + to_string(ins->d + 3) +
                         "}";
                 case 7:
-                    return "{D" + to_string(ins.d) + "}";
+                    return "{D" + to_string(ins->d) + "}";
                 case 10:
-                    return "{D" + to_string(ins.d) +
-                        ", D" + to_string(ins.d + 1) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
                         "}";
                 case 4:
                 case 6:                
-                    return "{D" + to_string(ins.d) +
-                        ", D" + to_string(ins.d + 1) +
-                        ", D" + to_string(ins.d + 2) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
+                        ", D" + to_string(ins->d + 2) +
                         "}";
                 case 0:
                 case 2:
-                    return "{D" + to_string(ins.d) +
-                        ", D" + to_string(ins.d + 1) +
-                        ", D" + to_string(ins.d + 2) +
-                        ", D" + to_string(ins.d + 3) +
+                    return "{D" + to_string(ins->d) +
+                        ", D" + to_string(ins->d + 1) +
+                        ", D" + to_string(ins->d + 2) +
+                        ", D" + to_string(ins->d + 3) +
                         "}";
                 default:
-                    return "INVALID" + to_string(ins.type);
+                    return "INVALID" + to_string(ins->type);
             }
             break;
         case vtbl_vtbx:
-            switch(ins.length - 1) {
+            switch(ins->length - 1) {
                 case 0:
-                    return "{D" + to_string(ins.n) + "}";
+                    return "{D" + to_string(ins->n) + "}";
                 case 1:
-                    return "{D" + to_string(ins.n) +
-                        ", D" + to_string(ins.n + 1) + "}";
+                    return "{D" + to_string(ins->n) +
+                        ", D" + to_string(ins->n + 1) + "}";
                 case 2:
-                    return "{D" + to_string(ins.n) +
-                    ", D" + to_string(ins.n + 1) +
-                    ", D" + to_string(ins.n + 2) + "}";
+                    return "{D" + to_string(ins->n) +
+                    ", D" + to_string(ins->n + 1) +
+                    ", D" + to_string(ins->n + 2) + "}";
                 case 3:
-                    return "{D" + to_string(ins.n) +
-                    ", D" + to_string(ins.n + 1) +
-                    ", D" + to_string(ins.n + 2) +
-                    ", D" + to_string(ins.n + 3) + "}";
+                    return "{D" + to_string(ins->n) +
+                    ", D" + to_string(ins->n + 1) +
+                    ", D" + to_string(ins->n + 2) +
+                    ", D" + to_string(ins->n + 3) + "}";
                 default:
                     return "INVALID";
             }
     }
 
-    unsigned first_reg = first_reg = ins.d;
-    unsigned n_regs = ins.imm32 >> 2;
+    unsigned first_reg = first_reg = ins->d;
+    unsigned n_regs = ins->imm32 >> 2;
     string reg_type = "S";
 
-    if (ins.encoding == eEncodingT1 || ins.encoding == eEncodingA1) {
+    if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
         n_regs /= 2;
         reg_type = "D";
     }
@@ -872,31 +872,31 @@ string list_str(const ARMInstruction *ins) {
 }
 
 string amode_str(const ARMInstruction *ins) {
-    if (ins.P == 0 && ins.U == 0) return "DA";
-    else if (ins.P == 1 && ins.U == 0) return "DB";
-    else if (ins.P == 0 && ins.U == 1) return "IA";
-    else if (ins.P == 1 && ins.U == 1) return "IB";
+    if (ins->P == 0 && ins->U == 0) return "DA";
+    else if (ins->P == 1 && ins->U == 0) return "DB";
+    else if (ins->P == 0 && ins->U == 1) return "IA";
+    else if (ins->P == 1 && ins->U == 1) return "IB";
     return "INVALID";
 }
 
 string IA_str(const ARMInstruction *ins) {
-    return ins.increment ? "IA" : "DB";
+    return ins->increment ? "IA" : "DB";
 }
 
 string iflags_str(const ARMInstruction *ins) {
     string out;
-    if (ins.affectA) out += "A";
-    if (ins.affectI) out += "I";
-    if (ins.affectF) out += "F";
+    if (ins->affectA) out += "A";
+    if (ins->affectI) out += "I";
+    if (ins->affectF) out += "F";
     return out;
 }
 
 string S_str(const ARMInstruction *ins) {
-    return ins.setflags ? "S" : "";
+    return ins->setflags ? "S" : "";
 }
 
 bool is_conditional_thumb(const ARMInstruction *ins) {
-    switch (ins.id) {
+    switch (ins->id) {
     case b:
     case cbnz_cbz:
         return true;
@@ -906,48 +906,48 @@ bool is_conditional_thumb(const ARMInstruction *ins) {
 }
 
 string c_str(const ARMInstruction *ins) {
-    if (EncodingIsThumb(ins.encoding) && !is_conditional_thumb(ins))
+    if (EncodingIsThumb(ins->encoding) && !is_conditional_thumb(ins))
         return "";
 
-    return ins.cond != COND_AL ? ARMCondCodeToString((cond_t) ins.cond) : "";
+    return ins->cond != COND_AL ? ARMCondCodeToString((cond_t) ins->cond) : "";
 }
 
 string B_str(const ARMInstruction *ins) {
-    return ins.B ? "B" : "";
+    return ins->B ? "B" : "";
 }
 
 string N_str(const ARMInstruction *ins) {
-    return ins.nonzero ? "N" : "";
+    return ins->nonzero ? "N" : "";
 }
 
 string W_str(const ARMInstruction *ins) {
-    return ins.is_pldw ? "W" : "";
+    return ins->is_pldw ? "W" : "";
 }
 
 string x_str(const ARMInstruction *ins) {
-    return ins.n_high ? "T" : "B";
+    return ins->n_high ? "T" : "B";
 }
 
 string y_str(const ARMInstruction *ins) {
-    return ins.m_high ? "T" : "B";
+    return ins->m_high ? "T" : "B";
 }
 
 string X_str(const ARMInstruction *ins) {
-    return ins.m_swap ? "X" : "";
+    return ins->m_swap ? "X" : "";
 }
 
 string R_str(const ARMInstruction *ins) {
-    return ins.round ? "R" : "";
+    return ins->round ? "R" : "";
 }
 
 string mode_str(const ARMInstruction *ins) {
-    switch (ins.id) {
+    switch (ins->id) {
         case vldm: // VLDM
         case vstm: // VSTM
-            if (ins.P == 0 && ins.U == 1)
+            if (ins->P == 0 && ins->U == 1)
                 return "IA";
 
-            if (ins.P == 1 && ins.U == 0)
+            if (ins->P == 1 && ins->U == 0)
                 return "DB";
 
             break;
@@ -959,14 +959,14 @@ string mode_str(const ARMInstruction *ins) {
 }
 
 string op_str(const ARMInstruction *ins) {
-    switch (ins.id) {
+    switch (ins->id) {
         case vpmax_vpmin_floating_point: // VPMAX, VPMIN (floating-point)
         case vpmax_vpmin_integer: // VPMAX, VPMIN (integer)
-            return ins.op ? "MIN" : "MAX";
+            return ins->op ? "MIN" : "MAX";
         case vqdmlal_vqdmlsl: // VQDMLAL, VQDMLSL
-            return ins.op ? "MLSL" : "MLAL";
+            return ins->op ? "MLSL" : "MLAL";
         case vtbl_vtbx: // VTBL, VTBX
-            return ins.op ? "TBX" : "TBL";
+            return ins->op ? "TBX" : "TBL";
 
         default:
             break;
@@ -976,23 +976,23 @@ string op_str(const ARMInstruction *ins) {
 }
 
 string dt_str(const ARMInstruction *ins) {
-    switch (ins.id) {
+    switch (ins->id) {
         case vrsqrte:
-            return ((ins.floating_point) ? "F" : "U") + to_string(ins.esize);
+            return ((ins->floating_point) ? "F" : "U") + to_string(ins->esize);
 
         case vrhadd:
-            return (ins.unsigned_ ? "U" : "S") + to_string(ins.esize);
+            return (ins->unsigned_ ? "U" : "S") + to_string(ins->esize);
 
         case vrecpe:
-            return (ins.floating_point) ? "F32" : "U32";
+            return (ins->floating_point) ? "F32" : "U32";
 
         case vpadal:
         case vpaddl:
-            return (ins.unsigned_ ? "U" : "S") + to_string(ins.esize);
+            return (ins->unsigned_ ? "U" : "S") + to_string(ins->esize);
 
         case vmla_vmlal_vmls_vmlsl_integer:
-            if (ins.encoding == eEncodingT1 || ins.encoding == eEncodingA1) {
-                switch (ins.size) {
+            if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
+                switch (ins->size) {
                     case 0: return "I8";
                     case 1: return "I16";
                     case 2: return "I32";
@@ -1000,15 +1000,15 @@ string dt_str(const ARMInstruction *ins) {
                 }
             }
 
-            if (ins.U) {
-                switch (ins.size) {
+            if (ins->U) {
+                switch (ins->size) {
                     case 0: return "U8";
                     case 1: return "U16";
                     case 2: return "U32";
                     default: return "INVALID";
                 }
             } else {
-                switch (ins.size) {
+                switch (ins->size) {
                     case 0: return "S8";
                     case 1: return "S16";
                     case 2: return "S32";
@@ -1016,24 +1016,24 @@ string dt_str(const ARMInstruction *ins) {
                 }
             }
         case vmla_vmlal_vmls_vmlsl_by_scalar:
-            if (ins.encoding == eEncodingT1 || ins.encoding == eEncodingA1) {
-                return (ins.floating_point ? "F" : "I") + string(ins.size == 1 ? "16" : "32");
+            if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
+                return (ins->floating_point ? "F" : "I") + string(ins->size == 1 ? "16" : "32");
             }
 
-            return (ins.unsigned_ ? "U" : "S") + string(ins.size == 1 ? "16" : "32");
+            return (ins->unsigned_ ? "U" : "S") + string(ins->size == 1 ? "16" : "32");
 
         case vmax_vmin_integer:
         case vhadd_vhsub:
         case vsubl_vsubw:
-            if (ins.U) {
-                switch (ins.size) {
+            if (ins->U) {
+                switch (ins->size) {
                     case 0: return "U8";
                     case 1: return "U16";
                     case 2: return "U32";
                     default: return "INVALID";
                 }
             } else {
-                switch (ins.size) {
+                switch (ins->size) {
                     case 0: return "S8";
                     case 1: return "S16";
                     case 2: return "S32";
@@ -1041,7 +1041,7 @@ string dt_str(const ARMInstruction *ins) {
                 }
             }
         case vclz:
-            switch (ins.size) {
+            switch (ins->size) {
                 case 0: return "I8";
                 case 1: return "I16";
                 case 2: return "I32";
@@ -1049,64 +1049,64 @@ string dt_str(const ARMInstruction *ins) {
             }
         case vcls:
         case vqabs:
-            switch (ins.size) {
+            switch (ins->size) {
                 case 0: return "S8";
                 case 1: return "S16";
                 case 2: return "S32";
                 default: return "INVALID";
             }
         case vqadd:
-            return (ins.unsigned_ ? "U" : "S") + to_string(ins.esize);
+            return (ins->unsigned_ ? "U" : "S") + to_string(ins->esize);
 
         case vceq_immediate_0:
-            return (ins.floating_point ? "F" : "I") + to_string(ins.esize);
+            return (ins->floating_point ? "F" : "I") + to_string(ins->esize);
         case vcgt_immediate_0:
         case vcle_immediate_0:
         case vclt_immediate_0:
         case vcge_immediate_0:
-            return (ins.floating_point ? "F" : "S") + to_string(ins.esize);
+            return (ins->floating_point ? "F" : "S") + to_string(ins->esize);
 
         case vcgt_register:
         case vcge_register:
-            if (ins.encoding == eEncodingT1 || ins.encoding == eEncodingA1) {
-                return (ins.U ? "U" : "S") + to_string(ins.esize);
+            if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
+                return (ins->U ? "U" : "S") + to_string(ins->esize);
             }
 
             return "F32";
 
         case vceq_register: // VCEQ (register)
-            return (ins.int_operation ? "I" : "F") + to_string(ins.esize);
+            return (ins->int_operation ? "I" : "F") + to_string(ins->esize);
 
         case vbic_immediate:
         case vmov_immediate:
         case vmvn_immediate:
         case vorr_immediate:
-            if (ins.cmode <= 7 || (ins.cmode >= 12 && ins.cmode <= 13))
+            if (ins->cmode <= 7 || (ins->cmode >= 12 && ins->cmode <= 13))
                 return "I32";
 
-            else if (ins.cmode >= 8 && ins.cmode <= 11)
+            else if (ins->cmode >= 8 && ins->cmode <= 11)
                 return "I16";
 
-            else if (ins.op == 0 && ins.cmode == 14)
+            else if (ins->op == 0 && ins->cmode == 14)
                 return "I8";
 
-            else if (ins.cmode == 15)
+            else if (ins->cmode == 15)
                 return "F32";
 
             else
                 return "I64";
 
         case vaddl_vaddw:
-            if      (ins.U == 0 && ins.size == 0) return "S8";
-            else if (ins.U == 0 && ins.size == 1) return "S16";
-            else if (ins.U == 0 && ins.size == 2) return "S32";
-            else if (ins.U == 1 && ins.size == 0) return "U8";
-            else if (ins.U == 1 && ins.size == 1) return "U16";
-            else if (ins.U == 1 && ins.size == 2) return "U32";
+            if      (ins->U == 0 && ins->size == 0) return "S8";
+            else if (ins->U == 0 && ins->size == 1) return "S16";
+            else if (ins->U == 0 && ins->size == 2) return "S32";
+            else if (ins->U == 1 && ins->size == 0) return "U8";
+            else if (ins->U == 1 && ins->size == 1) return "U16";
+            else if (ins->U == 1 && ins->size == 2) return "U32";
             else return "INVALID";
         case vsub_integer:
-        case vadd: // VADD (integer)
-            switch (ins.size) {
+        case vadd_integer: // VADD (integer)
+            switch (ins->size) {
                 case 0: return "I8";
                 case 1: return "I16";
                 case 2: return "I32";
@@ -1116,22 +1116,22 @@ string dt_str(const ARMInstruction *ins) {
         case vaba_vabal: // VABA, VABAL
         case vabd_vabdl_integer: // VABD, VABDL (integer)
         case vpmax_vpmin_integer: // VPMAX, VPMIN (integer)
-                 if (ins.size == 0 && ins.U == 0) return "S8";
-            else if (ins.size == 1 && ins.U == 0) return "S16";
-            else if (ins.size == 2 && ins.U == 0) return "S32";
-            else if (ins.size == 0 && ins.U == 1) return "U8";
-            else if (ins.size == 1 && ins.U == 1) return "U16";
-            else if (ins.size == 2 && ins.U == 1) return "U32";
+                 if (ins->size == 0 && ins->U == 0) return "S8";
+            else if (ins->size == 1 && ins->U == 0) return "S16";
+            else if (ins->size == 2 && ins->U == 0) return "S32";
+            else if (ins->size == 0 && ins->U == 1) return "U8";
+            else if (ins->size == 1 && ins->U == 1) return "U16";
+            else if (ins->size == 2 && ins->U == 1) return "U32";
 
             break;
         case vneg:
         case vabs: // VABS
-            if (ins.encoding == eEncodingT1 || ins.encoding == eEncodingA1) {
-                return (ins.floating_point ? "F" : "S") + to_string(ins.esize);
+            if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
+                return (ins->floating_point ? "F" : "S") + to_string(ins->esize);
             }
-            return ins.dp_operation ? "F64" : "F32";
+            return ins->dp_operation ? "F64" : "F32";
         case vaddhn: // VADDHN
-            switch (ins.size) {
+            switch (ins->size) {
                 case 0:
                     return "I16";
                 case 1:
@@ -1144,23 +1144,23 @@ string dt_str(const ARMInstruction *ins) {
 
             break;
         case vmov_scalar_to_arm_core_register: // VMOV (scalar to ARM core register)
-            if (ins.U == 0 && get_bit(ins.opc1, 1) == 1)
+            if (ins->U == 0 && get_bit(ins->opc1, 1) == 1)
                 return "S8";
-            else if (ins.U == 0 && get_bit(ins.opc1, 1) == 0 && get_bit(ins.opc2, 0) == 1)
+            else if (ins->U == 0 && get_bit(ins->opc1, 1) == 0 && get_bit(ins->opc2, 0) == 1)
                 return "S16";
-            else if (ins.U == 1 && get_bit(ins.opc1, 1) == 1)
+            else if (ins->U == 1 && get_bit(ins->opc1, 1) == 1)
                 return "U8";
-            else if (ins.U == 1 && get_bit(ins.opc1, 1) == 0 && get_bit(ins.opc2, 0) == 1)
+            else if (ins->U == 1 && get_bit(ins->opc1, 1) == 0 && get_bit(ins->opc2, 0) == 1)
                 return "U16";
-            else if (ins.U == 0 && get_bit(ins.opc1, 1) == 0 && ins.opc2 == 0)
+            else if (ins->U == 0 && get_bit(ins->opc1, 1) == 0 && ins->opc2 == 0)
                 return "32";
 
             break;
         case vmovl: // VMOVL
-            return (ins.unsigned_ ? "U" : "S") + to_string(ins.esize);
+            return (ins->unsigned_ ? "U" : "S") + to_string(ins->esize);
 
         case vmovn: // VMOVN
-            switch (ins.size) {
+            switch (ins->size) {
                 case 0:
                     return "I16";
                 case 1:
@@ -1173,21 +1173,21 @@ string dt_str(const ARMInstruction *ins) {
 
             break;
         case vmul_vmull_by_scalar: // VMUL, VMULL (by scalar)
-            if (ins.encoding == eEncodingT1 || ins.encoding == eEncodingA1) {
-                return (ins.floating_point ? "F" : "I") + to_string(ins.esize);
+            if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
+                return (ins->floating_point ? "F" : "I") + to_string(ins->esize);
             }
 
-            return (ins.unsigned_ ? "U" : "S") + to_string(ins.esize);
+            return (ins->unsigned_ ? "U" : "S") + to_string(ins->esize);
 
         case vmul_vmull_integer_and_polynomial: // VMUL, VMULL (integer and polynomial)
-            if (ins.encoding == eEncodingT1 || ins.encoding == eEncodingA1) {
-                return (ins.polynomial ? "P" : "I") + to_string(ins.esize);
+            if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
+                return (ins->polynomial ? "P" : "I") + to_string(ins->esize);
             }
 
-            return (ins.polynomial ? "P" : (ins.unsigned_ ? "U" : "S")) + to_string(ins.esize);
+            return (ins->polynomial ? "P" : (ins->unsigned_ ? "U" : "S")) + to_string(ins->esize);
 
         case vpadd_integer: // VPADD (integer)
-            switch (ins.size) {
+            switch (ins->size) {
                 case 0:
                     return "I8";
                 case 1:
@@ -1200,7 +1200,7 @@ string dt_str(const ARMInstruction *ins) {
 
             break;
         case vqneg:
-            switch (ins.size) {
+            switch (ins->size) {
                 case 0:
                     return "S8";
                 case 1:
@@ -1215,7 +1215,7 @@ string dt_str(const ARMInstruction *ins) {
         case vqdmull: // VQDMULL
         case vqdmulh:
         case vqrdmulh:
-            switch (ins.size) {
+            switch (ins->size) {
                 case 1:
                     return "S16";
                 case 2:
@@ -1226,7 +1226,7 @@ string dt_str(const ARMInstruction *ins) {
 
             break;
         case vraddhn: // VRADDHN
-            switch (ins.size) {
+            switch (ins->size) {
                 case 0:
                     return "I16";
                 case 1:
@@ -1239,7 +1239,7 @@ string dt_str(const ARMInstruction *ins) {
 
             break;
         case vrsubhn: // VRSUBHN
-            switch (ins.size) {
+            switch (ins->size) {
                 case 0:
                     return "I16";
                 case 1:
@@ -1252,7 +1252,7 @@ string dt_str(const ARMInstruction *ins) {
 
             break;
         case vsubhn: // VSUBHN
-            switch (ins.size) {
+            switch (ins->size) {
                 case 0:
                     return "I16";
                 case 1:
@@ -1272,12 +1272,12 @@ string dt_str(const ARMInstruction *ins) {
 }
 
 string U_str(const ARMInstruction *ins) {
-    switch (ins.id) {
+    switch (ins->id) {
         case vqmovn_vqmovun: // VQMOVN, VQMOVUN
-            return ins.op == 1 ? "U" : "";
+            return ins->op == 1 ? "U" : "";
         case vqrshrn_vqrshrun: // VQRSHRN, VQRSHRUN
         case vqshrn_vqshrun: // VQSHRN, VQSHRUN
-            return ins.U == 1 ? "U" : "";
+            return ins->U == 1 ? "U" : "";
 
         default:
             break;
@@ -1287,7 +1287,7 @@ string U_str(const ARMInstruction *ins) {
 }
 
 string size_str(const ARMInstruction *ins) {
-    switch (ins.id) {
+    switch (ins->id) {
         case vst3_single_3_element_structure_from_one_lane:
         case vst2_single_2_element_structure_from_one_lane:
         case vst1_single_element_from_one_lane:
@@ -1308,7 +1308,7 @@ string size_str(const ARMInstruction *ins) {
         case vrev16_vrev32_vrev64:
         case vqsub:
         case vqshl_vqshlu_immediate:
-            return to_string(ins.esize);
+            return to_string(ins->esize);
 
         case vld1_single_element_to_one_lane:
         case vld1_single_element_to_all_lanes:
@@ -1325,7 +1325,7 @@ string size_str(const ARMInstruction *ins) {
         case vtst:
         case vuzp:
         case vzip:
-            switch(ins.size) {
+            switch(ins->size) {
                 case 0: return "8";
                 case 1: return "16";
                 case 2: return "32";
@@ -1336,7 +1336,7 @@ string size_str(const ARMInstruction *ins) {
         case vld1_multiple_single_elements:
         case vqrshl:
         case vqshl_register:
-            switch(ins.size) {
+            switch(ins->size) {
                 case 0: return "8";
                 case 1: return "16";
                 case 2: return "32";
@@ -1344,36 +1344,36 @@ string size_str(const ARMInstruction *ins) {
                 default: return "INVALID";
             }
         case vmov_arm_core_register_to_scalar: // VMOV (ARM core register to scalar)
-            if (get_bit(ins.opc1, 1) == 1)
+            if (get_bit(ins->opc1, 1) == 1)
                 return "8";
 
-            else if (get_bit(ins.opc1, 1) == 0 && get_bit(ins.opc2, 0) == 1)
+            else if (get_bit(ins->opc1, 1) == 0 && get_bit(ins->opc2, 0) == 1)
                 return "16";
 
-            else if (get_bit(ins.opc1, 1) == 0 && ins.opc2 == 0)
+            else if (get_bit(ins->opc1, 1) == 0 && ins->opc2 == 0)
                 return "32";
 
             break;
         case vqmovn_vqmovun: // VQMOVN, VQMOVUN
-            if (ins.size == 0)
+            if (ins->size == 0)
                 return "16";
 
-            else if (ins.size == 1)
+            else if (ins->size == 1)
                 return "32";
 
-            else if (ins.size == 2)
+            else if (ins->size == 2)
                 return "64";
 
             break;
         case vshll: // VSHLL
-            return to_string(ins.esize);
+            return to_string(ins->esize);
         case vqrshrn_vqrshrun: // VQRSHRN, VQRSHRUN
         case vqshrn_vqshrun: // VQSHRN, VQSHRUN
         case vrshrn: // VRSHRN
         case vshrn: // VSHRN
-            if (get_bits(ins.imm32, 5, 3) == 1) return "16";
-            else if (get_bits(ins.imm32, 5, 4) == 1) return "32";
-            else if (get_bit(ins.imm32, 5) == 1) return "64";
+            if (get_bits(ins->imm32, 5, 3) == 1) return "16";
+            else if (get_bits(ins->imm32, 5, 4) == 1) return "32";
+            else if (get_bit(ins->imm32, 5) == 1) return "64";
             break;
         default:
             break;
@@ -1383,9 +1383,9 @@ string size_str(const ARMInstruction *ins) {
 }
 
 string type_str(const ARMInstruction *ins) {
-    switch (ins.id) {
+    switch (ins->id) {
         case vqshl_vqshlu_immediate:
-            return ins.src_unsigned ? "U" : "S";
+            return ins->src_unsigned ? "U" : "S";
 
         case vsra:
         case vshr:
@@ -1396,36 +1396,36 @@ string type_str(const ARMInstruction *ins) {
         case vqshl_register:
         case vqrshl:
         case vrshl:
-            return ins.U ? "U" : "S";
+            return ins->U ? "U" : "S";
 
         case vqmovn_vqmovun: // VQMOVN, VQMOVUN
-            if (ins.op == 1 || ins.op == 2)
+            if (ins->op == 1 || ins->op == 2)
                 return "S";
 
-            if (ins.op == 3)
+            if (ins->op == 3)
                 return "U";
 
             break;
         case vqrshrn_vqrshrun: // VQRSHRN, VQRSHRUN
         case vqshrn_vqshrun: // VQSHRN, VQSHRUN
-            if (ins.U == 0 && ins.op == 1)
+            if (ins->U == 0 && ins->op == 1)
                 return "S";
 
-            if (ins.U == 1 && ins.op == 0)
+            if (ins->U == 1 && ins->op == 0)
                 return "S";
 
-            if (ins.U == 1 && ins.op == 1)
+            if (ins->U == 1 && ins->op == 1)
                 return "U";
 
             break;
         case vshll: // VSHLL
-            if (ins.encoding == eEncodingT1 || ins.encoding == eEncodingA1) {
-                if (ins.U == 0)
+            if (ins->encoding == eEncodingT1 || ins->encoding == eEncodingA1) {
+                if (ins->U == 0)
                     return "S";
 
-                if (ins.U == 1)
+                if (ins->U == 1)
                     return "U";
-            } else if (ins.encoding == eEncodingT2 || ins.encoding == eEncodingA2) {
+            } else if (ins->encoding == eEncodingT2 || ins->encoding == eEncodingA2) {
                 return "I";
             }
 
@@ -1768,41 +1768,41 @@ string simple_reg_str(unsigned coproc) {
 }
 
 string option_str(const ARMInstruction *ins) {
-    switch (ins.id) {
+    switch (ins->id) {
         case dbg:
-            return integer_to_string(ins.option, ins.option >= 10);
+            return integer_to_string(ins->option, ins->option >= 10);
         case dmb:
         case dsb:
-            if (ins.option == 15)
+            if (ins->option == 15)
                 return "SY";
-            else if (ins.option == 14)
+            else if (ins->option == 14)
                 return "ST";
-            else if (ins.option == 11)
+            else if (ins->option == 11)
                 return "ISH";
-            else if (ins.option == 10)
+            else if (ins->option == 10)
                 return "ISHST";
-            else if (ins.option == 7)
+            else if (ins->option == 7)
                 return "NSH";
-            else if (ins.option == 6)
+            else if (ins->option == 6)
                 return "NSHST";
-            else if (ins.option == 3)
+            else if (ins->option == 3)
                 return "OSH";
-            else if (ins.option == 2)
+            else if (ins->option == 2)
                 return "OSHST";
             else
-                return "#" + integer_to_string(ins.option, ins.option >= 10);
+                return "#" + integer_to_string(ins->option, ins->option >= 10);
             break;
         case isb:
-            if (ins.option == 15)
+            if (ins->option == 15)
                 return "SY";
             else
-                return "#" + integer_to_string(ins.option, true);
+                return "#" + integer_to_string(ins->option, true);
             break;
         case stc_stc2:
         case ldc_ldc2_immediate:
         case ldc_ldc2_literal:
-            // HACK: In this case ins.imm32 >> 2 == ins.imm8
-            return "{" + integer_to_string(ins.imm32 >> 2, (ins.imm32 >> 2) >= 10) + "}";
+            // HACK: In this case ins->imm32 >> 2 == ins->imm8
+            return "{" + integer_to_string(ins->imm32 >> 2, (ins->imm32 >> 2) >= 10) + "}";
         default:
             break;
     }
@@ -1817,43 +1817,43 @@ string endian_specifier_str(unsigned endian) {
 string spec_reg_str(const ARMInstruction *ins) {
     string t;
 
-    switch(ins.id) {
+    switch(ins->id) {
         case vmrs:
-            switch(ins.reg) {
+            switch(ins->reg) {
                 case 0: return "FPSID";
                 case 1: return "FPSCR";
                 case 6: return "MVFR1";
                 case 7: return "MVFR0";
                 case 8: return "FPEXC";
-                default: return "VFP_CUSTOM_REG_" + to_string(ins.reg);
+                default: return "VFP_CUSTOM_REG_" + to_string(ins->reg);
             }
             break;
         case vmsr:
-            switch(ins.reg) {
+            switch(ins->reg) {
                 case 0: return "FPSID";
                 case 1: return "FPSCR";
                 case 8: return "FPEXC";
-                default: return "VFP_CUSTOM_REG_" + to_string(ins.reg);
+                default: return "VFP_CUSTOM_REG_" + to_string(ins->reg);
             }
             break;
         case mrs:
-            return ins.read_spsr ? "SPSR" : "APSR";
+            return ins->read_spsr ? "SPSR" : "APSR";
 
         case mrs_banked_register:
             return "BANKED_REG";
 
         case msr_immediate:
         case msr_register:
-            t = ins.write_spsr ? "SPSR_" : "CPSR_";
+            t = ins->write_spsr ? "SPSR_" : "CPSR_";
 
-            if (!ins.write_spsr && ins.mask == 8) return "APSR_nzcvq";
-            if (!ins.write_spsr && ins.mask == 4) return "APSR_g";
-            if (!ins.write_spsr && ins.mask == 12) return "APSR_nzcvqg";
+            if (!ins->write_spsr && ins->mask == 8) return "APSR_nzcvq";
+            if (!ins->write_spsr && ins->mask == 4) return "APSR_g";
+            if (!ins->write_spsr && ins->mask == 12) return "APSR_nzcvqg";
 
-            if (ins.mask & (1 << 3)) t += "f";
-            if (ins.mask & (1 << 2)) t += "s";
-            if (ins.mask & (1 << 1)) t += "x";
-            if (ins.mask & (1 << 0)) t += "c";
+            if (ins->mask & (1 << 3)) t += "f";
+            if (ins->mask & (1 << 2)) t += "s";
+            if (ins->mask & (1 << 1)) t += "x";
+            if (ins->mask & (1 << 0)) t += "c";
             return t;
 
         default:
@@ -1901,7 +1901,7 @@ string rotation_str(unsigned rotation) {
 }
 
 string R0_R14_APSR_nzcv(const ARMInstruction *ins) {
-    return ins.t == 15 ? string("apsr_nzcv") : regular_reg_str(ins.t);
+    return ins->t == 15 ? string("apsr_nzcv") : regular_reg_str(ins->t);
 }
 
 '''
@@ -1952,70 +1952,70 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
     names = set()
 
     reg2string = {}
-    reg2string["Ra"] = "regular_reg_str(ins.a).c_str()"
-    reg2string["Rd"] = "regular_reg_str(ins.d).c_str()"
-    reg2string["RdHi"] = "regular_reg_str(ins.dHi).c_str()"
-    reg2string["RdLo"] = "regular_reg_str(ins.dLo).c_str()"
-    reg2string["Rdm"] = "regular_reg_str(ins.d).c_str()"
-    reg2string["Rdn"] = "regular_reg_str(ins.d).c_str()"
-    reg2string["Rm"] = "regular_reg_str(ins.m).c_str()"
-    reg2string["Rn"] = "regular_reg_str(ins.n).c_str()"
-    reg2string["Rs"] = "regular_reg_str(ins.s).c_str()"
-    reg2string["Rt"] = "regular_reg_str(ins.t).c_str()"
-    reg2string["Rt2"] = "regular_reg_str(ins.t2).c_str()"
+    reg2string["Ra"] = "regular_reg_str(ins->a).c_str()"
+    reg2string["Rd"] = "regular_reg_str(ins->d).c_str()"
+    reg2string["RdHi"] = "regular_reg_str(ins->dHi).c_str()"
+    reg2string["RdLo"] = "regular_reg_str(ins->dLo).c_str()"
+    reg2string["Rdm"] = "regular_reg_str(ins->d).c_str()"
+    reg2string["Rdn"] = "regular_reg_str(ins->d).c_str()"
+    reg2string["Rm"] = "regular_reg_str(ins->m).c_str()"
+    reg2string["Rn"] = "regular_reg_str(ins->n).c_str()"
+    reg2string["Rs"] = "regular_reg_str(ins->s).c_str()"
+    reg2string["Rt"] = "regular_reg_str(ins->t).c_str()"
+    reg2string["Rt2"] = "regular_reg_str(ins->t2).c_str()"
 
-    reg2string["imm"] = "integer_to_string(ins.imm32).c_str()"
-    reg2string["imm6"] = "integer_to_string(ins.imm32).c_str()"
-    reg2string["imm32"] = "integer_to_string(ins.imm32).c_str()"
+    reg2string["imm"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["imm6"] = "integer_to_string(ins->imm32).c_str()"
+    reg2string["imm32"] = "integer_to_string(ins->imm32).c_str()"
 
-    reg2string["shift_n"] = "integer_to_string(ins.shift_n, ins.shift_n >= 10).c_str()"
-    reg2string["saturate_to"] = "integer_to_string(ins.saturate_to, false).c_str()"
-    reg2string["label"] = "integer_to_string(ins.imm32 + (EncodingIsThumb(ins.encoding) ? 4 : 8)).c_str()"
+    reg2string["shift_n"] = "integer_to_string(ins->shift_n, ins->shift_n >= 10).c_str()"
+    reg2string["saturate_to"] = "integer_to_string(ins->saturate_to, false).c_str()"
+    reg2string["label"] = "integer_to_string(ins->imm32 + (EncodingIsThumb(ins->encoding) ? 4 : 8)).c_str()"
 
-    reg2string["lsb"] = "integer_to_string(ins.lsbit, ins.lsbit >= 10).c_str()"
-    reg2string["width"] = "integer_to_string(ins.msbit - ins.lsbit + 1, ins.msbit - ins.lsbit + 1 >= 10).c_str()"
-    reg2string["widthminus1"] = "integer_to_string(ins.widthminus1 + 1, ins.widthminus1 + 1 >= 10).c_str()"
+    reg2string["lsb"] = "integer_to_string(ins->lsbit, ins->lsbit >= 10).c_str()"
+    reg2string["width"] = "integer_to_string(ins->msbit - ins->lsbit + 1, ins->msbit - ins->lsbit + 1 >= 10).c_str()"
+    reg2string["widthminus1"] = "integer_to_string(ins->widthminus1 + 1, ins->widthminus1 + 1 >= 10).c_str()"
 
-    reg2string["type"] = "shift_type_str(ins.shift_t).c_str()"
-    reg2string["coproc"] = "coproc_str(ins.coproc).c_str()"
-    reg2string["opc1"] = "integer_to_string(ins.opc1, ins.opc1 >= 10).c_str()"
-    reg2string["opc2"] = "integer_to_string(ins.opc2, ins.opc2 >= 10).c_str()"
+    reg2string["type"] = "shift_type_str(ins->shift_t).c_str()"
+    reg2string["coproc"] = "coproc_str(ins->coproc).c_str()"
+    reg2string["opc1"] = "integer_to_string(ins->opc1, ins->opc1 >= 10).c_str()"
+    reg2string["opc2"] = "integer_to_string(ins->opc2, ins->opc2 >= 10).c_str()"
 
-    reg2string["CRd"] = "coproc_reg_str(ins.CRd).c_str()"
-    reg2string["CRn"] = "coproc_reg_str(ins.CRn).c_str()"
-    reg2string["CRm"] = "coproc_reg_str(ins.CRm).c_str()"
+    reg2string["CRd"] = "coproc_reg_str(ins->CRd).c_str()"
+    reg2string["CRn"] = "coproc_reg_str(ins->CRn).c_str()"
+    reg2string["CRm"] = "coproc_reg_str(ins->CRm).c_str()"
 
     reg2string["option"] = "option_str(ins).c_str()"
-    reg2string["registers"] = "registers_str(ins.registers).c_str()"
+    reg2string["registers"] = "registers_str(ins->registers).c_str()"
     reg2string["spec_reg"] = "spec_reg_str(ins).c_str()"
-    reg2string["endian_specifier"] = "endian_specifier_str(ins.set_bigend).c_str()"
+    reg2string["endian_specifier"] = "endian_specifier_str(ins->set_bigend).c_str()"
 
-    reg2string["Qd"] = "quad_reg_str(ins.d >> 1).c_str()"
-    reg2string["Qn"] = "quad_reg_str(ins.n >> 1).c_str()"
-    reg2string["Qm"] = "quad_reg_str(ins.m >> 1).c_str()"
+    reg2string["Qd"] = "quad_reg_str(ins->d >> 1).c_str()"
+    reg2string["Qn"] = "quad_reg_str(ins->n >> 1).c_str()"
+    reg2string["Qm"] = "quad_reg_str(ins->m >> 1).c_str()"
 
-    reg2string["Dd"] = "double_reg_str(ins.d).c_str()"
-    reg2string["Dn"] = "double_reg_str(ins.n).c_str()"
-    reg2string["Dm"] = "double_reg_str(ins.m).c_str()"
+    reg2string["Dd"] = "double_reg_str(ins->d).c_str()"
+    reg2string["Dn"] = "double_reg_str(ins->n).c_str()"
+    reg2string["Dm"] = "double_reg_str(ins->m).c_str()"
 
-    reg2string["Sd"] = "simple_reg_str(ins.d).c_str()"
-    reg2string["Sn"] = "simple_reg_str(ins.n).c_str()"
-    reg2string["Sm"] = "simple_reg_str(ins.m).c_str()"
+    reg2string["Sd"] = "simple_reg_str(ins->d).c_str()"
+    reg2string["Sn"] = "simple_reg_str(ins->n).c_str()"
+    reg2string["Sm"] = "simple_reg_str(ins->m).c_str()"
 
-    reg2string["shift"] = "shift_str(ins.shift_t, ins.shift_n).c_str()"
-    reg2string["rotation"] = "rotation_str(ins.rotation).c_str()"
+    reg2string["shift"] = "shift_str(ins->shift_t, ins->shift_n).c_str()"
+    reg2string["rotation"] = "rotation_str(ins->rotation).c_str()"
 
     reg2string["list"] = "list_str(ins).c_str()"
 
-    reg2string["Dd[x]"] = "(double_reg_str(ins.d) + \"[\" + to_string(ins.index) + \"]\").c_str()"
-    reg2string["Dn[x]"] = "(double_reg_str(ins.n) + \"[\" + to_string(ins.index) + \"]\").c_str()"
-    reg2string["Dm[x]"] = "(double_reg_str(ins.m) + \"[\" + to_string(ins.index) + \"]\").c_str()"
+    reg2string["Dd[x]"] = "(double_reg_str(ins->d) + \"[\" + to_string(ins->index) + \"]\").c_str()"
+    reg2string["Dn[x]"] = "(double_reg_str(ins->n) + \"[\" + to_string(ins->index) + \"]\").c_str()"
+    reg2string["Dm[x]"] = "(double_reg_str(ins->m) + \"[\" + to_string(ins->index) + \"]\").c_str()"
 
     reg2string["iflags"] = "iflags_str(ins).c_str()"
-    reg2string["shift_amount"] = "integer_to_string(ins.shift_amount, true).c_str()"
-    reg2string["mode"] = "integer_to_string(ins.mode, false).c_str()"
-    reg2string["registers_with_pc"] = "registers_str(ins.registers | (1 << 15)).c_str()"
-    reg2string["registers_without_pc"] = "registers_str(ins.registers & ((1 << 15) - 1)).c_str()"
+    reg2string["shift_amount"] = "integer_to_string(ins->shift_amount, true).c_str()"
+    reg2string["mode"] = "integer_to_string(ins->mode, false).c_str()"
+    reg2string["registers_with_pc"] = "registers_str(ins->registers | (1 << 15)).c_str()"
+    reg2string["registers_without_pc"] = "registers_str(ins->registers & ((1 << 15) - 1)).c_str()"
 
     reg2string["R0_R14_APSR_nzcv"] = "R0_R14_APSR_nzcv(ins).c_str()"
 
@@ -2103,7 +2103,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                     # Add the format string for the sign if needed.
                     if val.sign == "+/-":
                         format_string += "%s"
-                        vars.append("ins.add ? \"\" : \"-\"")
+                        vars.append("ins->add ? \"\" : \"-\"")
 
                     else:
                         format_string += val.sign
@@ -2118,7 +2118,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                             # The only string that is optional given an ins is the writeback sign.
                             if optional == "!":
                                 format_string += "%s"
-                                vars.append("ins.wback ? \"!\" : \"\"")
+                                vars.append("ins->wback ? \"!\" : \"\"")
 
                             else:
                                 format_string += optional
@@ -2131,7 +2131,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
 
                             elif optional.sign == "+/-":
                                 format_string += "%s"
-                                vars.append("ins.add ? \"\" : \"-\"")
+                                vars.append("ins->add ? \"\" : \"-\"")
 
                             format_string += "%s"
                             vars.append(reg2string[optional.name])
