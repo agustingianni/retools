@@ -3958,7 +3958,7 @@ if ConditionPassed() then
 endif
 """
 }, { 
-    "name" : "SVC (previously SWI)",
+    "name" : "SVC",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
