@@ -5234,7 +5234,7 @@ wback = (W == '1'); increment = TRUE; wordhigher = FALSE;"""
     "version" : "ARMv6All, ARMv7",
     "format" : "SRS<amode> SP{!}, #<mode>",
     "pattern" : "1111100 P#1 U#1 1 W#1 0110100000101000 mode#5",
-    "decoder" : """wback = (W == '1'); inc = (U == '1'); wordhigher = (P == U);"""
+    "decoder" : """wback = (W == '1'); increment = (U == '1'); wordhigher = (P == U);"""
 } , {
     "name" : "STM (User registers)",
     "encoding" : "A1",
