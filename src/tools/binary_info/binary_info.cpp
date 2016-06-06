@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "AbstractBinary.h"
+#include "abstract/Segment.h"
 
 using namespace std;
 
@@ -43,6 +44,18 @@ int main(int argc, char **argv) {
     }
 
     cout << "Initialized binary" << endl;
+
+    for (AbstractBinary *cur : binary->binaries()) {
+        cout << endl;
+        cout << "Current binary:" << endl;
+
+        for (const Abstract::Segment &segment : cur->getSegments()) {
+            cout << "  Segment:" << endl;
+            cout << "    address : " << (void *) segment.getAddress() << endl;
+            cout << "    size    : " << (void *) segment.getInMemorySize() << endl;
+            cout << "    perm    : " << SegmentPermission::toString(segment.getPermission()) << endl;
+        }
+    }
 
     return 0;
 }
