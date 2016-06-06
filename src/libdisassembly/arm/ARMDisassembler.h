@@ -258,6 +258,7 @@ namespace Disassembler {
 			// ARMInstructionFields m_fields;
 
 			// Maybe this should be a union.
+			uint32_t imm12;
 			uint32_t imm32;
 			uint64_t imm64;
 
