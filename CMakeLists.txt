@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-unwind-tables -fno-asynchronous-unwind-tables -Wno-int-to-void-pointer-cast")
 
 # Enable debugging.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g -fno-omit-frame-pointer -ferror-limit=100 -w")
 
 # Enable address sanitizer (overflows & shit).
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
@@ -18,7 +18,7 @@ add_subdirectory(third_party)
 # Build related libraries.
 add_subdirectory(src/libbinary)
 add_subdirectory(src/libdisassembly)
-# add_subdirectory(src/libemulation)
+add_subdirectory(src/libemulation)
 # add_subdirectory(src/libsymbolic)
 
 # Build the tools.

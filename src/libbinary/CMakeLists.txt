@@ -29,7 +29,7 @@ add_library(
 set_target_properties(
     binary
     PROPERTIES 
-    COMPILE_FLAGS "-std=c++11 -Wno-format"
+    COMPILE_FLAGS "-std=c++11 -Wno-format -g"
 )
 
 # Set target specific include directories.
