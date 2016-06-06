@@ -671,7 +671,7 @@ class CPPTranslatorVisitor(Visitor):
             return "%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["BKPTInstrDebugEvent", "BXWritePC", "BankedRegisterAccessValid",
-            "BranchWritePC", "CPSRWriteByInstr", "CallHypervisor", "CallSupervisor",
+            "BranchWritePC", "CPSRWriteByInstr", "SPSRWriteByInstr", "CallHypervisor", "CallSupervisor",
             "ClearEventRegister", "ClearExclusiveLocal", "Coproc_InternalOperation",
             "Coproc_SendLoadedWord", "Coproc_SendOneWord", "Coproc_SendTwoWords", "DataMemoryBarrier",
             "DataSynchronizationBarrier", "EncodingSpecificOperations", "GenerateAlignmentException",

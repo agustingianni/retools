@@ -1925,18 +1925,17 @@ endif
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    if write_nzcvq then
-        APSR.N = R[n]<31>;
-        APSR.Z = R[n]<30>;
-        APSR.C = R[n]<29>;
-        APSR.V = R[n]<28>;
-        APSR.Q = R[n]<27>;
-    endif
 
-    if write_g then
-        APSR.GE = R[n]<19:16>;
+    if write_spsr then
+        SPSRWriteByInstr(R[n], mask);
+    else
+        CPSRWriteByInstr(R[n], mask, FALSE);
     endif
-endif
+    
+    if CPSR<4:0> == '11010' && CPSR.J == '1' && CPSR.T == '1' then
+        UNPREDICTABLE;
+    endif
+endif    
 """
 }, { 
     "name" : "MUL",

@@ -69,6 +69,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += "    void ClearExclusiveLocal(unsigned processorid) {}\n"
         header += "    unsigned CountLeadingZeroBits(unsigned value) {return 0;}\n"
         header += "    void CPSRWriteByInstr(unsigned value, unsigned byte_mask, bool is_exception_return) {}\n"
+        header += "    void SPSRWriteByInstr(unsigned value, unsigned byte_mask) {}\n"
         header += "    void Hint_Debug(unsigned op) {}\n"
         header += "    void DataMemoryBarrier(unsigned domain, unsigned types) {}\n"
         header += "    void DataSynchronizationBarrier(unsigned domai, unsigned types) {}\n"
