@@ -6608,8 +6608,8 @@ if ConditionPassed() then
         for e = 0 to elements-1
             e_bits = e<esize-1:0>;
             d_bits = e_bits EOR reverse_mask;
-            d = UInt(d_bits);
-            Elem[dest,d,esize] = Elem[D[m+r],e,esize];
+            i = UInt(d_bits);
+            Elem[dest,i,esize] = Elem[D[m+r],e,esize];
         endfor
 
         D[d+r] = dest;
