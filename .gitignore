@@ -1,3 +1,4 @@
+.vscode
 *.pyc
 .DS_Store
 .cproject
@@ -5,7 +6,8 @@
 .pydevproject
 .settings/
 retools
-build
+build*
 retools.sublime-*
 src/libbinary/macho/testfiles/
 deps/
+src/libdisassembly/arm/gen/
