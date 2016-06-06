@@ -878,7 +878,7 @@ std::string decode_vacge_vacgt_vacle_vaclt_a1_to_string(const Disassembler::ARMI
 
 // Instruction: VADD
 // Encoding: T1
-std::string decode_vadd_t1_to_string(const Disassembler::ARMInstruction *ins) {
+std::string decode_vadd_integer_t1_to_string(const Disassembler::ARMInstruction *ins) {
     // VADD<c>.<dt> <Qd>, <Qn>, <Qm>
     // VADD<c>.<dt> <Dd>, <Dn>, <Dm>
     char buffer[128];
@@ -895,8 +895,8 @@ std::string decode_vadd_t1_to_string(const Disassembler::ARMInstruction *ins) {
 
 // Instruction: VADD
 // Encoding: A1
-std::string decode_vadd_a1_to_string(const Disassembler::ARMInstruction *ins) {
-    return decode_vadd_t1_to_string(ins);
+std::string decode_vadd_integer_a1_to_string(const Disassembler::ARMInstruction *ins) {
+    return decode_vadd_integer_t1_to_string(ins);
 }
 
 // Instruction: VADD (floating-point)
