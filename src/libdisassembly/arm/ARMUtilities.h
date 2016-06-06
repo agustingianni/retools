@@ -272,6 +272,11 @@ inline std::tuple<uint32_t, uint32_t> ThumbExpandImm_C(uint32_t imm12, uint32_t 
 	return std::tuple<uint32_t, uint32_t>(imm32, carry_out);
 }
 
+inline uint32_t ExpandImm_C(ARMEncoding encoding, uint32_t imm12, uint32_t carry) {
+	return EncodingIsThumb(encoding) ?
+		std::get<1>(ThumbExpandImm_C(imm12, carry)) : std::get<1>(ARMExpandImm_C(imm12, carry));
+}
+
 inline uint32_t ThumbExpandImm(uint32_t opcode) {
 	uint32_t carry_in = 0;
 	return std::get<0>(ThumbExpandImm_C(opcode, carry_in));
