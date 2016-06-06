@@ -8,6 +8,7 @@ from parser import ARMv7Parser
 from specification import ARMv7OperationSpec, ARMv7Types
 from ast.passes import IdentifierRenamer, ListAssignmentRewriter
 from ast.translators import InterpreterCPPTranslator, indent, NeedsSemiColon
+from disgen import instruction_id_name
 
 DEBUG = False
 
@@ -25,11 +26,9 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
     known_types = list(ARMv7Types.known_types)
 
     # Load symbols file.
+    symbols = None
     with open(symbols_file, "r") as fd:
         symbols = json.load(fd)
-        for symbol in symbols:
-            symbol = "ins." + symbol
-            known_types.append({"name" : symbol, "type" : ("int", 32)})
 
     with open(interpreter_name_h, "w") as fd:
         header = ""
@@ -211,14 +210,21 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             # Get the AST for the decoder pseudocode and translate it to C++.            
             program_ast = ARMv7Parser.parse_program(ins_operation)
 
+            # Expand the known_types with the instruction fields.
+            ins_types = list(known_types)
+            ins_id = instruction_id_name(instruction)
+            for symbol in symbols[ins_id]:
+                symbol = "ins." + symbol
+                ins_types.append({"name" : symbol, "type" : ("int", 32)})
+
             # Convert all the local variables to instance variables.
-            IdentifierRenamer(symbols, "ins.").transform(program_ast)
+            IdentifierRenamer(symbols[ins_id], "ins.").transform(program_ast)
 
             # Fix untranslatable list assignments.
             ListAssignmentRewriter().transform(program_ast)
-
+            
             # Create a translator.
-            translator = InterpreterCPPTranslator(known_types=known_types)
+            translator = InterpreterCPPTranslator(known_types=ins_types)
 
             body = ""
 

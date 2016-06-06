@@ -428,7 +428,10 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
             fd.write("    ins.m_decoded_by = \"ARMDecoder::%s\";\n" % instruction_decoder_name(instruction))
             fd.write("    ins.encoding = encoding;\n")
 
-            # Save all the variables defined inside the decoding procedure.
+            # Add the 'encoding' field to the instruction fields.
+            instruction_fields[ins_name].add("encoding")
+
+            # Save all the variables defined inside the decoding procedure.  
             for var in translator.define_me:
                 # Ignored variables should not be propagated.
                 if "ignored" in var:
@@ -449,9 +452,15 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
             fd.write("    return ins;\n")
             fd.write("}\n\n")
 
+    class SetEncoder(json.JSONEncoder):
+        def default(self, obj):
+           if isinstance(obj, set):
+              return list(obj)
+           return json.JSONEncoder.default(self, obj)
+
     # Save used symbols for use in the interpreter generator.
     with open(symbols_file, "w") as fd:
-        json.dump(list(ins_fields), fd)
+        json.dump(instruction_fields, fd, cls=SetEncoder)
 
     # Create the union of the instruction fields.
     with open(create_decoders, "w") as fd:
