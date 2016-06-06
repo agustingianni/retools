@@ -7,12 +7,63 @@
 #include "ARMContext.h"
 
 ARMContext::ARMContext() {
-	// TODO Auto-generated constructor stub
+	for(auto i = 0; i < Register::ARM_REG_CORE_MAX; i++)
+		m_core_regs[i] = 0;
 
+	for(auto i = 0; i < Register::ARM_REG_COPROC_MAX; i++)
+		m_coproc_regs[i] = 0;
+
+	for(auto i = 0; i < Register::ARM_REG_SINGLE_MAX; i++)
+		m_single_regs[i] = 0;
+
+	for(auto i = 0; i < Register::ARM_REG_DOUBLE_MAX; i++)
+		m_double_regs[i] = 0;
+
+	for(auto i = 0; i < Register::ARM_REG_QUAD_MAX; i++)
+		m_quad_regs[i] = 0;
 }
 
 ARMContext::~ARMContext() {
-	// TODO Auto-generated destructor stub
+}
+
+void ARMContext::setRegister(Register::Core reg, uint32_t value) {
+	m_core_regs[reg] = value;
+}
+
+void ARMContext::getRegister(Register::Core reg, uint32_t &value) {
+	value = m_core_regs[reg];
+}
+
+void ARMContext::setRegister(Register::Coproc reg, uint32_t value) {
+	m_coproc_regs[reg] = value;
+}
+
+void ARMContext::getRegister(Register::Coproc reg, uint32_t &value) {
+	value = m_coproc_regs[reg];
+}
+
+void ARMContext::setRegister(Register::Single reg, uint32_t value) {
+	m_single_regs[reg] = value;
+}
+
+void ARMContext::getRegister(Register::Single reg, uint32_t &value) {
+	value = m_single_regs[reg];
+}
+
+void ARMContext::setRegister(Register::Double reg, uint64_t value) {
+	m_double_regs[reg] = value;
+}
+
+void ARMContext::getRegister(Register::Double reg, uint64_t &value) {
+	value = m_double_regs[reg];
+}
+
+void ARMContext::setRegister(Register::Quad reg, uint32_t value) {
+	m_quad_regs[reg] = value;
+}
+
+void ARMContext::getRegister(Register::Quad reg, uint32_t &value) {
+	value = m_quad_regs[reg];
 }
 
 uint32_t ARMContext::readRegularRegister(unsigned regno) {

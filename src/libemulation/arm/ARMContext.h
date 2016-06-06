@@ -16,6 +16,17 @@ public:
 	ARMContext();
 	virtual ~ARMContext();
 
+	void setRegister(Register::Core reg, uint32_t value);
+	void getRegister(Register::Core reg, uint32_t &value);
+	void setRegister(Register::Coproc reg, uint32_t value);
+	void getRegister(Register::Coproc reg, uint32_t &value);
+	void setRegister(Register::Single reg, uint32_t value);
+	void getRegister(Register::Single reg, uint32_t &value);
+	void setRegister(Register::Double reg, uint64_t value);
+	void getRegister(Register::Double reg, uint64_t &value);
+	void setRegister(Register::Quad reg, uint32_t value);
+	void getRegister(Register::Quad reg, uint32_t &value);
+
 	uint32_t readRegularRegister(unsigned regno);
 	uint32_t readRmode(unsigned regno, unsigned n);
 	uint32_t readSingleRegister(unsigned regno);
@@ -95,6 +106,13 @@ private:
     ARMVariants m_arm_isa;
     apsr_t APSR;
     fpscr_t FPSCR;
+
+    // Registers.
+	uint32_t m_core_regs[Register::ARM_REG_CORE_MAX];
+	uint32_t m_coproc_regs[Register::ARM_REG_COPROC_MAX];
+	uint32_t m_single_regs[Register::ARM_REG_SINGLE_MAX];
+	uint64_t m_double_regs[Register::ARM_REG_DOUBLE_MAX];
+	uint64_t m_quad_regs[Register::ARM_REG_QUAD_MAX];
 };
 
 #endif /* SRC_LIBDISASSEMBLY_ARM_ARMCONTEXT_H_ */
