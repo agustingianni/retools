@@ -5106,11 +5106,11 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
     for r = 0 to regs-1
         for e = 0 to elements-1
-            op = Elem[D[m+r],e,esize];
+            operand = Elem[D[m+r],e,esize];
             if to_integer then
-                result = FPToFixed(op, esize, 0, unsigned_, round_zero, FALSE);
+                result = FPToFixed(operand, esize, 0, unsigned_, round_zero, FALSE);
             else
-                result = FixedToFP(op, esize, 0, unsigned_, round_nearest, FALSE);
+                result = FixedToFP(operand, esize, 0, unsigned_, round_nearest, FALSE);
             endif
             Elem[D[d+r],e,esize] = result;
         endfor
@@ -5146,11 +5146,11 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
     for r = 0 to regs-1
         for e = 0 to elements-1
-            op = Elem[D[m+r],e,esize];
+            operand = Elem[D[m+r],e,esize];
             if to_fixed then
-                result = FPToFixed(op, esize, frac_bits, unsigned_, round_zero, FALSE);
+                result = FPToFixed(operand, esize, frac_bits, unsigned_, round_zero, FALSE);
             else
-                result = FixedToFP(op, esize, frac_bits, unsigned_, round_nearest, FALSE);
+                result = FixedToFP(operand, esize, frac_bits, unsigned_, round_nearest, FALSE);
             endif
             
             Elem[D[d+r],e,esize] = result;
