@@ -38,8 +38,12 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += 'using namespace Disassembler;\n\n' 
         header += "class ARMInterpreter {\n"
         header += "public:\n"
-        header += "    ARMInterpreter() {};\n\n"
+        header += "    ARMInterpreter(ARMContext &ctx) :\n"
+        header += "        m_ctx{ctx} {\n"
+        header += "    }\n\n"
+        header += "    void execute(const ARMInstruction &ins);\n\n"
         header += "private:\n"
+        header += "    ARMContext &m_ctx;\n\n"
         header += "    bool ConditionPassed() { return true; }\n"
         header += "    bool CurrentModeIsHyp() { return false; }\n"
         header += "    bool CurrentModeIsNotUser() { return false; }\n"
@@ -182,13 +186,14 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         fd.write(header)
         for instruction in ARMv7OperationSpec.instructions:
             ins_name = instruction["name"]
-            fd.write("    bool %s(ARMContext &ctx, const ARMInstruction &ins);\n" % method_name(ins_name))
+            fd.write("    bool %s(const ARMInstruction &ins);\n" % method_name(ins_name))
         
         fd.write("};\n")
     
     with open(interpreter_name_cpp, "w") as fd:
         header = ""
         header += '#include "arm/gen/ARMInterpreter.h"\n'
+        header += '#include "arm/gen/ARMDecodingTable.h"\n'
         header += '#include "arm/ARMContext.h"\n'
         header += '#include "arm/ARMUtilities.h"\n'
         header += '#include "Utilities.h"\n\n'
@@ -197,11 +202,23 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += 'using namespace std;\n\n'
         
         fd.write(header)
+
+        # Create the execution dispatcher.
+        body = ""
+        body += "void ARMInterpreter::execute(const ARMInstruction &ins) {\n"
+        body += "    switch (ins.id) {\n"
+        for i, instruction in enumerate(ARMv7OperationSpec.instructions):
+            body += "        case ARMInstructionId::%s: %s(ins); break;\n" % (instruction_id_name(instruction), method_name(instruction["name"]))
+        body += "        default: break;\n"
+        body += "    }\n"
+        body += "}\n\n"
+        fd.write(body)
+
         for i, instruction in enumerate(ARMv7OperationSpec.instructions):
             ins_name = instruction["name"]
             logging.info("Processing instruction '%s' (%d)" % (ins_name, i))
 
-            fd.write("bool ARMInterpreter::%s(ARMContext &ctx, const ARMInstruction &ins) {\n" % method_name(ins_name))
+            fd.write("bool ARMInterpreter::%s(const ARMInstruction &ins) {\n" % method_name(ins_name))
             
             ins_operation = instruction["operation"]
 

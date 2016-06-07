@@ -151,28 +151,28 @@ class CPPTranslatorVisitor(Visitor):
     def accept_RegularRegisterRead(self, parent, node):
         self.set_type(node, ("int", 32))
         register_no_expression = self.accept(node, node.expr1)
-        return "ctx.readRegularRegister(%s)" % (register_no_expression)
+        return "m_ctx.readRegularRegister(%s)" % (register_no_expression)
 
     def accept_RmodeRead(self, parent, node):
         self.set_type(node, ("int", 32))
         expr1 = self.accept(node, node.expr1)
         expr2 = self.accept(node, node.expr2)
-        return "ctx.readRmode(%s, %s)" % (expr1, expr2)
+        return "m_ctx.readRmode(%s, %s)" % (expr1, expr2)
 
     def accept_SingleRegisterRead(self, parent, node):
         self.set_type(node, ("int", 32))
         register_no_expression = self.accept(node, node.expr1)
-        return "ctx.readSingleRegister(%s)" % (register_no_expression)
+        return "m_ctx.readSingleRegister(%s)" % (register_no_expression)
 
     def accept_DoubleRegisterRead(self, parent, node):
         self.set_type(node, ("int", 64))
         register_no_expression = self.accept(node, node.expr1)
-        return "ctx.readDoubleRegister(%s)" % (register_no_expression)
+        return "m_ctx.readDoubleRegister(%s)" % (register_no_expression)
 
     def accept_QuadRegisterRead(self, parent, node):
         self.set_type(node, ("int", 128))
         register_no_expression = self.accept(node, node.expr1)
-        return "ctx.readQuadRegister(%s)" % (register_no_expression)
+        return "m_ctx.readQuadRegister(%s)" % (register_no_expression)
 
     def accept_MemoryRead(self, parent, node):
         expr1 = self.accept(node, node.expr1)
@@ -182,39 +182,39 @@ class CPPTranslatorVisitor(Visitor):
         type_width = int(expr2) * 8 if expr2.isdigit() else expr2
         self.set_type(node, ("int", type_width))
 
-        return "ctx.readMemory(%s, %s)" % (expr1, expr2)
+        return "m_ctx.readMemory(%s, %s)" % (expr1, expr2)
 
     def accept_RegularRegisterWrite(self, parent, node):
         register_no_expression = self.accept(node, node.left_expr.expr1)
         register_value_expression = self.accept(node, node.right_expr)
-        return "ctx.writeRegularRegister(%s, %s)" % (register_no_expression, register_value_expression)
+        return "m_ctx.writeRegularRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
     def accept_RmodeWrite(self, parent, node):
         expr1 = self.accept(node, node.left_expr.expr1)
         expr2 = self.accept(node, node.left_expr.expr2)
         value = self.accept(node, node.right_expr)
-        return "ctx.writeRmode(%s, %s, %s)" % (expr1, expr2, value)
+        return "m_ctx.writeRmode(%s, %s, %s)" % (expr1, expr2, value)
 
     def accept_SingleRegisterWrite(self, parent, node):
         register_no_expression = self.accept(node, node.left_expr.expr1)
         register_value_expression = self.accept(node, node.right_expr)
-        return "ctx.writeSingleRegister(%s, %s)" % (register_no_expression, register_value_expression)
+        return "m_ctx.writeSingleRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
     def accept_DoubleRegisterWrite(self, parent, node):
         register_no_expression = self.accept(node, node.left_expr.expr1)
         register_value_expression = self.accept(node, node.right_expr)
-        return "ctx.writeDoubleRegister(%s, %s)" % (register_no_expression, register_value_expression)
+        return "m_ctx.writeDoubleRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
     def accept_QuadRegisterWrite(self, parent, node):
         register_no_expression = self.accept(node, node.left_expr.expr1)
         register_value_expression = self.accept(node, node.right_expr)
-        return "ctx.writeQuadRegister(%s, %s)" % (register_no_expression, register_value_expression)
+        return "m_ctx.writeQuadRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
     def accept_MemoryWrite(self, parent, node):
         address = self.accept(node, node.left_expr.expr1)
         size = self.accept(node, node.left_expr.expr2)
         value = self.accept(node, node.right_expr)
-        return "ctx.writeMemory(%s, %s, %s)" % (address, size, value)
+        return "m_ctx.writeMemory(%s, %s, %s)" % (address, size, value)
 
     def accept_ElementRead(self, parent, node):
         vector = self.accept(node, node.expr1)
@@ -225,14 +225,14 @@ class CPPTranslatorVisitor(Visitor):
         type_width = int(size) * 8 if size.isdigit() else size
         self.set_type(node, ("int", type_width))
 
-        return "ctx.readElement(%s, %s, %s)" % (vector, element, size)
+        return "m_ctx.readElement(%s, %s, %s)" % (vector, element, size)
 
     def accept_ElementWrite(self, parent, node):
         vector = self.accept(node, node.left_expr.expr1)
         element = self.accept(node, node.left_expr.expr2)
         size = self.accept(node, node.left_expr.expr3)
         value = self.accept(node, node.right_expr)
-        return "ctx.writeElement(%s, %s, %s, %s)" % (vector, element, size, value)
+        return "m_ctx.writeElement(%s, %s, %s, %s)" % (vector, element, size, value)
 
     def accept_ArrayAccess(self, parent, node):
         node_name = str(node.name)
@@ -658,7 +658,7 @@ class CPPTranslatorVisitor(Visitor):
 
         elif str(node.name) in ["ALUWritePC"]:
             self.set_type(node, ("void", None))
-            return "ctx.%s(%s)" % (node.name, ", ".join(arguments))
+            return "m_ctx.%s(%s)" % (node.name, ", ".join(arguments))
 
         elif str(node.name) in ["CheckAdvSIMDEnabled", "CheckAdvSIMDOrVFPEnabled", "CheckVFPEnabled",
             "ConditionPassed", "Coproc_Accepted", "Coproc_DoneLoading", "Coproc_DoneStoring",
