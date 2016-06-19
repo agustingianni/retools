@@ -10,11 +10,14 @@
 
 #include "arm/ARMArch.h"
 #include <cstdint>
+#include <cassert>
 
 class ARMContext {
 public:
 	ARMContext();
 	virtual ~ARMContext();
+
+	void dump();
 
 	void setRegister(Register::Core reg, uint32_t value);
 	void getRegister(Register::Core reg, uint32_t &value);
@@ -44,8 +47,35 @@ public:
 	uint32_t writeElement(uintptr_t address, unsigned size, uintptr_t value, unsigned what___);
 
 	void ALUWritePC(uint32_t address) {
+        if (ArchVersion() >= ARMv7 && CurrentInstrSet() == InstrSet_ARM)
+            BXWritePC(address);
+        else
+            BranchWritePC(address);
+
 		return;
 	}
+
+    void BXWritePC(uint32_t address) {
+        if (CurrentInstrSet() == InstrSet_ThumbEE) {
+            if (address & 1 == 1) {
+                BranchTo(address & 0xfffffffe); // Remaining in ThumbEE state
+            } else {
+                UNPREDICTABLE();
+            }
+        } else if (address & 1 == 1) {
+            SelectInstrSet(InstrSet_Thumb);
+            BranchTo(address & 0xfffffffe);
+        } else if (address & 2 == 0) {
+            SelectInstrSet(InstrSet_ARM);
+            BranchTo(address);
+        } else {
+            UNPREDICTABLE();
+        }
+    }
+
+    void SelectInstrSet(ARMMode instruction_set) {
+        m_opcode_mode = instruction_set;
+    }
 
 	// Return the value of PC used when storing, this may be +4 or +8.
 	uint32_t PCStoreValue() {
@@ -76,28 +106,27 @@ public:
 		return m_arm_isa;
 	}
 
-	// TODO: Implement.
-	void BranchTo(uintptr_t address) {
-		return;
-	}
+    void BranchTo(uintptr_t address) {
+        setRegister(Register::ARM_REG_PC, address);
+    }
 
 	void UNPREDICTABLE() {
-		return;
+		assert(false && "Rached an Unpredictable instruction.");
 	}
 
-	void BranchWritePC(uintptr_t address) {
-		if (CurrentInstrSet() == InstrSet_ARM) {
-			if (ArchVersion() < 6 && (address & 3) != 0) {
-				UNPREDICTABLE();
-			}
+    void BranchWritePC(uintptr_t address) {
+        if (CurrentInstrSet() == InstrSet_ARM) {
+            if (ArchVersion() < ARMv6 && (address & 3) != 0) {
+                UNPREDICTABLE();
+            }
 
-			BranchTo(address & 0xfffffffc);
-		} else if (CurrentInstrSet() == InstrSet_Jazelle) {
-			BranchTo(address);
-		} else {
-			BranchTo(address & 1);
-		}
-	}
+            BranchTo(address & 0xfffffffc);
+        } else if (CurrentInstrSet() == InstrSet_Jazelle) {
+            BranchTo(address);
+        } else {
+            BranchTo(address & 1);
+        }
+    }
 
 private:
     bool m_hyp_mode;

@@ -26,6 +26,21 @@ ARMContext::ARMContext() {
 ARMContext::~ARMContext() {
 }
 
+#include <cstdio>
+
+void ARMContext::dump() {
+	printf("ARMContext:\n");
+	printf(" r0 = 0x%.8x  r1 = 0x%.8x  r2 = 0x%.8x  r3 = 0x%.8x  r4 = 0x%.8x  r5 = 0x%.8x  r6 = 0x%.8x  r7 = 0x%.8x \n",
+			m_core_regs[0], m_core_regs[1], m_core_regs[2], m_core_regs[3],
+			m_core_regs[4], m_core_regs[5], m_core_regs[6], m_core_regs[7]
+	);
+
+	printf(" r8 = 0x%.8x  r9 = 0x%.8x r10 = 0x%.8x r11 = 0x%.8x r12 = 0x%.8x r13 = 0x%.8x r14 = 0x%.8x r15 = 0x%.8x \n",
+			m_core_regs[8], m_core_regs[9], m_core_regs[10], m_core_regs[11],
+			m_core_regs[12], m_core_regs[13], m_core_regs[14], m_core_regs[15]
+	);
+}
+
 void ARMContext::setRegister(Register::Core reg, uint32_t value) {
 	m_core_regs[reg] = value;
 }

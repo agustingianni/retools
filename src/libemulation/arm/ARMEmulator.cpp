@@ -41,6 +41,9 @@ namespace Emulator {
 			// 3. Execute the instruction.
 			m_interpreter.execute(ins);
 
+			// 4. Print the status of the registers.
+			m_contex.dump();
+
 			cur_pc += sizeof(uint32_t);
 			n_executed++;
 		}
