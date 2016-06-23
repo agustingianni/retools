@@ -50,6 +50,15 @@ public:
 	uint32_t readElement(uintptr_t address, uintptr_t value, unsigned size);
 	uint32_t writeElement(uintptr_t address, unsigned size, uintptr_t value, unsigned what);
 
+	// Processor property query routines.
+	bool BadMode(unsigned mode);
+	bool CurrentModeIsNotUser();
+	bool CurrentModeIsUserOrSystem();
+	bool CurrentModeIsHyp();
+	bool HaveSecurityExt();
+	bool IsSecure();
+	bool HaveVirtExt();
+
 	void ALUWritePC(uint32_t address) {
         if (ArchVersion() >= ARMv7 && CurrentInstrSet() == InstrSet_ARM)
             BXWritePC(address);
@@ -102,10 +111,6 @@ public:
 	    return CurrentInstrSet() == InstrSet_Thumb && m_it_session.LastInITBlock();
 	}
 
-	bool CurrentModeIsHyp() {
-		return m_hyp_mode;
-	}
-
 	ARMVariants ArchVersion() {
 		return m_arm_isa;
 	}
@@ -138,8 +143,30 @@ private:
     ITSession m_it_session;
     ARMMode m_opcode_mode;
     ARMVariants m_arm_isa;
+
+    // Processor special registers / status variables.
     apsr_t APSR;
+    cpsr_t CPSR;
     fpscr_t FPSCR;
+    hcr_t HCR;
+    hstr_t HSTR;
+    itstate_t ITSTATE;
+    jmcr_t JMCR;
+    nsacr_t NSACR;
+    scr_t SCR;
+    spsr_t SPSR;
+    spsr_t SPSR_abt;
+    spsr_t SPSR_fiq;
+    spsr_t SPSR_hyp;
+    spsr_t SPSR_irq;
+    spsr_t SPSR_mon;
+    spsr_t SPSR_svc;
+    spsr_t SPSR_und;
+    unsigned ELR_hyp = 0;
+
+    // Configurable flags that specify the characteristics of the processor.
+    bool m_has_security_extension = false;
+    bool m_has_virtual_extensions = false;
 
     // Registers.
     std::array<uint32_t, Register::ARM_REG_CORE_MAX> m_core_regs;

@@ -163,3 +163,76 @@ uint32_t ARMContext::writeElement(uintptr_t address, unsigned size, uintptr_t va
     return 0;
 }
 
+bool ARMContext::BadMode(unsigned mode) {
+    bool result;
+
+    switch (mode) {
+    case 16: // 10000
+    case 17: // 10001
+    case 18: // 10010
+    case 19: // 10011
+        result = false;
+        break;
+    case 22: // 10110
+        result = !HaveSecurityExt();
+        break;
+    case 23: // 10111
+        break;
+    case 26: // 11010
+        result = !HaveVirtExt();
+        break;
+    case 27: // 11011
+    case 31: // 11111
+        result = false;
+        break;
+    default:
+        result = true;
+    }
+
+    return result;
+}
+
+bool ARMContext::CurrentModeIsNotUser() {
+    if (BadMode(CPSR.M))
+        UNPREDICTABLE();
+
+    if (CPSR.M == 16)
+        return false; // User mode
+
+    return true;
+}
+
+bool ARMContext::CurrentModeIsUserOrSystem() {
+    if (BadMode(CPSR.M))
+        UNPREDICTABLE();
+
+    if (CPSR.M == 16)
+        return true;
+
+    if (CPSR.M == 31)
+        return true;
+
+    return false;
+}
+
+bool ARMContext::CurrentModeIsHyp() {
+    if (BadMode(CPSR.M))
+        UNPREDICTABLE();
+
+    if (CPSR.M == 26)
+        return true;
+
+    return false;
+}
+
+bool ARMContext::HaveSecurityExt() {
+    return m_has_security_extension;
+}
+
+bool ARMContext::IsSecure() {
+    return !HaveSecurityExt() || SCR.NS == 0 || CPSR.M == 22; // Monitor mode
+}
+
+bool ARMContext::HaveVirtExt() {
+    return m_has_virtual_extensions;
+}
