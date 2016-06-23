@@ -11,6 +11,7 @@
 #include "arm/ARMArch.h"
 #include <cstdint>
 #include <cassert>
+#include <array>
 
 class ARMContext {
 public:
@@ -137,11 +138,11 @@ private:
     fpscr_t FPSCR;
 
     // Registers.
-	uint32_t m_core_regs[Register::ARM_REG_CORE_MAX];
-	uint32_t m_coproc_regs[Register::ARM_REG_COPROC_MAX];
-	uint32_t m_single_regs[Register::ARM_REG_SINGLE_MAX];
-	uint64_t m_double_regs[Register::ARM_REG_DOUBLE_MAX];
-	uint64_t m_quad_regs[Register::ARM_REG_QUAD_MAX];
+    std::array<uint32_t, Register::ARM_REG_CORE_MAX> m_core_regs;
+    std::array<uint32_t, Register::ARM_REG_COPROC_MAX> m_coproc_regs;
+    std::array<uint32_t, Register::ARM_REG_SINGLE_MAX> m_single_regs;
+    std::array<uint64_t, Register::ARM_REG_DOUBLE_MAX> m_double_regs;
+    std::array<uint64_t, Register::ARM_REG_QUAD_MAX> m_quad_regs;
 };
 
 #endif /* SRC_LIBDISASSEMBLY_ARM_ARMCONTEXT_H_ */
