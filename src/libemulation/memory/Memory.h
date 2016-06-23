@@ -7,6 +7,8 @@
 #include <cstring>
 #include <sys/mman.h>
 
+#include "debug.h"
+
 #define PAGE_SIZE 0x1000
 #define PAGE_MASK (PAGE_SIZE - 1)
 #define PAGE_ALIGNED(x) (((x) & PAGE_MASK) == 0)
@@ -85,7 +87,7 @@ namespace Memory {
 			prot = PROT_READ | PROT_WRITE;
 			void *data = mmap(nullptr, size, prot, MAP_ANON | MAP_PRIVATE, 0, 0);
 			if (data == MAP_FAILED) {
-				printf("Failed allocate memory with mmap\n");
+				LOG_ERR("Failed allocate memory with mmap");
 				return false;
 			}
 
@@ -147,12 +149,12 @@ namespace Memory {
 
 		bool protect(uintptr_t address, size_t size, unsigned prot) override {
 			if (!size) {
-				printf("Cannot protect an empty segment.\n");
+			    LOG_ERR("Cannot protect an empty segment.");
 				return false;
 			}
 
 			if (!PAGE_ALIGNED(address)) {
-				printf("Cannot protect a non page aligned segment.\n");
+			    LOG_ERR("Cannot protect a non page aligned segment.");
 				return false;
 			}
 
@@ -168,16 +170,16 @@ namespace Memory {
 		}
 
 		bool map(uintptr_t address, size_t size, unsigned prot) override {
-			printf("DEBUG: map -> address=0x%.8x size=0x%.8x prot=0x%.8x\n",
+			LOG_DEBUG("address=0x%.8x size=0x%.8x prot=0x%.8x",
 					address, size, prot);
 
 			if (!size) {
-				printf("Cannot map an empty segment.\n");
+			    LOG_ERR("Cannot map an empty segment.");
 				return false;
 			}
 
 			if (!PAGE_ALIGNED(address)) {
-				printf("Cannot map a non page aligned segment.\n");
+			    LOG_ERR("Cannot map a non page aligned segment.");
 				return false;
 			}
 
@@ -186,12 +188,12 @@ namespace Memory {
 			}
 
 			if (m_segments.overlaps(address, size)) {
-				printf("Cannot map segment that overlaps.\n");
+			    LOG_ERR("Cannot map segment that overlaps.");
 				return false;
 			}
 
 			if (!m_segments.addSegment(address, size, prot)) {
-				printf("Cannot map segment.\n");
+			    LOG_ERR("Cannot map segment.");
 				return false;
 			}
 
@@ -199,11 +201,11 @@ namespace Memory {
 		}
 
 		size_t read(uintptr_t address, void *buffer, size_t size) override {
-			printf("DEBUG: read -> address=0x%.8x buffer=%p size=0x%.8x\n", address, buffer, size);
+			LOG_DEBUG("address=0x%.8x buffer=%p size=0x%.8x", address, buffer, size);
 
 			Segment segment;
 			if (!m_segments.getSegment(address, segment)) {
-				printf("Failed to read at address 0x%.8x\n", address);
+			    LOG_ERR("Failed to read at address 0x%.8x", address);
 				return 0;
 			}
 
@@ -212,11 +214,11 @@ namespace Memory {
 		}
 
 		size_t write(uintptr_t address, const void *buffer, size_t size) override {
-			printf("DEBUG: write -> address=0x%.8x buffer=%p size=0x%.8x\n", address, buffer, size);
+			LOG_DEBUG("address=0x%.8x buffer=%p size=0x%.8x", address, buffer, size);
 
 			Segment segment;
 			if (!m_segments.getSegment(address, segment)) {
-				printf("Failed to write at address 0x%.8x\n", address);
+			    LOG_ERR("Failed to write at address 0x%.8x", address);
 				return 0;
 			}
 

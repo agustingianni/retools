@@ -33,10 +33,6 @@ namespace Emulator {
 			return m_contex;
 		}
 
-		void setContext(ARMContext context) {
-			m_contex = context;
-		}
-
 		void setMode(ARMMode mode) {
 			m_mode = mode;
 		}

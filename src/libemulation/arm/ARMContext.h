@@ -9,13 +9,15 @@
 #define SRC_LIBDISASSEMBLY_ARM_ARMCONTEXT_H_
 
 #include "arm/ARMArch.h"
+#include "memory/Memory.h"
+
 #include <cstdint>
 #include <cassert>
 #include <array>
 
 class ARMContext {
 public:
-	ARMContext();
+	ARMContext(Memory::AbstractMemory &memory);
 	virtual ~ARMContext();
 
 	void dump();
@@ -28,8 +30,8 @@ public:
 	void getRegister(Register::Single reg, uint32_t &value);
 	void setRegister(Register::Double reg, uint64_t value);
 	void getRegister(Register::Double reg, uint64_t &value);
-	void setRegister(Register::Quad reg, uint32_t value);
-	void getRegister(Register::Quad reg, uint32_t &value);
+	void setRegister(Register::Quad reg, uint64_t value);
+	void getRegister(Register::Quad reg, uint64_t &value);
 
 	uint32_t readRegularRegister(unsigned regno);
 	uint32_t readRmode(unsigned regno, unsigned n);
@@ -37,15 +39,16 @@ public:
 	uint64_t readDoubleRegister(unsigned regno);
 	uint64_t readQuadRegister(unsigned regno);
 
-	uint32_t readMemory(uintptr_t address, unsigned size);
-	uint32_t writeRegularRegister(unsigned regno, uintptr_t value);
-	uint32_t writeRmode(unsigned regno, unsigned size, uintptr_t value);
-	uint32_t writeSingleRegister(unsigned regno, float value);
-	uint32_t writeDoubleRegister(unsigned regno, double value);
-	uint32_t writeQuadRegister(unsigned regno, uint64_t value);
+	void writeRegularRegister(unsigned regno, uintptr_t value);
+	void writeRmode(unsigned regno, unsigned size, uintptr_t value);
+	void writeSingleRegister(unsigned regno, float value);
+	void writeDoubleRegister(unsigned regno, double value);
+	void writeQuadRegister(unsigned regno, uint64_t value);
+
+    uint32_t readMemory(uintptr_t address, unsigned size);
 	uint32_t writeMemory(uintptr_t address, unsigned size, uintptr_t value);
 	uint32_t readElement(uintptr_t address, uintptr_t value, unsigned size);
-	uint32_t writeElement(uintptr_t address, unsigned size, uintptr_t value, unsigned what___);
+	uint32_t writeElement(uintptr_t address, unsigned size, uintptr_t value, unsigned what);
 
 	void ALUWritePC(uint32_t address) {
         if (ArchVersion() >= ARMv7 && CurrentInstrSet() == InstrSet_ARM)
@@ -130,6 +133,7 @@ public:
     }
 
 private:
+    Memory::AbstractMemory &m_memory;
     bool m_hyp_mode;
     ITSession m_it_session;
     ARMMode m_opcode_mode;

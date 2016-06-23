@@ -5,6 +5,7 @@
  *      Author: anon
  */
 
+#include "debug.h"
 #include "ARMEmulator.h"
 
 using namespace std;
@@ -30,13 +31,13 @@ namespace Emulator {
     	m_contex.getRegister(ARM_REG_PC, cur_pc);
 
 		while (!stop && n_executed < count) {
-			// 1. Fetch an instruction from main memory.
+		    // 1. Fetch an instruction from main memory.
 			m_memory.read_value(cur_pc, cur_opcode);
 
 			// 2. Decode it.
 			ARMInstruction ins = m_dis.disassemble(cur_opcode, cur_mode);
-		    printf("DEBUG: cur_pc=0x%.8x cur_opcode=0x%.8x string='%s' size=%d\n",
-		    		cur_pc, cur_opcode, ins.toString().c_str(), ins.size);
+			LOG_INFO("Emulating instruction @ cur_pc=0x%.8x cur_opcode=0x%.8x string='%s' size=%d",
+			        cur_pc, cur_opcode, ins.toString().c_str(), ins.size);
 
 			// 3. Execute the instruction.
 			m_interpreter.execute(ins);

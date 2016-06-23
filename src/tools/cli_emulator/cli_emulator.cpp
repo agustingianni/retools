@@ -53,13 +53,12 @@ int main(int argc, char **argv) {
 	address += memory.write_value(address, 0xe3a07004); // mov r7, #4
 
 	// Create an execution context.
-	ARMContext context { };
+	ARMContext context { memory };
 	context.setRegister(ARM_REG_R0, 0);
 	context.setRegister(ARM_REG_PC, 0xcafe0000);
 
 	// Create an emulator and link the memory and context
-	ARMEmulator emu { context, memory };
-	emu.setMode(mode);
+	ARMEmulator emu { context, memory, mode };
 	emu.start(5);
 
 	return 0;
