@@ -9,6 +9,8 @@
 #define SRC_LIBDISASSEMBLY_ARM_ARMARCH_H_
 
 #include <cstdint>
+#include <string>
+#include <iostream>
 
 typedef struct fpscr {
 	unsigned IOC :1; 	// Invalid Operation cumulative flag
@@ -414,6 +416,12 @@ enum Quad {
     ARM_REG_Q15,
     ARM_REG_QUAD_MAX
 };
+
+std::string name(Core regno);
+std::string name(Coproc regno);
+std::string name(Double regno);
+std::string name(Quad regno);
+std::string name(Single regno);
 }
 
 // XXX: Remove this.
@@ -663,5 +671,11 @@ class ITSession {
 		uint32_t ITCounter;
 		uint32_t ITState;
 };
+
+std::ostream &operator<<(std::ostream& os, Register::Core regno);
+std::ostream &operator<<(std::ostream& os, Register::Coproc regno);
+std::ostream &operator<<(std::ostream& os, Register::Double regno);
+std::ostream &operator<<(std::ostream& os, Register::Quad regno);
+std::ostream &operator<<(std::ostream& os, Register::Single regno);
 
 #endif /* SRC_LIBDISASSEMBLY_ARM_ARMARCH_H_ */
