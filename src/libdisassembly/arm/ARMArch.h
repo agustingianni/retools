@@ -499,25 +499,26 @@ typedef enum ARMVariants {
 	ARMv4T = 1 << 1,
 	ARMv4All = ARMv4 | ARMv4T,	// ARMv4*
 
-	ARMv5T = 1 << 2,
-	ARMv5TE = 1 << 3,
-	ARMv5TEJ = 1 << 4,
+	ARMv5 = 1 << 2,
+	ARMv5T = 1 << 3,
+	ARMv5TE = 1 << 4,
+	ARMv5TEJ = 1 << 5,
 	ARMv5TEAll = ARMv5TE | ARMv5TEJ, // ARMv5TE*
-	ARMv5TAll = ARMv5T | ARMv5TE | ARMv5TEJ, // ARMv5T*
+	ARMv5TAll = ARMv5 | ARMv5T | ARMv5TE | ARMv5TEJ, // ARMv5T*
 
-	ARMv6 = 1 << 5,
-	ARMv6K = 1 << 6,
-	ARMv6T2 = 1 << 7,
+	ARMv6 = 1 << 6,
+	ARMv6K = 1 << 7,
+	ARMv6T2 = 1 << 8,
 	ARMv6All = ARMv6 | ARMv6K | ARMv6T2, // ARMv6*
 
-	ARMv7 = 1 << 8,
-	ARMv7S = 1 << 9,
-	ARMv7VE = 1 << 10,
-	ARMv7R = 1 << 11,
+	ARMv7 = 1 << 9,
+	ARMv7S = 1 << 10,
+	ARMv7VE = 1 << 11,
+	ARMv7R = 1 << 12,
 	ARMv7All = ARMv7 | ARMv7S | ARMv7S | ARMv7VE | ARMv7R, // ARMv7*
 
-	ARMv8 = 1 << 12,
-	ARMSecurityExtension = 1 << 13,
+	ARMv8 = 1 << 13,
+	ARMSecurityExtension = 1 << 14,
 	ARMvAll = 0xffffffff,
 } ARMVariants;
 
