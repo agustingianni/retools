@@ -386,3 +386,21 @@ void ARMContext::InstructionSynchronizationBarrier() {
 void ARMContext::VFPExcBarrier() {
     LOG_DEBUG("VFP Extension barrier!");
 }
+
+bool ARMContext::EventRegistered() {
+    return m_event_register;
+}
+
+void ARMContext::ClearEventRegister() {
+    m_event_register = 0;
+}
+
+void ARMContext::SendEvent() {
+    m_event_register = 1;
+}
+
+void ARMContext::WaitForEvent() {
+    while(!m_event_register) {
+    }
+}
+

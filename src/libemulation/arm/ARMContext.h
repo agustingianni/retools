@@ -103,6 +103,12 @@ public:
 	void InstructionSynchronizationBarrier();
 	void VFPExcBarrier();
 
+	// Event API (XXX: This should be per processor).
+	bool EventRegistered();
+	void ClearEventRegister();
+	void SendEvent();
+	void WaitForEvent();
+
     void LoadWritePC(unsigned address) {
         if (ArchVersion() >= ARMv5) {
             BXWritePC(address);
@@ -196,6 +202,9 @@ private:
     ITSession m_it_session;
     ARMMode m_opcode_mode;
     ARMVariants m_arm_isa;
+
+    // Event register used by WFE, SEV, etc.
+    unsigned m_event_register;
 
     // Processor special registers / status variables.
     apsr_t APSR;
