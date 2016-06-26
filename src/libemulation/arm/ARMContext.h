@@ -66,6 +66,12 @@ public:
 	bool JazelleAcceptsExecution();
 	bool HaveMPExt();
 
+	// Debug event generation.
+	void BKPTInstrDebugEvent();
+	void BreakpointDebugEvent();
+	void VectorCatchDebugEvent();
+	void WatchpointDebugEvent();
+
 	void ALUWritePC(uint32_t address) {
         if (ArchVersion() >= ARMv7 && CurrentInstrSet() == InstrSet_ARM)
             BXWritePC(address);

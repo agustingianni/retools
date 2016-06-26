@@ -7,6 +7,8 @@
 #include "ARMContext.h"
 #include "debug.h"
 
+#include <cassert>
+
 ARMContext::ARMContext(Memory::AbstractMemory &memory) :
         m_memory { memory } {
     for (auto i = 0; i < Register::ARM_REG_CORE_MAX; i++)
@@ -283,4 +285,24 @@ bool ARMContext::JazelleAcceptsExecution() {
 // This function returns TRUE if the implementation includes the Multiprocessing Extensions.
 bool ARMContext::HaveMPExt() {
     return m_have_mp_extensions;
+}
+
+// Create a BKPT instruction debug event.
+void ARMContext::BKPTInstrDebugEvent() {
+    assert("Method not implemented.");
+}
+
+// Create a breakpoint debug event.
+void ARMContext::BreakpointDebugEvent() {
+    assert("Method not implemented.");
+}
+
+// Create a vector catch debug event.
+void ARMContext::VectorCatchDebugEvent() {
+    assert("Method not implemented.");
+}
+
+// Create a watcpoint debug event.
+void ARMContext::WatchpointDebugEvent()  {
+    assert("Method not implemented.");
 }
