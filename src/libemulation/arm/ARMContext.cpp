@@ -404,3 +404,6 @@ void ARMContext::WaitForEvent() {
     }
 }
 
+void ARMContext::SwitchToJazelleExecution() {
+    assert("Method not implemented.");
+}

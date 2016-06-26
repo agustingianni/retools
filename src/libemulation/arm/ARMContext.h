@@ -109,6 +109,9 @@ public:
 	void SendEvent();
 	void WaitForEvent();
 
+	// Jazelle.
+	void SwitchToJazelleExecution();
+
     void LoadWritePC(unsigned address) {
         if (ArchVersion() >= ARMv5) {
             BXWritePC(address);
