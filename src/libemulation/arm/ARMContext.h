@@ -15,6 +15,11 @@
 #include <cassert>
 #include <array>
 
+template<class T> const T& Max(const T& a, const T& b) { return (a < b) ? b : a; }
+template<class T> const T& Min(const T& a, const T& b) { return (a < b) ? a : b; }
+template<class T> const T& FPMax(const T& a, const T& b, bool val) { return (a < b) ? b : a; }
+template<class T> const T& FPMin(const T& a, const T& b, bool val) { return (a < b) ? a : b; }
+
 class ARMContext {
 public:
 	ARMContext(Memory::AbstractMemory &memory);
@@ -87,6 +92,10 @@ public:
 	void Hint_PreloadDataForWrite(unsigned address);
 	void Hint_PreloadInstr(unsigned address);
 	void Hint_Yield();
+
+	// Current instruction accessors.
+	unsigned ThisInstr();
+	unsigned ThisInstrLength();
 
     void LoadWritePC(unsigned address) {
         if (ArchVersion() >= ARMv5) {

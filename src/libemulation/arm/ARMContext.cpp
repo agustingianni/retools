@@ -356,3 +356,14 @@ void ARMContext::Hint_PreloadInstr(unsigned address) {
 void ARMContext::Hint_Yield() {
     LOG_DEBUG("Yield hint!");
 }
+
+// This function returns the bitstring encoding of the currently-executing instruction.
+unsigned ARMContext::ThisInstr() {
+    assert("Method not implemented.");
+}
+
+// This function returns the length, in bits, of the current instruction. This means it returns 32 or 16.
+unsigned ARMContext::ThisInstrLength() {
+    assert("Method not implemented.");
+}
+
