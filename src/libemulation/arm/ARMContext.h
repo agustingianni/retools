@@ -145,6 +145,9 @@ public:
     }
 
     void SelectInstrSet(ARMMode instruction_set) {
+        if (instruction_set == ARMMode_ARM && CurrentInstrSet() == ARMMode_ThumbEE)
+            UNPREDICTABLE();
+
         m_opcode_mode = instruction_set;
     }
 
