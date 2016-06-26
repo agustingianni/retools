@@ -88,6 +88,14 @@ public:
 	void Hint_PreloadInstr(unsigned address);
 	void Hint_Yield();
 
+    void LoadWritePC(unsigned address) {
+        if (ArchVersion() >= ARMv5) {
+            BXWritePC(address);
+        } else {
+            BranchWritePC(address);
+        }
+    }
+
 	void ALUWritePC(uint32_t address) {
         if (ArchVersion() >= ARMv7 && CurrentInstrSet() == InstrSet_ARM)
             BXWritePC(address);
