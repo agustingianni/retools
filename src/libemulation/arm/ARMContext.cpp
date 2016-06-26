@@ -367,3 +367,22 @@ unsigned ARMContext::ThisInstrLength() {
     assert("Method not implemented.");
 }
 
+// Perform a Data Memory Barrier operation.
+void ARMContext::DataMemoryBarrier(MBReqDomain domain, MBReqTypes types) {
+    LOG_DEBUG("Data memory barrier!");
+}
+
+// Perform a Data Synchronization Barrier operation.
+void ARMContext::DataSynchronizationBarrier(MBReqDomain domain, MBReqTypes types) {
+    LOG_DEBUG("Data synchronization barrier!");
+}
+
+// Perform an Instruction Synchronization operation.
+void ARMContext::InstructionSynchronizationBarrier() {
+    LOG_DEBUG("Instruction synchronization barrier!");
+}
+
+// Ensure all outstanding Floating-point Extension exception processing have occurred.
+void ARMContext::VFPExcBarrier() {
+    LOG_DEBUG("VFP Extension barrier!");
+}

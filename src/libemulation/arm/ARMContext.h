@@ -97,6 +97,12 @@ public:
 	unsigned ThisInstr();
 	unsigned ThisInstrLength();
 
+	// Barriers.
+	void DataMemoryBarrier(MBReqDomain domain, MBReqTypes types);
+	void DataSynchronizationBarrier(MBReqDomain domain, MBReqTypes types);
+	void InstructionSynchronizationBarrier();
+	void VFPExcBarrier();
+
     void LoadWritePC(unsigned address) {
         if (ArchVersion() >= ARMv5) {
             BXWritePC(address);
