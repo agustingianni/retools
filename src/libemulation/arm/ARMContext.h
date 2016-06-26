@@ -81,6 +81,13 @@ public:
 	void GenerateCoprocessorException();
 	void GenerateIntegerZeroDivide();
 
+	// Hints to the processor.
+	void Hint_Debug(unsigned op);
+	void Hint_PreloadData(unsigned address);
+	void Hint_PreloadDataForWrite(unsigned address);
+	void Hint_PreloadInstr(unsigned address);
+	void Hint_Yield();
+
 	void ALUWritePC(uint32_t address) {
         if (ArchVersion() >= ARMv7 && CurrentInstrSet() == InstrSet_ARM)
             BXWritePC(address);

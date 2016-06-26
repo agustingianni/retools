@@ -331,3 +331,28 @@ void ARMContext::GenerateCoprocessorException() {
 void ARMContext::GenerateIntegerZeroDivide() {
     assert("Method not implemented.");
 }
+
+// This procedure supplies a hint to the debug system.
+void ARMContext::Hint_Debug(unsigned op) {
+    LOG_DEBUG("Debug hint!");
+}
+
+// This procedure performs a preload data hint.
+void ARMContext::Hint_PreloadData(unsigned address) {
+    LOG_DEBUG("Preload data at 0x%.8x hint!", address);
+}
+
+// This procedure performs a preload data hint with a probability that the use will be for a write.
+void ARMContext::Hint_PreloadDataForWrite(unsigned address) {
+    LOG_DEBUG("Preload data for write at 0x%.8x hint!", address);
+}
+
+// This procedure performs a preload instructions hint.
+void ARMContext::Hint_PreloadInstr(unsigned address) {
+    LOG_DEBUG("Preload instruction at 0x%.8x hint!", address);
+}
+
+// This procedure performs a Yield hint.
+void ARMContext::Hint_Yield() {
+    LOG_DEBUG("Yield hint!");
+}
