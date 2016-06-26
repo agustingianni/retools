@@ -306,3 +306,28 @@ void ARMContext::VectorCatchDebugEvent() {
 void ARMContext::WatchpointDebugEvent()  {
     assert("Method not implemented.");
 }
+
+// Generate an exception for HVC instruction
+void ARMContext::CallHypervisor(unsigned immediate) {
+    assert("Method not implemented.");
+}
+
+// Generate an exception for SVC instruction
+void ARMContext::CallSupervisor(unsigned immediate) {
+    assert("Method not implemented.");
+}
+
+// Generate an exception for a failed address alignment check.
+void ARMContext::GenerateAlignmentException() {
+    assert("Method not implemented.");
+}
+
+// Generate the exception for an unclaimed coprocessor instruction.
+void ARMContext::GenerateCoprocessorException() {
+    assert("Method not implemented.");
+}
+
+// Generate the exception for a trapped divide-by-zero for an integer divide instruction.
+void ARMContext::GenerateIntegerZeroDivide() {
+    assert("Method not implemented.");
+}

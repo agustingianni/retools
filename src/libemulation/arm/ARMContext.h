@@ -72,6 +72,15 @@ public:
 	void VectorCatchDebugEvent();
 	void WatchpointDebugEvent();
 
+	// Supervisor and hypervisor event generation.
+	void CallHypervisor(unsigned immediate);
+	void CallSupervisor(unsigned immediate);
+
+	// Exception generators.
+	void GenerateAlignmentException();
+	void GenerateCoprocessorException();
+	void GenerateIntegerZeroDivide();
+
 	void ALUWritePC(uint32_t address) {
         if (ArchVersion() >= ARMv7 && CurrentInstrSet() == InstrSet_ARM)
             BXWritePC(address);
