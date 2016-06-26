@@ -58,6 +58,13 @@ public:
 	bool HaveSecurityExt();
 	bool IsSecure();
 	bool HaveVirtExt();
+	bool BigEndian();
+	bool UnalignedSupport();
+	bool HasVirtExt();
+	bool HaveLPAE();
+	bool IntegerZeroDivideTrappingEnabled();
+	bool JazelleAcceptsExecution();
+	bool HaveMPExt();
 
 	void ALUWritePC(uint32_t address) {
         if (ArchVersion() >= ARMv7 && CurrentInstrSet() == InstrSet_ARM)
@@ -111,6 +118,7 @@ public:
 	    return CurrentInstrSet() == InstrSet_Thumb && m_it_session.LastInITBlock();
 	}
 
+	// This function returns the major version number of the architecture.
 	ARMVariants ArchVersion() {
 		return m_arm_isa;
 	}
@@ -167,6 +175,12 @@ private:
     // Configurable flags that specify the characteristics of the processor.
     bool m_has_security_extension = false;
     bool m_has_virtual_extensions = false;
+    bool m_is_big_endian = false;
+    bool m_supports_unaligned = false;
+    bool m_have_lpae = false;
+    bool m_int_zero_div_trap_enabled = false;
+    bool m_jazelle_accepts_execution = false;
+    bool m_have_mp_extensions = false;
 
     // Registers.
     std::array<uint32_t, Register::ARM_REG_CORE_MAX> m_core_regs;

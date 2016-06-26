@@ -163,6 +163,7 @@ uint32_t ARMContext::writeElement(uintptr_t address, unsigned size, uintptr_t va
     return 0;
 }
 
+// The BadMode() function tests whether a 5-bit mode number corresponds to one of the permitted modes:
 bool ARMContext::BadMode(unsigned mode) {
     bool result;
 
@@ -192,6 +193,7 @@ bool ARMContext::BadMode(unsigned mode) {
     return result;
 }
 
+// Returns TRUE if current mode executes at PL1 or higher.
 bool ARMContext::CurrentModeIsNotUser() {
     if (BadMode(CPSR.M))
         UNPREDICTABLE();
@@ -202,6 +204,7 @@ bool ARMContext::CurrentModeIsNotUser() {
     return true;
 }
 
+// Returns TRUE if current mode is User or System mode.
 bool ARMContext::CurrentModeIsUserOrSystem() {
     if (BadMode(CPSR.M))
         UNPREDICTABLE();
@@ -215,6 +218,7 @@ bool ARMContext::CurrentModeIsUserOrSystem() {
     return false;
 }
 
+// Returns TRUE if current mode is Hyp mode
 bool ARMContext::CurrentModeIsHyp() {
     if (BadMode(CPSR.M))
         UNPREDICTABLE();
@@ -225,14 +229,58 @@ bool ARMContext::CurrentModeIsHyp() {
     return false;
 }
 
+// The HaveSecurityExt() function returns TRUE if the implementation includes the Security Extensions, and FALSE otherwise.
 bool ARMContext::HaveSecurityExt() {
     return m_has_security_extension;
 }
 
+// The IsSecure() function returns TRUE if the processor is in Secure state, or if the
+// implementation does not include the Security Extensions, and FALSE otherwise.
 bool ARMContext::IsSecure() {
     return !HaveSecurityExt() || SCR.NS == 0 || CPSR.M == 22; // Monitor mode
 }
 
+// This function returns TRUE if the implementation includes the Virtualization Extensions.
 bool ARMContext::HaveVirtExt() {
     return m_has_virtual_extensions;
+}
+
+// This function returns TRUE if ENDIANSTATE == 1.
+bool ARMContext::BigEndian() {
+    return m_is_big_endian;
+}
+
+// This function returns TRUE if the processor currently provides support for unaligned memory accesses,
+// or FALSE otherwise. This is always TRUE in ARMv7, controllable by the SCTLR.U bit in ARMv6, and always
+// FALSE before ARMv6.
+bool ARMContext::UnalignedSupport() {
+    return m_supports_unaligned;
+}
+
+// This function returns TRUE if the implementation includes the Virtualization Extensions.
+bool ARMContext::HasVirtExt() {
+    return m_has_virtual_extensions;
+}
+
+// This function returns TRUE if the implementation includes the Large Physical Address Extension.
+bool ARMContext::HaveLPAE() {
+    return m_have_lpae;
+}
+
+// This function returns TRUE if the trapping of divisions by zero in the integer division
+// instructions SDIV and UDIV is enabled, and FALSE otherwise.
+// In the ARMv7-R profile, this is controlled by the SCTLR.DZ bit. The ARMv7-A profile does
+// not support trapping of integer division by zero.
+bool ARMContext::IntegerZeroDivideTrappingEnabled() {
+    return m_int_zero_div_trap_enabled;
+}
+
+// This function indicates whether Jazelle hardware will take over execution when a BXJ instruction is executed.
+bool ARMContext::JazelleAcceptsExecution() {
+    return m_jazelle_accepts_execution;
+}
+
+// This function returns TRUE if the implementation includes the Multiprocessing Extensions.
+bool ARMContext::HaveMPExt() {
+    return m_have_mp_extensions;
 }
