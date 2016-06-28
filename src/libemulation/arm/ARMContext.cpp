@@ -407,3 +407,37 @@ void ARMContext::WaitForEvent() {
 void ARMContext::SwitchToJazelleExecution() {
     assert("Method not implemented.");
 }
+
+template<class T> const T& Max(const T& a, const T& b) {
+    return (a < b) ? b : a;
+}
+
+template<class T> const T& Min(const T& a, const T& b) {
+    return (a < b) ? a : b;
+}
+
+template<class T> const T& FPMax(const T& a, const T& b, bool val) {
+    return (a < b) ? b : a;
+}
+
+template<class T> const T& FPMin(const T& a, const T& b, bool val) {
+    return (a < b) ? a : b;
+}
+
+template<class T> T RoundDown(T val) {
+    return floor(val);
+}
+
+template<class T> T RoundUp(T val) {
+    return ceil(val);
+}
+
+template<class T> T RoundTowardsZero(T val) {
+    if (val == 0.0) {
+        return 0.0;
+    } else if (val > 0.0) {
+        return RoundDown(val);
+    } else {
+        return RoundUp(val);
+    }
+}

@@ -15,10 +15,16 @@
 #include <cassert>
 #include <array>
 
-template<class T> const T& Max(const T& a, const T& b) { return (a < b) ? b : a; }
-template<class T> const T& Min(const T& a, const T& b) { return (a < b) ? a : b; }
-template<class T> const T& FPMax(const T& a, const T& b, bool val) { return (a < b) ? b : a; }
-template<class T> const T& FPMin(const T& a, const T& b, bool val) { return (a < b) ? a : b; }
+// Min max routines.
+template<class T> const T& Max(const T& a, const T& b);
+template<class T> const T& Min(const T& a, const T& b);
+template<class T> const T& FPMax(const T& a, const T& b, bool val);
+template<class T> const T& FPMin(const T& a, const T& b, bool val);
+
+// Rounding routines.
+template<class T> T RoundDown(T val);
+template<class T> T RoundUp(T val);
+template<class T> T RoundTowardsZero(T val);
 
 class ARMContext {
 public:
