@@ -71,6 +71,92 @@ typedef struct apsr {
 
 } apsr_t;
 
+typedef struct hsctlr {
+    unsigned UNK0 :1;
+    unsigned TE :1;
+    unsigned UNK1 :1;
+    unsigned UNK2 :1;
+    unsigned UNK3 :1;
+    unsigned UNK4 :1;
+    unsigned EE :1;
+    unsigned UNK5 :1;
+    unsigned UNK6 :1;
+    unsigned UNK7 :1;
+    unsigned FI :1;
+    unsigned UNK8 :1;
+    unsigned WXN :1;
+    unsigned UNK9 :1;
+    unsigned UNK10 :1;
+    unsigned UNK11 :1;
+    unsigned UNK12 :1;
+    unsigned UNK13 :1;
+    unsigned UNK14 :1;
+    unsigned I :1;
+    unsigned UNK15 :1;
+    unsigned UNK16 :1;
+    unsigned UNK17 :1;
+    unsigned UNK18 :1;
+    unsigned UNK19 :1;
+    unsigned UNK20 :1;
+    unsigned CP15BEN :1;
+    unsigned UNK21 :1;
+    unsigned UNK22 :1;
+    unsigned C :1;
+    unsigned A :1;
+    unsigned M :1;
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+} hsctlr_t;
+
+typedef struct sctlr {
+    unsigned SBZP :1;
+    unsigned TE :1; // Thumb Exception enable. This bit controls whether exceptions are taken in ARM or Thumb state.
+    unsigned AFE :1; // Access flag enable.
+    unsigned TRE :1;
+    unsigned NMFI :1;
+    unsigned UNK0 :1;
+    unsigned EE :1;
+    unsigned VE :1;
+    unsigned UNK1 :1;
+    unsigned U :1;
+    unsigned FI :1;
+    unsigned UWXN :1;
+    unsigned WXN :1;
+    unsigned UNK2 :1;
+    unsigned HA :1;
+    unsigned UNK3 :1;
+    unsigned UNK4 :1;
+    unsigned RR :1;
+    unsigned V :1;
+    unsigned I :1;
+    unsigned Z :1;
+    unsigned SW :1;
+    unsigned UNK5 :1;
+    unsigned UNK6 :1;
+    unsigned B :1;
+    unsigned UNK7 :1;
+    unsigned CP15BEN :1;
+    unsigned UNK8 :1;
+    unsigned UNK9 :1;
+    unsigned C :1;
+    unsigned A :1;
+    unsigned M :1;
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+} sctlr_t;
+
 typedef struct hstr {
     unsigned UNK :14;
     unsigned TJDBX :1;
@@ -178,6 +264,10 @@ typedef struct cpsr {
         return *reinterpret_cast<const unsigned *>(this);
     }
 
+    operator unsigned&() {
+        return *reinterpret_cast<unsigned *>(this);
+    }
+
     void operator=(unsigned value) {
         *reinterpret_cast<unsigned *>(this) = value;
     }
@@ -185,6 +275,89 @@ typedef struct cpsr {
 } cpsr_t;
 
 typedef cpsr_t spsr_t;
+
+typedef struct hsr {
+    unsigned EC : 6;
+    unsigned IL : 1;
+    unsigned ISS: 25;
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
+} hsr_t;
+
+typedef struct fpexc {
+    unsigned EX: 1;
+    unsigned EN: 1;
+    unsigned SUBARCHITECTURE_DEFINED: 30;
+} fpexc_t;
+
+typedef struct hcptr {
+    unsigned TCPAC: 1;
+    unsigned UNK0: 10;
+    unsigned TTA : 1;
+    unsigned UNK1: 4;
+    unsigned TASE: 1;
+    unsigned UNK2: 1;
+    unsigned TCP13: 1;
+    unsigned TCP12: 1;
+    unsigned TCP11: 1;
+    unsigned TCP10: 1;
+    unsigned TCP9: 1;
+    unsigned TCP8: 1;
+    unsigned TCP7: 1;
+    unsigned TCP6: 1;
+    unsigned TCP5: 1;
+    unsigned TCP4: 1;
+    unsigned TCP3: 1;
+    unsigned TCP2: 1;
+    unsigned TCP1: 1;
+    unsigned TCP0: 1;
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
+} hcptr_t;
+
+typedef struct cpacr {
+    unsigned ASEDIS: 1;
+    unsigned D32DIS: 1;
+    unsigned UNK0: 1;
+    unsigned TRCDIS: 1;
+    unsigned cp13: 2;
+    unsigned cp12: 2;
+    unsigned cp11: 2;
+    unsigned cp10: 2;
+    unsigned cp9: 2;
+    unsigned cp8: 2;
+    unsigned cp7: 2;
+    unsigned cp6: 2;
+    unsigned cp5: 2;
+    unsigned cp4: 2;
+    unsigned cp3: 2;
+    unsigned cp2: 2;
+    unsigned cp1: 2;
+    unsigned cp0: 2;
+
+    operator unsigned() const {
+        return *reinterpret_cast<const unsigned *>(this);
+    }
+
+    void operator=(unsigned value) {
+        *reinterpret_cast<unsigned *>(this) = value;
+    }
+
+} cpacr_t;
 
 typedef struct scr {
     unsigned UNK: 22;
