@@ -28,6 +28,8 @@ template<class T> T RoundTowardsZero(T val);
 
 class ARMContext {
 public:
+    const unsigned IMPLEMENTATION_DEFINED = 0;
+
 	ARMContext(Memory::AbstractMemory &memory);
 	virtual ~ARMContext();
 
@@ -109,7 +111,7 @@ public:
 	void InstructionSynchronizationBarrier();
 	void VFPExcBarrier();
 
-	// Event API (XXX: This should be per processor).
+	// Event API.
 	bool EventRegistered();
 	void ClearEventRegister();
 	void SendEvent();
@@ -117,6 +119,58 @@ public:
 
 	// Jazelle.
 	void SwitchToJazelleExecution();
+
+	// Exclusive memory access.
+	bool ExclusiveMonitorsPass(unsigned address, unsigned size);
+	void ClearExclusiveLocal(unsigned processorid);
+	void SetExclusiveMonitors(unsigned address, unsigned size);
+
+	// Processor identification.
+	unsigned ProcessorID();
+
+	// Conditional execution.
+	bool ConditionPassed();
+	uint32_t CurrentCond();
+
+	// Capability checks.
+	void CheckAdvSIMDOrVFPEnabled(bool include_fpexc_check, bool advsimd);
+	void CheckAdvSIMDEnabled();
+	void CheckVFPEnabled(bool include_fpexc_check);
+	void NullCheckIfThumbEE(unsigned n);
+
+	// Coprocessor.
+    unsigned Coproc_GetOneWord(unsigned cp_num, unsigned instr);
+    std::tuple<unsigned, unsigned> Coproc_GetTwoWords(unsigned cp_num, unsigned instr);
+    unsigned Coproc_GetWordToStore(unsigned cp_num, unsigned instr);
+    void Coproc_InternalOperation(unsigned cp_num, unsigned instr);
+    void Coproc_SendLoadedWord(unsigned word, unsigned cp_num, unsigned instr);
+    void Coproc_SendOneWord(unsigned word, unsigned cp_num, unsigned instr);
+    void Coproc_SendTwoWords(unsigned word2, unsigned word1, unsigned cp_num, unsigned instr);
+    bool Coproc_Accepted(unsigned cp_num, unsigned instr);
+    bool Coproc_DoneLoading(unsigned cp_num, unsigned instr);
+    bool Coproc_DoneStoring(unsigned cp_num, unsigned instr);
+
+    // CPSR.
+    void CPSRWriteByInstr(unsigned value, unsigned byte_mask, bool is_exception_return);
+
+	// SPSR.
+	uint32_t &SPSR_();
+	void SPSR_(uint32_t value);
+	void SPSRWriteByInstr(unsigned value, unsigned byte_mask);
+	void SPSRaccessValid(unsigned SYSm, unsigned mode);
+
+	// Monitor mode.
+	void EnterMonitorMode(uint32_t new_spsr_value, uint32_t new_lr_value, int vect_offset);
+
+	// Hypervisor mode.
+	void EnterHypMode(uint32_t new_spsr_value, uint32_t preferred_exceptn_return, int vect_offset);
+
+    void SerializeVFP();
+    void WaitForInterrupt();
+    void TakeHypTrapException();
+    void TakeSMCException();
+    void WriteHSR(unsigned ec, unsigned hsr_string);
+    void BankedRegisterAccessValid(unsigned SYSm, unsigned mode);
 
     void LoadWritePC(unsigned address) {
         if (ArchVersion() >= ARMv5) {
@@ -165,6 +219,30 @@ public:
 		return readRegularRegister(15);
 	}
 
+    uint32_t PC() {
+        return readRegularRegister(15);
+    }
+
+    uint32_t LR() {
+        return readRegularRegister(14);
+    }
+
+    uint32_t SP() {
+        return readRegularRegister(13);
+    }
+
+    void PC(uint32_t value) {
+        return writeRegularRegister(15, value);
+    }
+
+    void LR(uint32_t value) {
+        return writeRegularRegister(14, value);
+    }
+
+    void SP(uint32_t value) {
+        return writeRegularRegister(13, value);
+    }
+
 	ARMMode CurrentInstrSet() {
 	    return m_opcode_mode;
 	}
@@ -190,8 +268,12 @@ public:
         setRegister(Register::ARM_REG_PC, address);
     }
 
+    void UNDEFINED() {
+        assert(false && "Rached an UNDEFINED instruction.");
+    }
+
 	void UNPREDICTABLE() {
-		assert(false && "Rached an Unpredictable instruction.");
+		assert(false && "Rached an UNPREDICTABLE instruction.");
 	}
 
     void BranchWritePC(uintptr_t address) {
@@ -210,15 +292,30 @@ public:
 
 private:
     Memory::AbstractMemory &m_memory;
-    bool m_hyp_mode;
+    bool m_hyp_mode = false;
     ITSession m_it_session;
     ARMMode m_opcode_mode;
     ARMVariants m_arm_isa;
 
     // Event register used by WFE, SEV, etc.
-    unsigned m_event_register;
+    unsigned m_event_register = 0;
+
+    // Monitor.
+    uint32_t MVBAR = 0;
+
+    // Hypervisor.
+    uint32_t HVBAR = 0;
+
+    // ThumbEE.
+    uint32_t TEEHBR = 0;
 
     // Processor special registers / status variables.
+    fpexc_t FPEXC;
+    hcptr_t HCPTR;
+    cpacr_t CPACR;
+    hsr_t HSR;
+    sctlr_t SCTLR;
+    hsctlr_t HSCTLR;
     apsr_t APSR;
     cpsr_t CPSR;
     fpscr_t FPSCR;
@@ -253,6 +350,7 @@ private:
     std::array<uint32_t, Register::ARM_REG_COPROC_MAX> m_coproc_regs;
     std::array<uint32_t, Register::ARM_REG_SINGLE_MAX> m_single_regs;
     std::array<uint64_t, Register::ARM_REG_DOUBLE_MAX> m_double_regs;
+    std::array<uint64_t, Register::ARM_REG_DOUBLE_MAX> m_double_regs_clone;
     std::array<uint64_t, Register::ARM_REG_QUAD_MAX> m_quad_regs;
 };
 
