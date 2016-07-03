@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
@@ -237,6 +238,78 @@ template<typename T, unsigned N = (sizeof(T) * 8)> int CountLeadingSignBits(T va
 // Return the absolute value of 'value'.
 template<typename T> T Abs(T value) {
     return abs(value);
+}
+
+static double recip_sqrt_estimate(double a) {
+    int q0, q1, s;
+    double r;
+
+    if (a < 0.5) {
+        q0 = (int) (a * 512.0);
+        r = 1.0 / sqrt(((double) q0 + 0.5) / 512.0);
+    } else {
+        q1 = (int) (a * 256.0);
+        r = 1.0 / sqrt(((double) q1 + 0.5) / 256.0);
+    }
+
+    s = (int) (256.0 * r + 0.5);
+    return (double) s / 256.0;
+}
+
+static double recip_estimate(double a) {
+
+    int q, s;
+    double r;
+
+    q = (int) (a * 512.0);
+    r = 1.0 / (((double) q + 0.5) / 512.0);
+    s = (int) (256.0 * r + 0.5);
+
+    return ((double) s / 256.0);
+}
+
+inline uint32_t UnsignedRSqrtEstimate(uint32_t operand) {
+    if (operand <= 0x3fffffff)
+        return 0xffffffff;
+
+    union {
+        uint64_t u;
+        double f;
+    } scaled, estimate;
+
+    uint64_t fraction;
+    if (operand & 0x80000000) {
+        fraction = operand & 0x7fffffff;
+        scaled.u = (0x3feULL << 52) | (fraction << 21);
+    } else {
+        fraction = operand & 0x3fffffff;
+        scaled.u = (0x3fdULL << 52) | (fraction << 22);
+    }
+
+    estimate.f = recip_sqrt_estimate(scaled.f);
+    fraction = (estimate.u >> 21);
+
+    return fraction | 0x80000000;
+}
+
+inline uint32_t UnsignedRecipEstimate(uint32_t operand) {
+    uint32_t result;
+
+    if ((operand & 0x80000000) == 0)
+        return 0xffffffff;
+
+    uint64_t fraction = operand & 0x7fffffff;
+    union {
+        uint64_t u;
+        double f;
+    } scaled, estimate;
+
+    scaled.u = (0x3feULL << 52) | (fraction << 21);
+    estimate.f = recip_estimate(scaled.f);
+    fraction = (estimate.u >> 21);
+    result = fraction | 0x80000000;
+
+    return result;
 }
 
 #endif /* UTILITIES_H_ */
