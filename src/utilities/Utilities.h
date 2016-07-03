@@ -184,4 +184,53 @@ inline uint32_t Concatenate(uint32_t val_1, uint32_t val_2, uint32_t val_2_size)
 	return (val_1 << val_2_size) | val_2;
 }
 
+template<typename T, unsigned N = (sizeof(T) * 8)> int log2(T value) {
+    unsigned i = 0;
+    while (i < N && (value >>= 1)) {
+        i++;
+    }
+
+    return i;
+}
+
+// LowestSetBit(x) is the minimum bit number of any of its bits that are ones. If all of its bits are zeros, LowestSetBit(x) = N.
+template<typename T, unsigned N = (sizeof(T) * 8)> int LowestSetBit(T value) {
+    // If zero then return bit size of T.
+    if (!value) {
+        return N;
+    }
+
+    // Clear all values but the lowest set bit.
+    T tmp = value & ~(value - 1);
+    return log2<T, N>(tmp);
+}
+
+// HighestSetBit(x) is the maximum bit number of any of its bits that are ones. If all of its bits are zeros, HighestSetBit(x) = -1.
+template<typename T, unsigned N = (sizeof(T) * 8)> int HighestSetBit(T value) {
+    if (!value) {
+        return -1;
+    }
+
+    return log2<T, N>(value);
+}
+
+// Number of zero bits at the left end of x, in the range 0 to N.
+template<typename T, unsigned N = (sizeof(T) * 8)> int CountLeadingZeroBits(T value) {
+    return N - 1 - HighestSetBit<T, N>(value);
+}
+
+// Number of copies of the sign bit of x at the left end of x, excluding the sign bit itself, and is in the range 0 to N-1.
+template<typename T, unsigned N = (sizeof(T) * 8)> int CountLeadingSignBits(T value) {
+    int count = 0;
+    for (int i = (N - 2); i >= 0; i--) {
+        if (!(value & (1ULL << i))) {
+            break;
+        }
+
+        count++;
+    }
+
+    return count;
+}
+
 #endif /* UTILITIES_H_ */
