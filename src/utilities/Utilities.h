@@ -13,6 +13,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
@@ -231,6 +232,11 @@ template<typename T, unsigned N = (sizeof(T) * 8)> int CountLeadingSignBits(T va
     }
 
     return count;
+}
+
+// Return the absolute value of 'value'.
+template<typename T> T Abs(T value) {
+    return abs(value);
 }
 
 #endif /* UTILITIES_H_ */
