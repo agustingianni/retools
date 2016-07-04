@@ -16,15 +16,25 @@
 #include <array>
 
 // Min max routines.
-template<class T> const T& Max(const T& a, const T& b);
-template<class T> const T& Min(const T& a, const T& b);
-template<class T> const T& FPMax(const T& a, const T& b, bool val);
-template<class T> const T& FPMin(const T& a, const T& b, bool val);
+template<typename T> const T& Max(const T& a, const T& b);
+template<typename T> const T& Min(const T& a, const T& b);
+template<typename T> const T& FPMax(const T& a, const T& b, bool val);
+template<typename T> const T& FPMin(const T& a, const T& b, bool val);
 
 // Rounding routines.
-template<class T> T RoundDown(T val);
-template<class T> T RoundUp(T val);
-template<class T> T RoundTowardsZero(T val);
+template<typename T> T RoundDown(T val);
+template<typename T> T RoundUp(T val);
+template<typename T> T RoundTowardsZero(T val);
+
+// Floating point routines.
+template<typename T> T FPNeg(T operand);
+template<typename T> T FPAbs(T operand);
+template<typename T> T FPZero(unsigned sign, unsigned N);
+template<typename T> T FPTwo(unsigned N);
+template<typename T> T FPThree(unsigned N);
+template<typename T> T FPMaxNormal(unsigned sign, unsigned N);
+template<typename T> T FPInfinity(unsigned sign, unsigned N);
+template<typename T> T FPDefaultNaN(unsigned N);
 
 class ARMContext {
 public:

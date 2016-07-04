@@ -10,31 +10,31 @@
 
 #include <cassert>
 
-template<class T> const T& Max(const T& a, const T& b) {
+template<typename T> const T& Max(const T& a, const T& b) {
     return (a < b) ? b : a;
 }
 
-template<class T> const T& Min(const T& a, const T& b) {
+template<typename T> const T& Min(const T& a, const T& b) {
     return (a < b) ? a : b;
 }
 
-template<class T> const T& FPMax(const T& a, const T& b, bool val) {
+template<typename T> const T& FPMax(const T& a, const T& b, bool val) {
     return (a < b) ? b : a;
 }
 
-template<class T> const T& FPMin(const T& a, const T& b, bool val) {
+template<typename T> const T& FPMin(const T& a, const T& b, bool val) {
     return (a < b) ? a : b;
 }
 
-template<class T> T RoundDown(T val) {
+template<typename T> T RoundDown(T val) {
     return floor(val);
 }
 
-template<class T> T RoundUp(T val) {
+template<typename T> T RoundUp(T val) {
     return ceil(val);
 }
 
-template<class T> T RoundTowardsZero(T val) {
+template<typename T> T RoundTowardsZero(T val) {
     if (val == 0.0) {
         return 0.0;
     } else if (val > 0.0) {
@@ -43,6 +43,39 @@ template<class T> T RoundTowardsZero(T val) {
         return RoundUp(val);
     }
 }
+
+template<typename T> T FPNeg(T operand) {
+    return -operand;
+}
+
+template<typename T> T FPAbs(T operand) {
+    return fabs(operand);
+}
+
+template<typename T> T FPZero(unsigned sign, unsigned N) {
+    return sign ? -0.0 : 0.0;
+}
+
+template<typename T> T FPTwo(unsigned N) {
+    return 2.0;
+}
+
+template<typename T> T FPThree(unsigned N) {
+    return 3.0;
+}
+
+template<typename T> T FPMaxNormal(unsigned sign, unsigned N) {
+    assert("Not implemented");
+}
+
+template<typename T> T FPInfinity(unsigned sign, unsigned N) {
+    return (sign ? -1 : 1) * std::numeric_limits<T>::infinity();
+}
+
+template<typename T> T FPDefaultNaN(unsigned N) {
+    return std::numeric_limits<T>::quiet_NaN();
+}
+
 
 ARMContext::ARMContext(Memory::AbstractMemory &memory) :
         m_memory { memory } {
