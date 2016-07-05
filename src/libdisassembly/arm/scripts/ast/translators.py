@@ -176,7 +176,7 @@ class CPPTranslatorVisitor(Visitor):
         register_no_expression = self.accept(node, node.expr1)
         return "m_ctx.readQuadRegister(%s)" % (register_no_expression)
 
-    def accept_MemoryRead(self, parent, node):
+    def accept_MemoryRead(self, parent, node, node_name):
         expr1 = self.accept(node, node.expr1)
         expr2 = self.accept(node, node.expr2)
 
@@ -184,7 +184,7 @@ class CPPTranslatorVisitor(Visitor):
         type_width = int(expr2) * 8 if expr2.isdigit() else expr2
         self.set_type(node, ("int", type_width))
 
-        return "m_ctx.readMemory(%s, %s)" % (expr1, expr2)
+        return "m_ctx.read_%s(%s, %s)" % (node_name, expr1, expr2)
 
     def accept_RegularRegisterWrite(self, parent, node):
         register_no_expression = self.accept(node, node.left_expr.expr1)
@@ -212,11 +212,11 @@ class CPPTranslatorVisitor(Visitor):
         register_value_expression = self.accept(node, node.right_expr)
         return "m_ctx.writeQuadRegister(%s, %s)" % (register_no_expression, register_value_expression)
 
-    def accept_MemoryWrite(self, parent, node):
+    def accept_MemoryWrite(self, parent, node, node_name):
         address = self.accept(node, node.left_expr.expr1)
         size = self.accept(node, node.left_expr.expr2)
         value = self.accept(node, node.right_expr)
-        return "m_ctx.writeMemory(%s, %s, %s)" % (address, size, value)
+        return "m_ctx.write_%s(%s, %s, %s)" % (node_name, address, size, value)
 
     def accept_ElementRead(self, parent, node):
         vector = self.accept(node, node.expr1)
@@ -257,8 +257,8 @@ class CPPTranslatorVisitor(Visitor):
         elif node_name in ["Elem"]:
             return self.accept_ElementRead(parent, node)
 
-        elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
-            return self.accept_MemoryRead(parent, node)
+        elif node_name in ["MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
+            return self.accept_MemoryRead(parent, node, node_name)
 
         raise RuntimeError("Unknown ArrayAccess name: %s" % str(node.name))
 
@@ -475,8 +475,8 @@ class CPPTranslatorVisitor(Visitor):
                 # TODO: This is just for testing.
                 return self.accept_ElementWrite(parent, node)
 
-            elif node_name in ["Mem", "MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
-                return self.accept_MemoryWrite(parent, node)
+            elif node_name in ["MemA", "MemU", "MemA_unpriv", "MemU_unpriv", "MemA_with_priv", "MemU_with_priv"]:
+                return self.accept_MemoryWrite(parent, node, node_name)
 
             else:
                 raise RuntimeError("Unknown node: %s" % str(node))
