@@ -28,8 +28,8 @@ op_name = {
    "=": "assign",
    "EOR": "xor",
    ":": "concatenation",
-   "AND": "and",
-   "OR": "or"
+   "AND": "band",
+   "OR": "bor"
 }
 
 name_op = {v: k for k, v in op_name.items()}
@@ -59,7 +59,9 @@ BinaryExpressionNameToOperator = {
     "or" : "||",
     "sub" : "-",
     "xor" : "^",
-    "lte" : "<="
+    "lte" : "<=",
+    "bor" : "|",
+    "band" : "&"
 }
 
 def NeedsSemiColon(node):

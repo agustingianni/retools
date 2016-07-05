@@ -110,7 +110,7 @@ op_name = {"+": "add", "-": "sub", "/": "div", "*": "mul",
            "<<": "lshift", ">>": "rshift", "DIV": "idiv", "MOD": "imod",
            "^": "xor", "||": "or", "&&": "and", "==": "eq", "!=": "ne",
            ">": "gt", "<": "lt", ">=": "gte", "<=": "lte", "IN": "in",
-           "=": "assign", "EOR": "xor", ":": "concatenation", "AND": "and", "OR": "or"}
+           "=": "assign", "EOR": "xor", ":": "concatenation", "AND": "band", "OR": "bor"}
 
 def decode_binary(x):
     x = x[0]
