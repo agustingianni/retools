@@ -32,6 +32,11 @@ inline bool IsHostBigEndian(void) {
 	return bint.c[0] == 1;
 }
 
+template <typename T> void BigEndianReverse(T& pX, size_t size=sizeof(T)) {
+    char &raw = reinterpret_cast<char &>(pX);
+    std::reverse(&raw, &raw + size);
+}
+
 inline std::string exec_get_output(std::string cmd) {
     auto pipe_file = popen(cmd.c_str(), "r");
     if (!pipe_file)
