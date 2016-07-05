@@ -201,15 +201,15 @@ public:
 
     void BXWritePC(uint32_t address) {
         if (CurrentInstrSet() == InstrSet_ThumbEE) {
-            if (address & 1 == 1) {
+            if ((address & 1) == 1) {
                 BranchTo(address & 0xfffffffe); // Remaining in ThumbEE state
             } else {
                 UNPREDICTABLE();
             }
-        } else if (address & 1 == 1) {
+        } else if ((address & 1) == 1) {
             SelectInstrSet(InstrSet_Thumb);
             BranchTo(address & 0xfffffffe);
-        } else if (address & 2 == 0) {
+        } else if ((address & 2) == 0) {
             SelectInstrSet(InstrSet_ARM);
             BranchTo(address);
         } else {
@@ -274,7 +274,7 @@ public:
 		return m_arm_isa;
 	}
 
-    void BranchTo(uintptr_t address) {
+    void BranchTo(uint32_t address) {
         setRegister(Register::ARM_REG_PC, address);
     }
 
@@ -286,7 +286,7 @@ public:
 		assert(false && "Rached an UNPREDICTABLE instruction.");
 	}
 
-    void BranchWritePC(uintptr_t address) {
+    void BranchWritePC(uint32_t address) {
         if (CurrentInstrSet() == InstrSet_ARM) {
             if (ArchVersion() < ARMv6 && (address & 3) != 0) {
                 UNPREDICTABLE();
