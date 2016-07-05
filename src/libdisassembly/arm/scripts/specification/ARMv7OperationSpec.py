@@ -4829,7 +4829,7 @@ if ConditionPassed() then
     for e = 0 to elements-1
         if is_vaddw then
             ns1 = n >> 1;
-            op1 = Int(Elem[Qin[n>>1],e,2*esize], unsigned_);
+            op1 = Int(Elem[Qin[ns1],e,2*esize], unsigned_);
         else
             op1 = Int(Elem[Din[n],e,esize], unsigned_);
         endif
