@@ -76,6 +76,17 @@ template<typename T> T FPDefaultNaN(unsigned N) {
     return std::numeric_limits<T>::quiet_NaN();
 }
 
+void UNDEFINED() {
+    LOG_ABORT("Rached an UNDEFINED instruction.");
+}
+
+void UNPREDICTABLE() {
+    LOG_ABORT("Rached an UNPREDICTABLE instruction.");
+}
+
+void AlignmentFault(uint32_t address, bool iswrite) {
+    LOG_ABORT("%s alignment fault at 0x%.8x.", iswrite ? "Write" : "Read", address);
+}
 
 ARMContext::ARMContext(Memory::AbstractMemory &memory) :
         m_memory { memory } {

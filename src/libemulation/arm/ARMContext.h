@@ -36,6 +36,10 @@ template<typename T> T FPMaxNormal(unsigned sign, unsigned N);
 template<typename T> T FPInfinity(unsigned sign, unsigned N);
 template<typename T> T FPDefaultNaN(unsigned N);
 
+[[noreturn]] void UNDEFINED();
+[[noreturn]] void UNPREDICTABLE();
+[[noreturn]] void AlignmentFault(uint32_t address, bool iswrite);
+
 class ARMContext {
 public:
     const unsigned IMPLEMENTATION_DEFINED = 0;
@@ -277,14 +281,6 @@ public:
     void BranchTo(uint32_t address) {
         setRegister(Register::ARM_REG_PC, address);
     }
-
-    void UNDEFINED() {
-        assert(false && "Rached an UNDEFINED instruction.");
-    }
-
-	void UNPREDICTABLE() {
-		assert(false && "Rached an UNPREDICTABLE instruction.");
-	}
 
     void BranchWritePC(uint32_t address) {
         if (CurrentInstrSet() == InstrSet_ARM) {
