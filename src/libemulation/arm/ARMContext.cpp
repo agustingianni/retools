@@ -222,6 +222,115 @@ void ARMContext::writeQuadRegister(unsigned regno, uint64_t value) {
     setRegister(static_cast<Register::Quad>(regno), value);
 }
 
+uint32_t ARMContext::read_MemA(uintptr_t address, unsigned size) {
+    return read_MemA_with_priv(address, size, CurrentModeIsNotUser());
+}
+
+uint32_t ARMContext::read_MemA_unpriv(uintptr_t address, unsigned size) {
+    return read_MemA_with_priv(address, size, false);
+}
+
+uint32_t ARMContext::read_MemA_with_priv(uintptr_t address, unsigned size, bool privileged) {
+    if (address != Align(address, size)) {
+        if (SCTLR.A && SCTLR.U) {
+            AlignmentFault(address, false);
+        }
+
+        address = Align(address, size);
+    }
+
+    uint32_t value = readMemory(address, size);
+    if (CPSR.E) {
+        BigEndianReverse(value, size);
+    }
+
+    return value;
+}
+
+uint32_t ARMContext::read_MemU(uintptr_t address, unsigned size) {
+    return read_MemU_with_priv(address, size, CurrentModeIsNotUser());
+}
+
+uint32_t ARMContext::read_MemU_unpriv(uintptr_t address, unsigned size) {
+    return read_MemU_with_priv(address, size, false);
+}
+
+uint32_t ARMContext::read_MemU_with_priv(uintptr_t address, unsigned size, bool privileged) {
+    if (SCTLR.A == 0 && SCTLR.U == 0) {
+        address = Align(address, size);
+    }
+
+    uint32_t value;
+    if (address == Align(address, size)) {
+        value = read_MemA_with_priv(address, size, privileged);
+    } else if (SCTLR.A) {
+        AlignmentFault(address, false);
+    } else {
+        for (unsigned i = 0; i < size; i++) {
+            reinterpret_cast<uint8_t *>(&value)[i] = read_MemA_with_priv(address + i, 1, privileged);
+        }
+
+        if (CPSR.E) {
+            BigEndianReverse(value, size);
+        }
+    }
+
+    return value;
+}
+
+void ARMContext::write_MemA(uint32_t value, uintptr_t address, unsigned size) {
+    write_MemA_with_priv(value, address, size, CurrentModeIsNotUser());
+
+}
+
+void ARMContext::write_MemA_unpriv(uint32_t value, uintptr_t address, unsigned size) {
+    write_MemA_with_priv(value, address, size, false);
+}
+
+void ARMContext::write_MemA_with_priv(uint32_t value, uintptr_t address, unsigned size, bool privileged) {
+    if (address != Align(address, size)) {
+        if (SCTLR.A && SCTLR.U) {
+            AlignmentFault(address, false);
+        }
+
+        address = Align(address, size);
+    }
+
+    if (CPSR.E) {
+        BigEndianReverse(value, size);
+    }
+
+    writeMemory(address, size, value);
+}
+
+void ARMContext::write_MemU(uint32_t value, uintptr_t address, unsigned size) {
+    return write_MemU_with_priv(value, address, size, CurrentModeIsNotUser());
+}
+
+void ARMContext::write_MemU_unpriv(uint32_t value, uintptr_t address, unsigned size) {
+    return write_MemU_with_priv(value, address, size, false);
+}
+
+void ARMContext::write_MemU_with_priv(uint32_t value, uintptr_t address, unsigned size, bool privileged) {
+    if (SCTLR.A == 0 && SCTLR.U == 0) {
+        address = Align(address, size);
+    }
+
+    if (address == Align(address, size)) {
+        write_MemA_with_priv(value, address, size, privileged);
+    } else if (SCTLR.A) {
+        AlignmentFault(address, true);
+    } else {
+        if (CPSR.E) {
+            BigEndianReverse(value, size);
+        }
+
+        for (unsigned i = 0; i < size; i++) {
+            write_MemA_with_priv(reinterpret_cast<uint8_t *>(&value)[i], address + i, 1, privileged);
+        }
+    }
+}
+
 uint32_t ARMContext::readMemory(uintptr_t address, unsigned size) {
     LOG_DEBUG("address=0x%.8x, size=0x%.8x", address, size);
     uint64_t value = 0;

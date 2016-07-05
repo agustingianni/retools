@@ -72,6 +72,21 @@ public:
 	void writeDoubleRegister(unsigned regno, double value);
 	void writeQuadRegister(unsigned regno, uint64_t value);
 
+    // Implementation of memory access routines from the manual.
+    uint32_t read_MemA(uintptr_t address, unsigned size);
+    uint32_t read_MemA_unpriv(uintptr_t address, unsigned size);
+    uint32_t read_MemA_with_priv(uintptr_t address, unsigned size, bool privileged);
+    uint32_t read_MemU(uintptr_t address, unsigned size);
+    uint32_t read_MemU_unpriv(uintptr_t address, unsigned size);
+    uint32_t read_MemU_with_priv(uintptr_t address, unsigned size, bool privileged);
+
+    void write_MemA(uint32_t value, uintptr_t address, unsigned size);
+    void write_MemA_unpriv(uint32_t value, uintptr_t address, unsigned size);
+    void write_MemA_with_priv(uint32_t value, uintptr_t address, unsigned size, bool privileged);
+    void write_MemU(uint32_t value, uintptr_t address, unsigned size);
+    void write_MemU_unpriv(uint32_t value, uintptr_t address, unsigned size);
+    void write_MemU_with_priv(uint32_t value, uintptr_t address, unsigned size, bool privileged);
+
     uint32_t readMemory(uintptr_t address, unsigned size);
 	uint32_t writeMemory(uintptr_t address, unsigned size, uintptr_t value);
 	uint32_t readElement(uintptr_t address, uintptr_t value, unsigned size);
