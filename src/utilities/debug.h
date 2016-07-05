@@ -33,5 +33,6 @@
 #define LOG_ERR(M, ...) fprintf(stderr, BOLDRED "[ERR] (errno: %s) " M "\n" RESET, CLEAN_ERRNO(), ##__VA_ARGS__)
 #define LOG_WARN(M, ...) fprintf(stderr, BOLDYELLOW "[WRN] (errno: %s) " M "\n" RESET, CLEAN_ERRNO(), ##__VA_ARGS__)
 #define LOG_INFO(M, ...) fprintf(stderr, BOLDGREEN "[NFO] " M "\n" RESET, ##__VA_ARGS__)
+#define LOG_ABORT(M, ...) fprintf(stderr, BOLDRED "[ABORT] (errno: %s) " M "\n" RESET, CLEAN_ERRNO(), ##__VA_ARGS__); abort()
 
 #endif
