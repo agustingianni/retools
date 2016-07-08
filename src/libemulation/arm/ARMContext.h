@@ -311,25 +311,6 @@ public:
         }
     }
 
-private:
-    Memory::AbstractMemory &m_memory;
-    bool m_hyp_mode = false;
-    ITSession m_it_session;
-    ARMMode m_opcode_mode;
-    ARMVariants m_arm_isa;
-
-    // Event register used by WFE, SEV, etc.
-    unsigned m_event_register = 0;
-
-    // Monitor.
-    uint32_t MVBAR = 0;
-
-    // Hypervisor.
-    uint32_t HVBAR = 0;
-
-    // ThumbEE.
-    uint32_t TEEHBR = 0;
-
     // Processor special registers / status variables.
     fpexc_t FPEXC;
     hcptr_t HCPTR;
@@ -354,12 +335,25 @@ private:
     spsr_t SPSR_mon;
     spsr_t SPSR_svc;
     spsr_t SPSR_und;
-    unsigned ELR_hyp = 0;
+    uint32_t MVBAR = 0;
+    uint32_t HVBAR = 0;
+    uint32_t TEEHBR = 0;
+    uint32_t ELR_hyp = 0;
+    bool ENDIANSTATE = false;
 
+private:
+    Memory::AbstractMemory &m_memory;
+    bool m_hyp_mode = false;
+    ITSession m_it_session;
+    ARMMode m_opcode_mode;
+    ARMVariants m_arm_isa;
+
+    // Event register used by WFE, SEV, etc.
+    unsigned m_event_register = 0;
+    
     // Configurable flags that specify the characteristics of the processor.
     bool m_has_security_extension = false;
     bool m_has_virtual_extensions = false;
-    bool m_is_big_endian = false;
     bool m_supports_unaligned = false;
     bool m_have_lpae = false;
     bool m_int_zero_div_trap_enabled = false;

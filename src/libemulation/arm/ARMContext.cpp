@@ -437,7 +437,7 @@ bool ARMContext::HaveVirtExt() {
 
 // This function returns TRUE if ENDIANSTATE == 1.
 bool ARMContext::BigEndian() {
-    return m_is_big_endian;
+    return ENDIANSTATE;
 }
 
 // This function returns TRUE if the processor currently provides support for unaligned memory accesses,
