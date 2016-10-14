@@ -19,13 +19,21 @@ add_library(
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMtoString.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMtoString.h
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen/ARMInstructionFields.h
+	${CMAKE_CURRENT_SOURCE_DIR}/generic/Address.h
+	${CMAKE_CURRENT_SOURCE_DIR}/generic/BasicBlock.h
+	${CMAKE_CURRENT_SOURCE_DIR}/generic/Graph.h
+	${CMAKE_CURRENT_SOURCE_DIR}/generic/FlowGraph.h
+	${CMAKE_CURRENT_SOURCE_DIR}/generic/Function.h
+	${CMAKE_CURRENT_SOURCE_DIR}/generic/Instruction.h
+	${CMAKE_CURRENT_SOURCE_DIR}/generic/Module.h
+	${CMAKE_CURRENT_SOURCE_DIR}/generic/Operand.h
 	${CMAKE_SOURCE_DIR}/src/utilities/Utilities.h
 )
 
 # Enable c++11 on the target.
 set_target_properties(
 	disassembly
-	PROPERTIES 
+	PROPERTIES
 	COMPILE_FLAGS "-std=c++11 -Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable -Wno-int-to-void-pointer-cast"
 )
 
@@ -40,5 +48,4 @@ target_include_directories(
 
 target_link_libraries(
 	disassembly
-	capstone
 )
