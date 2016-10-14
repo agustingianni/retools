@@ -10,7 +10,7 @@ add_executable(
 # Enable c++11 on the target.
 set_target_properties(
 	cli_disassembler
-	PROPERTIES 
+	PROPERTIES
 	COMPILE_FLAGS "-std=c++11"
 )
 
