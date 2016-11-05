@@ -1,0 +1,63 @@
+Fixing a mistake:
+
+    $ DYLD_LIBRARY_PATH=../../darm/ python instruction_fuzz.py 100 28 29
+    Checking test in THUMB mode
+    Testing entry   28 for 'B                             ' with encoding T2 0xfffff800, 0x0000e000
+    Entry 28 for 'B' with encoding T2 0xfffff800, 0x0000e000
+      opcode: 0x0000e36c                               beq #0x6dc ARMDecoder::decode_b_t2
+      opcode: 0x0000e36c                                 b #0x6dc
+
+      opcode: 0x0000e656                          beq #0xfffffcb0 ARMDecoder::decode_b_t2
+      opcode: 0x0000e656                            b #0xfffffcb0
+
+The output of 'instruction_fuzz.py' gives you all the necessary information to help you guide the debugging.
+So there is an error in the 'B' instruction, that is the entry number 28 in the decoding table for the THUMB mode.
+The output also gives you the exact routine used to decode the instruction, you will find that routine inside
+ARMDecodingTable.cpp. As one can appreciate, the error seems to be in the condition of the thumb instruction.
+The next step is to open the decoding routine and see if there is a decoding mistake while decoding the instruction:
+
+    shared_ptr<ARMInstruction> ARMDecoder::decode_b_t2(uint32_t opcode, ARMInstrSize ins_size, ARMEncoding encoding) {
+        int imm11 = get_bits(opcode, 10,  0);
+        int imm32 = SignExtend(Concatenate(imm11, 0, 1), 12);
+
+        if (unlikely((InITBlock() && !LastInITBlock()))) {
+            return shared_ptr<ARMInstruction>(new UnpredictableInstruction());
+        }
+
+        shared_ptr<ARMInstruction> ins = ARMInstruction::create();
+        ins->opcode = opcode;
+        ins->ins_size = ins_size;
+        ins->id = b;
+        ins->m_to_string = decode_b_t2_to_string;
+        ins->m_decoded_by = "ARMDecoder::decode_b_t2";
+        ins->imm32 = imm32;
+        ins->encoding = encoding;
+
+        return ins;
+    }
+
+This particular instruction 'B' with encoding T2 does not seem to have a condition code so it looks like
+we are having an invalid toString method that is displaying the wrong thing.
+If we check in the ARMv7 specification in section A8.8.18, we see that the decoding of T2 does not decode the
+field 'cond' that is used as the conditional instruction indicator. If we keep reading we realize that
+'B' in T2 encoding is not conditional, so there is a mistake in the 'toString' specification encoded as
+'B<c> <label>'. To fix this we need to go to ARMv7DecodingSpec.py and change the following entry:
+
+    "name" : "B",
+    "encoding" : "T2",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
+    "format" : "B<c> #<label>",                         # Remove '<c>'.
+
+To:
+
+    "name" : "B",
+    "encoding" : "T2",
+    "version" : "ARMv4T, ARMv5TAll, ARMv6All, ARMv7",
+    "format" : "B #<label>",
+
+After we perform the changes we run again our unit test:
+
+    $ DYLD_LIBRARY_PATH=../../darm/ python instruction_fuzz.py 100 28 29
+    Checking test in THUMB mode
+    Testing entry   28 for 'B                             ' with encoding T2 0xfffff800, 0x0000e000
+      n_ok=100 n_error=0
