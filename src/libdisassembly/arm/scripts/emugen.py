@@ -35,7 +35,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += '#include "arm/ARMContext.h"\n'
         header += '#include "arm/ARMDisassembler.h"\n\n'
         header += '#include <memory>\n\n'
-        header += 'using namespace Disassembler;\n\n' 
+        header += 'using namespace Disassembler;\n\n'
         header += "class ARMInterpreter {\n"
         header += "public:\n"
         header += "    ARMInterpreter(ARMContext &ctx) :\n"
@@ -182,14 +182,14 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += "    apsr_t APSR;\n"
         header += "    scr_t SCR;\n"
         header += "    unsigned ELR_hyp = 0;\n"
-        
+
         fd.write(header)
         for instruction in ARMv7OperationSpec.instructions:
             ins_name = instruction["name"]
             fd.write("    bool %s(const ARMInstruction &ins);\n" % method_name(ins_name))
-        
+
         fd.write("};\n")
-    
+
     with open(interpreter_name_cpp, "w") as fd:
         header = ""
         header += '#include "arm/gen/ARMInterpreter.h"\n'
@@ -200,7 +200,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += '#include <tuple>\n'
         header += '#include <memory>\n\n'
         header += 'using namespace std;\n\n'
-        
+
         fd.write(header)
 
         # Create the execution dispatcher.
@@ -219,13 +219,13 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             logging.info("Processing instruction '%s' (%d)" % (ins_name, i))
 
             fd.write("bool ARMInterpreter::%s(const ARMInstruction &ins) {\n" % method_name(ins_name))
-            
+
             ins_operation = instruction["operation"]
 
             # Remove empty lines, because I suck at parsing.
             ins_operation = os.linesep.join([s for s in ins_operation.splitlines() if not re.match(r'^\s*$', s)])
 
-            # Get the AST for the decoder pseudocode and translate it to C++.            
+            # Get the AST for the decoder pseudocode and translate it to C++.
             program_ast = ARMv7Parser.parse_program(ins_operation)
 
             # Expand the known_types with the instruction fields.
@@ -240,7 +240,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
 
             # Fix untranslatable list assignments.
             ListAssignmentRewriter().transform(program_ast)
-            
+
             # Create a translator.
             translator = InterpreterCPPTranslator(known_types=ins_types)
 
@@ -264,13 +264,13 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
 
             if len(translator.define_me):
                 fd.write("\n")
-                
+
             # Write the translated body.
             fd.write(body)
             fd.write("    return true;\n")
             fd.write("}\n")
             fd.write("\n")
-            
+
     return True
 
 def main():
