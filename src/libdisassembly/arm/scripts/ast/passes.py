@@ -131,3 +131,18 @@ class IdentifierRenamer(TransformationPass):
         """
         if node.name in self.identifiers:
             node.name = self.prefix + node.name
+
+class FunctionRenamer(TransformationPass):
+    """
+    Change the names of some of the names of function calls in the AST.
+    """
+    name = "FunctionRenamer"
+    description = "Chage the names of certain functions names in the AST."
+
+    def __init__(self, function_names, prefix):
+        self.function_names = set(function_names)
+        self.prefix = prefix
+
+    def accept_ProcedureCall(self, parent, node):
+        if node.name.name in self.function_names:
+            node.name.name = self.prefix + node.name.name
