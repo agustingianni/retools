@@ -1169,3 +1169,38 @@ void ARMContext::SPSRaccessValid(unsigned SYSm, unsigned mode) {
             break;
     }
 }
+
+template<typename T> std::tuple<FPType, bool, T> FPUnpack(uint64_t fpval, uint32_t fpscr_val) {
+    FPType type;
+    T value;
+    bool sign = get_bit(fpval, 15);
+    uint32_t exp = get_bits(fpval, 14, 10);
+    uint32_t frac = get_bits(fpval, 9, 0);
+
+    if (IsZero(exp)) {
+        // Produce zero if value is zero
+        if (frac == 0) {
+            type = FPType_Zero;
+            value = 0.0;
+        } else {
+            type = FPType_Nonzero;
+            value = pow(2.0, -14) * (frac * pow(2.0, -10));
+        }
+    } else if (exp == 31 && get_bit(fpscr_val, 26) == 0) {
+        if (frac == 0) {
+            type = FPType_Infinity;
+            value = pow(2.0, 1000000);
+        } else {
+            type = get_bit(frac, 9) ? FPType_QNaN : FPType_SNaN;
+            value = 0.0;
+        }
+    } else {
+        type = FPType_Nonzero;
+        value = pow(2.0, exp - 15) * (1.0 + frac * (2.0, -10));
+    }
+
+    if (sign)
+        value = -value;
+
+    return std::make_tuple<FPType, bool, T>(type, sign, value);
+}
