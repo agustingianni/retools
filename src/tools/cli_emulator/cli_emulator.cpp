@@ -26,10 +26,8 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-	string arg_mode { argv[1] };
-
 	ARMMode mode { ARMMode_ARM };
-	if (arg_mode == "thumb") {
+	if (string(argv[1]) == "thumb") {
 		mode = ARMMode_Thumb;
 	}
 
