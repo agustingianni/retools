@@ -17,6 +17,6 @@ set_target_properties(
 # Link to libdisassembly.
 target_link_libraries(
 	cli_emulator
-	disassembly
 	emulation
+	disassembly
 )
