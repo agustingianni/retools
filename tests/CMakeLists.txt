@@ -9,8 +9,8 @@ find_path(CAPSTONE_INCLUDE_DIR NAMES capstone/capstone.h)
 find_library(CAPSTONE_LIBRARIES NAMES capstone)
 
 # Find the paths to darm's stuff.
-find_path(DARM_INCLUDE_DIR NAMES darm.h PATHS ../third_party/darm)
-find_library(DARM_LIBRARIES NAMES darm PATHS ../third_party/darm)
+find_path(DARM_INCLUDE_DIR NAMES darm.h PATHS /usr/include/darm)
+find_library(DARM_LIBRARIES NAMES darm PATHS /usr/lib)
 
 message("-- Include dirs of CAPSTONE  : " ${CAPSTONE_INCLUDE_DIR} )
 message("-- Library dirs of CAPSTONE  : " ${CAPSTONE_LIBRARIES} )
@@ -34,7 +34,7 @@ target_include_directories(
 # Enable c++11 on the target.
 set_target_properties(
 	instruction_fuzz
-	PROPERTIES 
+	PROPERTIES
 	COMPILE_FLAGS "-std=c++11"
 )
 
