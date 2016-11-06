@@ -6,7 +6,7 @@ project(libdisassembly CXX)
 # Create the library target.
 add_library(
 	disassembly
-	STATIC
+	SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMDisassembler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMDisassembler.h
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMArch.cpp

@@ -6,7 +6,7 @@ project(libemulation CXX)
 # Create the library target.
 add_library(
 	emulation
-	STATIC
+	SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMEmulator.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMEmulator.h
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMContext.cpp
@@ -18,8 +18,13 @@ add_library(
 # Enable c++11 on the target.
 set_target_properties(
 	emulation
-	PROPERTIES 
+	PROPERTIES
 	COMPILE_FLAGS "-std=c++11 -Wno-parentheses-equality"
+)
+
+target_link_libraries(
+	emulation
+	disassembly
 )
 
 # Set target specific include directories.

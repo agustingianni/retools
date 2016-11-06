@@ -6,7 +6,7 @@ project(libbinary CXX)
 # Create the library target.
 add_library(
     binary
-    STATIC
+    SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractBinary.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractBinary.h
     ${CMAKE_CURRENT_SOURCE_DIR}/abstract/EntryPoint.h

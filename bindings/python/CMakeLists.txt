@@ -25,7 +25,7 @@ add_library(
 # Enable c++11 on the target.
 set_target_properties(
 	disassembler_py
-	PROPERTIES 
+	PROPERTIES
 	COMPILE_FLAGS "-std=c++11"
 )
 

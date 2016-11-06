@@ -6,14 +6,14 @@ project(libsymbolic CXX)
 # Create the library target.
 add_library(
 	symbolic
-	STATIC
+	SHARED
 	${CMAKE_SOURCE_DIR}/src/libsymbolic/
 )
 
 # Enable c++11 on the target.
 set_target_properties(
 	symbolic
-	PROPERTIES 
+	PROPERTIES
 	COMPILE_FLAGS "-std=c++11"
 )
 
