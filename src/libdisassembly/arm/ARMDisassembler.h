@@ -241,7 +241,7 @@ namespace Disassembler {
 			static ARMInstruction create() {
 				return ARMInstruction {};
 			}
-			
+
 			virtual ~ARMInstruction() {
 			}
 
@@ -323,7 +323,7 @@ namespace Disassembler {
 			uint16_t groupsize;
 			uint16_t groupsize_minus_one;
 			uint16_t registers;
-			
+
 			uint8_t alignment;
 			uint8_t carry;
 			uint8_t cond;
@@ -405,7 +405,7 @@ namespace Disassembler {
 		public:
 			UnpredictableInstruction(std::string reason) : m_reason(reason) {
 				m_skip = false;
-			} 
+			}
 
 			std::string toString() override {
 				return "UnpredictableInstruction: " + m_reason;
@@ -419,7 +419,7 @@ namespace Disassembler {
 		public:
 			UndefinedInstruction(std::string reason) : m_reason(reason) {
 				m_skip = false;
-			} 
+			}
 
 			std::string toString() override {
 				return "UndefinedInstruction: " + m_reason;
