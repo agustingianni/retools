@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 # Create a symbolic link to the project.
-ln -s /vagrant retools
+if [ ! -L retools ]; then
+    ln -s /vagrant retools
+fi
 
 # Install dependencies.
 apt-get update
@@ -14,36 +16,46 @@ DEPS_DIR=$(mktemp -d)
 # Change to the temporary directory.
 pushd $DEPS_DIR
 
-# Install capstone + python bindings.
-git clone https://github.com/aquynh/capstone.git
-pushd capstone
-./make.sh
-sudo ./make.sh install
-pushd bindings/python
-make
-sudo make install
-popd
-popd
+if [ ! -f /usr/lib/libcapstone.a ]; then
+    echo "Could not find Capstone Engine, installing it from sources."
+    # Install capstone + python bindings.
+    git clone https://github.com/aquynh/capstone.git
+    pushd capstone
+        ./make.sh
+        sudo ./make.sh install
+        pushd bindings/python
+            make
+            sudo make install
+        popd
+    popd
+fi
 
-# Install unicorn + python bindings.
-git clone https://github.com/unicorn-engine/unicorn.git
-pushd unicorn
-./make.sh
-sudo ./make.sh install
-pushd bindings/python
-make
-sudo make install
-popd
+if [ ! -f /usr/lib/libunicorn.a ]; then
+    echo "Could not find Unicorn Engine, installing it from sources."
+    # Install unicorn + python bindings.
+    git clone https://github.com/unicorn-engine/unicorn.git
+    pushd unicorn
+        ./make.sh
+        sudo ./make.sh install
+        pushd bindings/python
+            make
+            sudo make install
+        popd
+    popd
+fi
 
-# Install darm.
-git clone https://github.com/jbremer/darm.git
-pushd darm
-make
-sudo cp libdarm.a /usr/lib
-sudo cp libdarm.so /usr/lib
-sudo mkdir /usr/include/darm
-sudo cp *.h /usr/include/darm/
-popd
+if [ ! -f /usr/lib/libdarm.a ]; then
+    echo "Could not find DARM, installing it from sources."
+    # Install darm.
+    git clone https://github.com/jbremer/darm.git
+    pushd darm
+        make
+        sudo cp libdarm.a /usr/lib
+        sudo cp libdarm.so /usr/lib
+        sudo mkdir -p /usr/include/darm
+        sudo cp *.h /usr/include/darm/
+    popd
+fi
 
 popd
 
