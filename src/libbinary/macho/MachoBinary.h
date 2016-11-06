@@ -91,7 +91,7 @@ private:
     bool parse_symtab(struct load_command *lc);
     bool parse_thread(struct load_command *lc);
     bool parse_unixthread(struct load_command *lc);
-    
+
     // Each segment has a section that is parsed by 'parse_section'.
     template<typename Section_t> bool parse_section(Section_t *lc);
 
@@ -172,11 +172,11 @@ private:
     template<typename Section_t> bool parse_sysctl_set(Section_t *lc);
     template<typename Section_t> bool parse_thread_local_init_function_pointers(Section_t *lc);
     template<typename Section_t> bool parse_vectors_recover(Section_t *lc);
-    
+
     // Keep track of the segments and sections.
     template<typename T> void add_segment(T *);
     template<typename T> void add_section(T *);
-    
+
     // Get information about the parsed segments and sections.
     uint64_t segment_address(unsigned index);
     std::string segment_name(unsigned index);

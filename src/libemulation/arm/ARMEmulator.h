@@ -18,19 +18,19 @@ namespace Emulator {
 	class ARMEmulator {
 	private:
 		ARMMode m_mode;
-		ARMContext &m_contex;
-		ARMInterpreter m_interpreter;
-		Disassembler::ARMDisassembler m_dis;
-		Memory::AbstractMemory &m_memory;
+		ARMContext *m_contex;
+		ARMInterpreter *m_interpreter;
+		Disassembler::ARMDisassembler *m_dis;
+		Memory::AbstractMemory *m_memory;
 
 	public:
-		ARMEmulator(ARMContext &context, Memory::AbstractMemory &memory, ARMMode mode = ARMMode_ARM, ARMVariants = ARMv7);
+		ARMEmulator(ARMContext *context, Memory::AbstractMemory *memory, ARMMode mode = ARMMode_ARM, ARMVariants = ARMv7);
 		virtual ~ARMEmulator();
 
 		void start(unsigned count = 0);
 
 		ARMContext &getContext() const {
-			return m_contex;
+			return *m_contex;
 		}
 
 		void setMode(ARMMode mode) {

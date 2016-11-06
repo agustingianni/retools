@@ -28,7 +28,7 @@ add_library(
 # Enable c++11 on the target.
 set_target_properties(
     binary
-    PROPERTIES 
+    PROPERTIES
     COMPILE_FLAGS "-std=c++11 -Wno-format -g"
 )
 
@@ -38,4 +38,5 @@ target_include_directories(
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src/utilities
+    ${CMAKE_SOURCE_DIR}/src/include
 )

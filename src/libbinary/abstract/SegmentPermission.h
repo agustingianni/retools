@@ -8,7 +8,12 @@
 #ifndef SRC_LIBBINARY_ABSTRACT_SEGMENTPERMISSION_H_
 #define SRC_LIBBINARY_ABSTRACT_SEGMENTPERMISSION_H_
 
-#include <mach/vm_prot.h>
+#define	VM_PROT_NONE 0x00
+#define VM_PROT_READ 0x01
+#define VM_PROT_WRITE 0x02
+#define VM_PROT_EXECUTE 0x04
+
+using vm_prot_t = int;
 
 namespace SegmentPermission {
 	constexpr int READ = 1;

@@ -44,7 +44,7 @@ class ARMContext {
 public:
     const unsigned IMPLEMENTATION_DEFINED = 0;
 
-	ARMContext(Memory::AbstractMemory &memory);
+	ARMContext(Memory::AbstractMemory *memory);
 	virtual ~ARMContext();
 
 	void dump();
@@ -342,7 +342,7 @@ public:
     bool ENDIANSTATE = false;
 
 private:
-    Memory::AbstractMemory &m_memory;
+    Memory::AbstractMemory *m_memory;
     bool m_hyp_mode = false;
     ITSession m_it_session;
     ARMMode m_opcode_mode;
@@ -350,7 +350,7 @@ private:
 
     // Event register used by WFE, SEV, etc.
     unsigned m_event_register = 0;
-    
+
     // Configurable flags that specify the characteristics of the processor.
     bool m_has_security_extension = false;
     bool m_has_virtual_extensions = false;

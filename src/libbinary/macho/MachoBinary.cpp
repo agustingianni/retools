@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <mach/machine.h>
 #include <mach-o/dyld_images.h>
 
 #define NDEBUG
@@ -953,7 +954,7 @@ template<typename Section_t> bool MachoBinary::parse_regular_section(Section_t *
         handled = parse_objc_superrefs(lc);
 
     if (segname == "__DATA" && sectname == "__objc_init_func")
-        handled = parse_objc_init_func(lc); 
+        handled = parse_objc_init_func(lc);
 
     if (segname == "__OBJC" && sectname == "__message_refs")
         handled = parse_objc_message_refs(lc);
@@ -1333,6 +1334,7 @@ template<typename Section_t> bool MachoBinary::parse_objc_ivar(Section_t *lc) {
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_msgrefs(Section_t *lc) {
+    using pointer_t = typename Traits<Section_t>::pointer_t;
     auto data = m_data.offset<ObjectiveC::v2::message_ref_t<pointer_t>>(lc->offset, lc->size);
     if (!data) {
         LOG_ERR("Could not read message_ref_t.");
@@ -1669,7 +1671,7 @@ template<typename Section_t> bool MachoBinary::parse_objc_message_refs(Section_t
         LOG_DEBUG("message_ref_t -> sel=0x%.16llx", data[i].sel);
     }
 
-    return true;    
+    return true;
 }
 
 template<typename Section_t> bool MachoBinary::parse_objc_cat_cls_meth(Section_t *lc) {
@@ -2389,7 +2391,7 @@ bool MachoBinary::parse_symtab(struct load_command *lc) {
     if (!cmd) {
         LOG_ERR("Failed to read symtab load command.");
         return false;
-    }    
+    }
 
     if (!m_symbol_table) {
         LOG_ERR("Invalid symbol table.");
@@ -3593,7 +3595,7 @@ bool MachoBinary::parse_uuid(struct load_command *lc) {
     if (!cmd) {
         LOG_ERR("Error loading segment from load command");
         return false;
-    }    
+    }
 
     char buffer[16];
     stringstream ss;

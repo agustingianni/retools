@@ -2,6 +2,7 @@
 #define SRC_LIBEMULATION_MEMORY_MEMORY_H_
 
 #include <list>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>

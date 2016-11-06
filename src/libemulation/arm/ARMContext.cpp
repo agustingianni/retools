@@ -88,7 +88,7 @@ void AlignmentFault(uint32_t address, bool iswrite) {
     LOG_ABORT("%s alignment fault at 0x%.8x.", iswrite ? "Write" : "Read", address);
 }
 
-ARMContext::ARMContext(Memory::AbstractMemory &memory) :
+ARMContext::ARMContext(Memory::AbstractMemory *memory) :
         m_memory { memory } {
     for (auto i = 0; i < Register::ARM_REG_CORE_MAX; i++)
         m_core_regs[i] = 0;
@@ -334,7 +334,7 @@ void ARMContext::write_MemU_with_priv(uint32_t value, uintptr_t address, unsigne
 uint32_t ARMContext::readMemory(uintptr_t address, unsigned size) {
     LOG_DEBUG("address=0x%.8x, size=0x%.8x", address, size);
     uint64_t value = 0;
-    m_memory.read(address, &value, size);
+    m_memory->read(address, &value, size);
     return value;
 }
 

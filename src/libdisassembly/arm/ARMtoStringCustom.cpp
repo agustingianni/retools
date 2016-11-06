@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 
 #include "arm/ARMDisassembler.h"
 #include "arm/ARMUtilities.h"
@@ -39,7 +40,7 @@ std::string c_dt_QDd_i_imm3_imm4(const char *opname, const Disassembler::ARMInst
     if (dt == "F32") {
         char tmp[128];
         snprintf(tmp, sizeof(tmp), "%.6e", *(float *) &imm);
-        strcat(buffer, tmp);        
+        strcat(buffer, tmp);
     } else {
         strcat(buffer, integer_to_string(imm, true).c_str());
     }
@@ -1948,7 +1949,7 @@ std::string c_size_list_Rn_align(const char *opname, const Disassembler::ARMInst
 std::string c_size_list_Rn(const char *opname, const Disassembler::ARMInstruction *ins) {
     // VLD3{<c>}{<q>}.<size> <list>, [<Rn>]            Rm = '1111'
     // VLD3{<c>}{<q>}.<size> <list>, [<Rn>]!           Rm = '1101'
-    // VLD3{<c>}{<q>}.<size> <list>, [<Rn>], <Rm>      Rm = other values    
+    // VLD3{<c>}{<q>}.<size> <list>, [<Rn>], <Rm>      Rm = other values
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "%s.%s %s, [%s]",
         opname,
@@ -1958,10 +1959,10 @@ std::string c_size_list_Rn(const char *opname, const Disassembler::ARMInstructio
     );
 
     if (ins->m == 0x0f) {
-        return std::string(buffer);        
+        return std::string(buffer);
     } else  if (ins->m == 0x0d) {
         strcat(buffer, "!");
-        return std::string(buffer);        
+        return std::string(buffer);
     }
 
     strcat(buffer, (", " + regular_reg_str(ins->m)).c_str());
@@ -3414,7 +3415,7 @@ std::string decode_subs_pc_lr_and_related_instructions_arm_a1_to_string(const Di
         case 10:
         case 11:
             snprintf(buffer, sizeof(buffer), "%s%s %s, #%s",
-                opc1_str[ins->opcode_], 
+                opc1_str[ins->opcode_],
                 c_str(ins).c_str(),
                 regular_reg_str(ins->n).c_str(),
                 integer_to_string(ins->imm32, ins->imm32 >= 10).c_str()
@@ -3462,7 +3463,7 @@ std::string decode_subs_pc_lr_and_related_instructions_arm_a2_to_string(const Di
             ins->shift_n ? ", " : "",
             ins->shift_n ? shift_str(ins->shift_t, ins->shift_n).c_str() : ""
         );
-    
+
     } else if (ins->opcode_ <= 12 || ins->opcode_ == 14) {
         // <opc1>S<c> PC, <Rn>, <Rm>{, <shift>}
         snprintf(buffer, sizeof(buffer), "%sS%s PC, %s, %s%s%s",
@@ -3514,7 +3515,7 @@ std::string decode_subs_pc_lr_and_related_instructions_arm_a2_to_string(const Di
 std::string decode_cps_thumb_t1_to_string(const ARMInstruction *ins) {
     // DEBUG: CPS<effect> <iflags>
     std::string tmp = "CPS" + effect_str(ins) + " ";
-    
+
     if (iflags_str(ins) != "") {
         tmp += iflags_str(ins);
     }
@@ -3524,7 +3525,7 @@ std::string decode_cps_thumb_t1_to_string(const ARMInstruction *ins) {
 
 std::string decode_cps_thumb_t2_to_string(const ARMInstruction *ins) {
     std::string tmp = "CPS" + effect_str(ins) + ".W ";
-    
+
     if (iflags_str(ins) != "") {
         tmp += iflags_str(ins);
 
@@ -3543,7 +3544,7 @@ std::string decode_cps_thumb_t2_to_string(const ARMInstruction *ins) {
 
 std::string decode_cps_arm_a1_to_string(const ARMInstruction *ins) {
     std::string tmp = "CPS" + effect_str(ins) + " ";
-    
+
     if (iflags_str(ins) != "") {
         tmp += iflags_str(ins);
 
