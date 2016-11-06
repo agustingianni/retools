@@ -10,7 +10,6 @@
 #include "arm/ARMDisassembler.h"
 #include "memory/Memory.h"
 
-#include <memory>
 #include <string>
 #include <cstdint>
 #include <iostream>

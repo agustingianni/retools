@@ -11,10 +11,6 @@
 #include "arm/gen/ARMDecodingTable.h"
 #include "Utilities.h"
 
-#include <functional>
-#include <iostream>
-
-using namespace std;
 using namespace Disassembler;
 
 namespace Disassembler {
