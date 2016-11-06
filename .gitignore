@@ -1,3 +1,4 @@
+.vagrant
 .vscode
 *.pyc
 .DS_Store
