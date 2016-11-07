@@ -263,7 +263,7 @@ namespace Disassembler {
 			uint64_t imm64;
 
 			virtual std::string toString() {
-				return m_to_string ? m_to_string(this) : "to_string_missing";
+				return m_to_string ? m_to_string(this) : "invalid";
 			}
 
 			bool UnalignedAllowed;
