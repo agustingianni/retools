@@ -21,6 +21,8 @@ message("-- Include dirs of boost     : " ${Boost_INCLUDE_DIRS} )
 add_executable(
 	instruction_fuzz
 	${CMAKE_CURRENT_SOURCE_DIR}/instruction_fuzz.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/test_utils.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/test_utils.h
 )
 
 target_include_directories(
@@ -45,3 +47,4 @@ target_link_libraries(
 	${DARM_LIBRARIES}
 )
 
+add_subdirectory(libemulation/arm)
