@@ -200,106 +200,28 @@ void test(unsigned n, unsigned start, unsigned finish, unsigned mode, char *path
 	fclose(file);
 }
 
-void gen_shit(unsigned i, unsigned j) {
-	csh handle;
-	cs_insn *insn;
-	size_t count;
-	string dis_caps, dis_retools;
-
-	unsigned ok = 0, fail=0;
-
-	ARMDisassembler dis(ARMv7);
-	ARMInstruction ins;
-
-	cs_open(CS_ARCH_ARM, CS_MODE_ARM, &handle);
-	{
-		for(unsigned opcode = i; opcode < j; opcode += 1) {
-			count = cs_disasm(handle, (unsigned char *) &opcode, sizeof(opcode), 0, 0, &insn);
-			if (count) {
-				// Capstones disassembly.
-				dis_caps = string(insn[0].mnemonic) + " " + string(insn[0].op_str);
-
-				// Our disassembly.
-				ins = dis.disassemble(opcode, ARMMode_ARM);
-				dis_retools = ins.toString();
-				boost::algorithm::to_lower(dis_retools);
-
-				if (dis_retools.find(", lsl #0") != string::npos) {
-					dis_retools = dis_retools.substr(0, dis_retools.size() - strlen(", lsl #0"));
-				}
-
-				ok++;
-				cs_free(insn, count);
-			} else {
-				fail++;
-			}
-		}
-	}
-	cs_close(&handle);
-
-	printf("fail=%u ok=%u\n", fail, ok);
-}
-
-// Traverse the table checking that a given entry at index 'i' matches another
-// entry at index 'j' where 'j' < 'i'. This is to check the correctness of the
-// decoding table. Most of the results of this test are false positives since
-// each decoder has a SEE statement that makes de decoding procedure continue
-// looking for the next decoder enty.
-void test_decoding_table() {
-	for (unsigned i = 0; i < n_arm_opcodes - 1; ++i) {
-		bool print_h = false, print_f = false;
-
-		for (unsigned j = 0; j < i; ++j) {
-			if ((arm_opcodes[i].value & arm_opcodes[j].mask) == arm_opcodes[j].value) {
-				if (!print_h) {
-					printf("Instruction:\n  i=%3d m=0x%.8x v=0x%.8x e=%d n=\"%s\"\n",
-						i,
-						arm_opcodes[i].mask,
-						arm_opcodes[i].value,
-						arm_opcodes[i].encoding,
-						arm_opcodes[i].name
-					);
-
-					print_h = true;
-					print_f = true;
-				}
-
-				printf("  i=%3d m=0x%.8x v=0x%.8x e=%d n=\"%s\" %s\n",
-					j,
-					arm_opcodes[j].mask,
-					arm_opcodes[j].value,
-					arm_opcodes[j].encoding,
-					arm_opcodes[j].name,
-					i > j ? "*" : ""
-				);
-			}
-		}
-
-		if (print_f)
-			puts("");
-	}
-}
-
-// Print the representation under all the available disassemblers.
-void test_manual_opcode(uint32_t op_code) {
-	string decoder;
-	string capstone = capstone_disassemble(op_code, CS_MODE_ARM);
-	string darm = darm_disassemble(op_code, 0);
-	string retools = retools_disassemble(op_code, 0, decoder);
-	string objdump = objdump_disassemble(op_code, 0);
-
-	printf("MANUAL:\nreto: 0x%.8x = %40s\n", op_code, retools.c_str());
-	printf("caps: 0x%.8x = %40s\n", op_code, capstone.c_str());
-	printf("darm: 0x%.8x = %40s\n", op_code, darm.c_str());
-	printf("objd: 0x%.8x = %40s\n\n", op_code, objdump.c_str());
-}
-
 int main(int argc, char **argv) {
+	if (argc <= 5) {
+		printf("Usage: %s <iterations> <start> <finish> <mode> <outfile>\n", argv[0]);
+		printf("  <iterations>: Number of times we will randomly generate the same instruction.\n");
+		printf("  <start>:      Index to the first instruction to be tested.\n");
+		printf("                  From 0 to %u for THUMB instructions.\n", n_thumb_opcodes - 1);
+		printf("                  From 0 to %u for ARM instructions.\n", n_arm_opcodes - 1);
+		printf("  <finish>:     Index to the last instruction to be tested.\n");
+		printf("                  If <start> == <finish> then all instructions are tested.\n");
+		printf("  <mode>:       0 for ARM , 1 for THUMB.\n");
+		printf("  <outfile>:    File name to save results.\n");
+		return -1;
+	}
+
 	unsigned n = std::stoi(argv[1]);
 	unsigned i = std::stoi(argv[2]);
 	unsigned j = std::stoi(argv[3]);
 	unsigned k = std::stoi(argv[4]);
 	char *path = argv[5];
+
+	printf("Testing random instructions from %u to %u, %u times in mode %s.\n", i, j, n, !k ? "ARM" : "THUMB");
+	printf("Saving results to '%s'\n", path);
 
 	test(n, i, j, k, path);
 	return 0;
