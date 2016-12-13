@@ -25,13 +25,6 @@ add_library(
     ${CMAKE_CURRENT_SOURCE_DIR}/macho/Swap.h
 )
 
-# Enable c++11 on the target.
-set_target_properties(
-    binary
-    PROPERTIES
-    COMPILE_FLAGS "-std=c++11 -Wno-format -g"
-)
-
 # Set target specific include directories.
 target_include_directories(
     binary

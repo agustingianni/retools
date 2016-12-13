@@ -10,13 +10,6 @@ add_library(
 	${CMAKE_SOURCE_DIR}/src/libsymbolic/
 )
 
-# Enable c++11 on the target.
-set_target_properties(
-	symbolic
-	PROPERTIES
-	COMPILE_FLAGS "-std=c++11"
-)
-
 # Set target specific include directories.
 target_include_directories(
  	symbolic

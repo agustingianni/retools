@@ -22,13 +22,6 @@ add_library(
 	${CMAKE_CURRENT_SOURCE_DIR}/libdisassembly.cpp
 )
 
-# Enable c++11 on the target.
-set_target_properties(
-	disassembler_py
-	PROPERTIES
-	COMPILE_FLAGS "-std=c++11"
-)
-
 target_link_libraries(
 	disassembler_py
 	disassembly

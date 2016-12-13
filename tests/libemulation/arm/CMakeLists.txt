@@ -23,13 +23,6 @@ target_include_directories(
 	../../
 )
 
-# Enable c++11 on the target.
-set_target_properties(
-	random
-	PROPERTIES
-	COMPILE_FLAGS "-std=c++11"
-)
-
 target_link_libraries(
 	random
 	emulation

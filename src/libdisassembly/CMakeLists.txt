@@ -30,11 +30,11 @@ add_library(
 	${CMAKE_SOURCE_DIR}/src/utilities/Utilities.h
 )
 
-# Enable c++11 on the target.
+# Avoid specific warnings on the target.
 set_target_properties(
 	disassembly
 	PROPERTIES
-	COMPILE_FLAGS "-std=c++11 -Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable -Wno-int-to-void-pointer-cast"
+	COMPILE_FLAGS "-Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable -Wno-int-to-void-pointer-cast"
 )
 
 # Set target specific include directories.

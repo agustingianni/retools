@@ -33,13 +33,6 @@ target_include_directories(
 	${DARM_INCLUDE_DIR}
 )
 
-# Enable c++11 on the target.
-set_target_properties(
-	instruction_fuzz
-	PROPERTIES
-	COMPILE_FLAGS "-std=c++11"
-)
-
 target_link_libraries(
 	instruction_fuzz
 	disassembly

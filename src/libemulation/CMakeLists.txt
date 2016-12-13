@@ -15,11 +15,11 @@ add_library(
 	${CMAKE_CURRENT_SOURCE_DIR}/../libdisassembly/arm/gen/ARMInterpreter.h
 )
 
-# Enable c++11 on the target.
+# Avoid specific warnings in the target.
 set_target_properties(
 	emulation
 	PROPERTIES
-	COMPILE_FLAGS "-std=c++11 -Wno-parentheses-equality"
+	COMPILE_FLAGS "-Wno-parentheses-equality"
 )
 
 target_link_libraries(
