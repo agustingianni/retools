@@ -20,6 +20,7 @@ target_include_directories(
 	random
 	PRIVATE
 	${UNICORN_INCLUDE_DIR}
+	../../
 )
 
 # Enable c++11 on the target.
