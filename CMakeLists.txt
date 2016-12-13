@@ -9,6 +9,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 # Disable C++ exceptions.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-unwind-tables -fno-asynchronous-unwind-tables")
 
+# Enable @rpath for shared libraries.
+set(CMAKE_MACOSX_RPATH 1)
+
 # Enable debugging.
 if (DEBUG)
     message(STATUS "Debugging is ON")
