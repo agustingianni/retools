@@ -9,8 +9,8 @@ find_path(CAPSTONE_INCLUDE_DIR NAMES capstone/capstone.h)
 find_library(CAPSTONE_LIBRARIES NAMES capstone)
 
 # Find the paths to darm's stuff.
-find_path(DARM_INCLUDE_DIR NAMES darm.h PATHS /usr/include/darm)
-find_library(DARM_LIBRARIES NAMES darm PATHS /usr/lib)
+find_path(DARM_INCLUDE_DIR NAMES darm.h PATHS /usr/include/darm /usr/local/include/darm)
+find_library(DARM_LIBRARIES NAMES darm PATHS /usr/lib /usr/local/lib)
 
 message("-- Include dirs of CAPSTONE  : " ${CAPSTONE_INCLUDE_DIR} )
 message("-- Library dirs of CAPSTONE  : " ${CAPSTONE_LIBRARIES} )
