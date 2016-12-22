@@ -1,15 +1,18 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Options.
-option(DEBUG "Build with debugging on" ON)
+option(DEBUG "Build with debugging on" OFF)
+option(USE_CCACHE "Build with ccache" OFF)
 
-# Configure CCache if available.
-find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-    message("-- Found 'cache', using it for compilation.")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-endif(CCACHE_FOUND)
+# Configure ccache if available.
+if(USE_CCACHE)
+    find_program(CCACHE_FOUND ccache)
+    if(CCACHE_FOUND)
+        message("-- Found 'cache', using it for compilation.")
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+    endif(CCACHE_FOUND)
+endif(USE_CCACHE)
 
 # Enable compiler warnings.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
@@ -26,7 +29,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-unwind-tables -fno-asynchronous-unw
 set(CMAKE_MACOSX_RPATH 1)
 
 # Enable debugging.
-if (DEBUG)
+if(DEBUG)
     message(STATUS "Debugging is ON")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g -fno-omit-frame-pointer -w")
 endif(DEBUG)
