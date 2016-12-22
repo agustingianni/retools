@@ -8,6 +8,7 @@
 #include "debug.h"
 #include "Utilities.h"
 
+#include <tuple>
 #include <cassert>
 
 template<typename T> const T& Max(const T& a, const T& b) {

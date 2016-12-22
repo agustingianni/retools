@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <functional>
 #include <mach/machine.h>
 #include <mach-o/dyld_images.h>
 
