@@ -120,12 +120,16 @@ struct instruction_effects unicorn_run(uint32_t opcode, unsigned mode) {
 
     // uc_reg_read(uc, UC_ARM_REG_R0, &r0);
     uc_close(uc);
+
+	return {};
 }
 
 struct instruction_effects retools_run(uint32_t opcode, unsigned mode) {
+	return {};
 }
 
 struct instruction_effects hardware_run(uint32_t opcode, unsigned mode) {
+	return {};
 }
 
 void test_arm(unsigned n, unsigned start, unsigned finish, FILE *file) {
