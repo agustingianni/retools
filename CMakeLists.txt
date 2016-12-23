@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 # Options.
 option(DEBUG "Build with debugging on" OFF)
 option(USE_CCACHE "Build with ccache" OFF)
+option(FUZZING "Build for fuzzing (disables all output)" OFF)
 
 # Configure ccache if available.
 if(USE_CCACHE)
@@ -32,7 +33,14 @@ if(DEBUG)
 else()
     message(STATUS "Debugging is OFF")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wno-int-to-void-pointer-cast -Wno-format")
+    add_definitions(-DNDEBUG)
 endif(DEBUG)
+
+# Enable a fuzzing build.
+if(FUZZING)
+    message(STATUS "Fuzzing mode is ON")
+    add_definitions(-DFUZZING)
+endif(FUZZING)
 
 # Build third party dependencies.
 add_subdirectory(third_party)
