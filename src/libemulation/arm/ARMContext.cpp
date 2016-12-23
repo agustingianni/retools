@@ -1197,7 +1197,7 @@ template<typename T> std::tuple<FPType, bool, T> FPUnpack(uint64_t fpval, uint32
         }
     } else {
         type = FPType_Nonzero;
-        value = pow(2.0, exp - 15) * (1.0 + frac * (2.0, -10));
+        value = pow(2.0, exp - 15) * (1.0 + frac * pow(2.0, -10));
     }
 
     if (sign)
