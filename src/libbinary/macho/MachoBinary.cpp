@@ -16,8 +16,6 @@
 #include <mach/machine.h>
 #include <mach-o/dyld_images.h>
 
-#define NDEBUG
-
 #include "debug.h"
 #include "macho/Swap.h"
 #include "macho/ObjectiveC.h"
