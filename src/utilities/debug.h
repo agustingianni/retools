@@ -29,10 +29,21 @@
 #define LOG_DEBUG(M, ...) fprintf(stdout, BOLDBLUE "[DBG] %20s -> " M "\n" RESET, __FUNCTION__, ##__VA_ARGS__)
 #endif
 
+#ifndef FUZZING
+// Enable basic logging for regular builds.
 #define CLEAN_ERRNO() (errno == 0 ? "None" : (const char *) strerror(errno))
 #define LOG_ERR(M, ...) fprintf(stderr, BOLDRED "[ERR] (errno: %s) " M "\n" RESET, CLEAN_ERRNO(), ##__VA_ARGS__)
 #define LOG_WARN(M, ...) fprintf(stderr, BOLDYELLOW "[WRN] (errno: %s) " M "\n" RESET, CLEAN_ERRNO(), ##__VA_ARGS__)
 #define LOG_INFO(M, ...) fprintf(stderr, BOLDGREEN "[NFO] " M "\n" RESET, ##__VA_ARGS__)
 #define LOG_ABORT(M, ...) fprintf(stderr, BOLDRED "[ABORT] (errno: %s) " M "\n" RESET, CLEAN_ERRNO(), ##__VA_ARGS__); abort()
+#else
+// Disable all logging on fuzzing builds.
+#define CLEAN_ERRNO()
+#define LOG_DEBUG(M, ...)
+#define LOG_ERR(M, ...)
+#define LOG_WARN(M, ...)
+#define LOG_INFO(M, ...)
+#define LOG_ABORT(M, ...)
+#endif
 
 #endif
