@@ -8,7 +8,8 @@ fi
 # Install dependencies.
 apt-get update
 apt-get install build-essential git cmake python-setuptools \
-    python-dev libboost-python-dev libglib2.0-dev pkg-config -y
+    python-dev libboost-python-dev libglib2.0-dev pkg-config \
+    llvm clang -y
 
 # Create a temporary directory.
 DEPS_DIR=$(mktemp -d)
@@ -57,6 +58,15 @@ if [ ! -f /usr/lib/libdarm.a ]; then
     popd
 fi
 
+if [ ! -f /usr/local/bin/afl-fuzz ]; then
+    echo "Could not find afl-fuzz, installing it from sources."
+    wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz
+    tar xzf afl-latest.tgz
+    cd afl*
+    make
+    cd llvm_mode
+    make
+    sudo make install
 popd
 
 rm -rf $DEPS_DIR
