@@ -14,9 +14,6 @@ if(USE_CCACHE)
     endif(CCACHE_FOUND)
 endif(USE_CCACHE)
 
-# Enable compiler warnings.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-
 # Enable C++14 standard.
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,7 +28,10 @@ set(CMAKE_MACOSX_RPATH 1)
 # Enable debugging.
 if(DEBUG)
     message(STATUS "Debugging is ON")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g -fno-omit-frame-pointer -w")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g -fno-omit-frame-pointer -w -Wall -Wextra")
+else()
+    message(STATUS "Debugging is OFF")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wno-int-to-void-pointer-cast -Wno-format")
 endif(DEBUG)
 
 # Build third party dependencies.
