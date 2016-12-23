@@ -549,11 +549,13 @@ void ARMContext::Hint_Yield() {
 // This function returns the bitstring encoding of the currently-executing instruction.
 unsigned ARMContext::ThisInstr() {
     assert("Method not implemented.");
+    return 0;
 }
 
 // This function returns the length, in bits, of the current instruction. This means it returns 32 or 16.
 unsigned ARMContext::ThisInstrLength() {
     assert("Method not implemented.");
+    return 0;
 }
 
 // Perform a Data Memory Barrier operation.
@@ -599,6 +601,7 @@ void ARMContext::SwitchToJazelleExecution() {
 
 bool ARMContext::ExclusiveMonitorsPass(unsigned address, unsigned size) {
     assert("Not implemented");
+    return false;
 }
 
 void ARMContext::ClearExclusiveLocal(unsigned processorid) {
@@ -621,6 +624,7 @@ void ARMContext::WaitForInterrupt() {
 // This function returns an integer that uniquely identifies the executing processor in the system.
 unsigned ARMContext::ProcessorID() {
     assert("Not implemented");
+    return 0;
 }
 
 // Get word from coprocessor, for an MRC or MRC2 instruction.
@@ -811,7 +815,7 @@ void ARMContext::WriteHSR(unsigned ec, unsigned HSRString) {
 // Checks for MRS (Banked register) or MSR (Banked register) accesses to registers
 // other than the SPSRs that are invalid. This includes ELR_hyp accesses.
 void ARMContext::BankedRegisterAccessValid(unsigned SYSm, unsigned mode) {
-    if (get_bits(SYSm, 4, 3) == 0)
+    if (get_bits(SYSm, 4, 3) == 0) {
         if (get_bits(SYSm, 2, 0) == 7) {
             UNPREDICTABLE();
         } else if (get_bits(SYSm, 2, 0) == 6) {
@@ -840,6 +844,7 @@ void ARMContext::BankedRegisterAccessValid(unsigned SYSm, unsigned mode) {
                     UNPREDICTABLE();
             }
         }
+    }
 }
 
 void ARMContext::CPSRWriteByInstr(unsigned value, unsigned byte_mask, bool is_exception_return) {
