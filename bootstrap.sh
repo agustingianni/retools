@@ -66,6 +66,7 @@ if [ ! -f /usr/local/bin/afl-fuzz ]; then
     make
     cd llvm_mode
     make
+    cd ..
     sudo make install
 popd
 
