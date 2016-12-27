@@ -22,6 +22,12 @@ public:
         m_memory(memory), m_end(memory + size) {
     }
 
+    template <typename T>
+    T *element(void *mem, size_t index) const {
+        auto offset = index * sizeof(T);
+        return pointer<T>(static_cast<uint8_t *>(mem) + offset, sizeof(T));
+    }
+
     // Get a sane pointer to a given type and a memory pointer.
     template<typename T> T *pointer(void *mem, size_t size = sizeof(T)) const {
         return valid(static_cast<uint8_t *>(mem) + size) ? reinterpret_cast<T *>(mem) : nullptr;

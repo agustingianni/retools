@@ -400,13 +400,21 @@ bool MachoBinary::parse_load_commands() {
             m_symbol_table_size = cmd->nsyms;
 
             // Create space for the symbol table. This should be freed later.
-            m_symbol_table = new nlist_64[m_symbol_table_size];
+            m_symbol_table = new (std::nothrow) nlist_64[m_symbol_table_size];
+            if (!m_symbol_table) {
+                LOG_ERR("Error allocating symbol table.");
+                m_symbol_table_size = 0;
+                continue;
+            }
 
             // This sucks.
             if (is32()) {
                 auto temp = m_data.offset<struct nlist>(cmd->symoff, m_symbol_table_size * sizeof(struct nlist));
                 if (!temp) {
                     LOG_ERR("Error reading symbol table.");
+                    delete [] m_symbol_table;
+                    m_symbol_table = nullptr;
+                    m_symbol_table_size = 0;
                     continue;
                 }
 
@@ -417,6 +425,9 @@ bool MachoBinary::parse_load_commands() {
                 auto temp = m_data.offset<struct nlist_64>(cmd->symoff, m_symbol_table_size * sizeof(struct nlist_64));
                 if (!temp) {
                     LOG_ERR("Error reading symbol table.");
+                    delete [] m_symbol_table;
+                    m_symbol_table = nullptr;
+                    m_symbol_table_size = 0;
                     continue;
                 }
 
@@ -430,6 +441,7 @@ bool MachoBinary::parse_load_commands() {
             m_string_table = m_data.offset<char>(cmd->stroff, m_string_table_size);
             if (!m_string_table) {
                 LOG_WARN("Symbol string table is outside the binary mapped file.");
+                m_string_table_size = 0;
                 continue;
             }
         }
@@ -1767,10 +1779,16 @@ template<typename Section_t> bool MachoBinary::parse_objc_cls_meth(Section_t *lc
         LOG_DEBUG("  unk=0x%.8x count=0x%.8x", data->unk, data->count);
 
         for (auto i = 0 ; i < data->count; i++) {
+            auto element = m_data.element<ObjectiveC::v1::method_t<pointer_t>>(data->elements, i);
+            if (!element) {
+                LOG_ERR("Invalid index (%u) into element array, skipping.", i);
+                return false;
+            }
+
             LOG_DEBUG("  __objc_method:");
-            LOG_DEBUG("    method_name=0x%.16llx", data->elements[i].method_name);
-            LOG_DEBUG("    method_types=0x%.16llx", data->elements[i].method_types);
-            LOG_DEBUG("    method_imp=0x%.16llx", data->elements[i].method_imp);
+            LOG_DEBUG("    method_name=0x%.16llx", element->method_name);
+            LOG_DEBUG("    method_types=0x%.16llx", element->method_types);
+            LOG_DEBUG("    method_imp=0x%.16llx", element->method_imp);
         }
 
         cur_off += sizeof(*data) + data->count * sizeof(data->elements[0]);
@@ -1813,10 +1831,16 @@ template<typename Section_t> bool MachoBinary::parse_objc_inst_meth(Section_t *l
         LOG_DEBUG("  unk=0x%.8x count=0x%.8x", data->unk, data->count);
 
         for (auto i = 0 ; i < data->count; i++) {
+            auto element = m_data.element<ObjectiveC::v1::method_t<pointer_t>>(data->elements, i);
+            if (!element) {
+                LOG_ERR("Invalid index (%u) into element array, skipping.", i);
+                return false;
+            }
+
             LOG_DEBUG("  __objc_method:");
-            LOG_DEBUG("    method_name=0x%.16llx", data->elements[i].method_name);
-            LOG_DEBUG("    method_types=0x%.16llx", data->elements[i].method_types);
-            LOG_DEBUG("    method_imp=0x%.16llx", data->elements[i].method_imp);
+            LOG_DEBUG("    method_name=0x%.16llx", element->method_name);
+            LOG_DEBUG("    method_types=0x%.16llx", element->method_types);
+            LOG_DEBUG("    method_imp=0x%.16llx", element->method_imp);
         }
 
         cur_off += sizeof(*data) + data->count * sizeof(data->elements[0]);
@@ -1841,9 +1865,15 @@ template<typename Section_t> bool MachoBinary::parse_objc_instance_vars(Section_
         LOG_DEBUG("  count=0x%.8x", data->count);
 
         for (auto i = 0 ; i < data->count; i++) {
+            auto element = m_data.element<ObjectiveC::v1::instance_vars_struct_t<pointer_t>>(data->elements, i);
+            if (!element) {
+                LOG_ERR("Invalid index (%u) into element array, skipping.", i);
+                return false;
+            }
+
             LOG_DEBUG("  __objc_instance_vars_struct:");
-            LOG_DEBUG("    name=0x%.16llx", data->elements[i].name);
-            LOG_DEBUG("    type=0x%.16llx", data->elements[i].type);
+            LOG_DEBUG("    name=0x%.16llx", element->name);
+            LOG_DEBUG("    type=0x%.16llx", element->type);
         }
 
         cur_off += sizeof(*data) + data->count * sizeof(data->elements[0]);
@@ -1914,12 +1944,17 @@ template<typename Section_t> bool MachoBinary::parse_objc_property(Section_t *lc
 
         LOG_DEBUG("__objc_property_list:");
         LOG_DEBUG("  size=0x%.8x count=0x%.8x", data->size, data->count);
-        assert(data->size == sizeof(data->elements[0]));
 
         for (auto i = 0 ; i < data->count; i++) {
+            auto element = m_data.element<ObjectiveC::v1::property_t<pointer_t>>(data->elements, i);
+            if (!element) {
+                LOG_ERR("Invalid index (%u) into element array, skipping.", i);
+                return false;
+            }
+
             LOG_DEBUG("  __objc_property:");
-            LOG_DEBUG("    name=0x%.16llx", data->elements[i].name);
-            LOG_DEBUG("    attributes=0x%.16llx", data->elements[i].attributes);
+            LOG_DEBUG("    name=0x%.16llx", element->name);
+            LOG_DEBUG("    attributes=0x%.16llx", element->attributes);
         }
 
         cur_off += sizeof(*data) + data->count * sizeof(data->elements[0]);
@@ -1980,7 +2015,13 @@ template<typename Section_t> bool MachoBinary::parse_objc_symbols(Section_t *lc)
         LOG_DEBUG("  cat_def_count=0x%.16llx", data->cat_def_count);
 
         for (auto i = 0 ; i < data->cls_def_count; i++) {
-            LOG_DEBUG("    name=0x%.16llx", data->defs[i]);
+            auto def = m_data.element<pointer_t>(data->defs, i);
+            if (!def) {
+                LOG_ERR("Invalid index (%u) into defs array, skipping.", i);
+                return false;
+            }
+
+            LOG_DEBUG("    name=0x%.16llx", def);
         }
 
         cur_off += sizeof(*data) + data->cls_def_count * sizeof(data->defs[0]);
@@ -2405,7 +2446,7 @@ bool MachoBinary::parse_symtab(struct load_command *lc) {
     for (unsigned i = 0; i < cmd->nsyms; ++i) {
         if (i >= m_symbol_table_size) {
             LOG_ERR("Symbol table index (%u) is outside the symbol table.", i);
-            continue;
+            break;
         }
 
         // Get the symbol name.
@@ -2537,9 +2578,14 @@ bool MachoBinary::parse_dysymtab(struct load_command *lc) {
     return true;
 }
 
+template <typename T, std::size_t N>
+constexpr std::size_t ARRAY_SIZE(T const (&)[N]) noexcept {
+    return N;
+}
+
 static void debug_thread_state_arm_32(thread_state_arm_32 &ts) {
     stringstream ss;
-    for (unsigned i = 0; i < sizeof(ts.r); i++) {
+    for (unsigned i = 0; i < ARRAY_SIZE(ts.r); i++) {
         ss << "r" << i << " = " << (void *) ts.r[i] << " ";
     }
 
@@ -2556,7 +2602,7 @@ static void debug_thread_state_arm_32(thread_state_arm_32 &ts) {
 
 static void debug_thread_state_arm_64(thread_state_arm_64 &ts) {
     stringstream ss;
-    for (unsigned i = 0; i < sizeof(ts.x); i++) {
+    for (unsigned i = 0; i < ARRAY_SIZE(ts.x); i++) {
         ss << "r" << i << " = " << (void *) ts.x[i] << " ";
     }
 
@@ -2778,7 +2824,7 @@ bool MachoBinary::parse_unixthread(struct load_command *lc) {
     }
 
     // Skip to the contents.
-    uint32_t *contents = m_data.pointer<uint32_t>(cmd + 1);
+    uint32_t *contents = m_data.pointer<uint32_t>(cmd + 1, sizeof(uint32_t) * 2);
     if (!contents) {
         LOG_ERR("Error getting load command contents.");
         return false;
@@ -2884,36 +2930,45 @@ bool MachoBinary::parse_dyld_info_exports(const uint8_t *export_start, const uin
 
     // Process all the nodes.
     while (!working_set.empty() && cur_byte < export_end) {
+        size_t rem_size = reinterpret_cast<uintptr_t>(export_end) - reinterpret_cast<uintptr_t>(cur_byte);
+
         // Get a Node from the queue.
         Node *cur_node = working_set.front();
         working_set.pop();
 
         // Get a pointer to the data.
-        cur_byte = export_start + cur_node->m_offset;
-        if (cur_byte >= export_end) {
+        if (cur_node->m_offset >= rem_size) {
             return false;
         }
-
+        cur_byte = export_start + cur_node->m_offset;
+        rem_size -= cur_node->m_offset;
         cur_node->m_data = cur_byte;
 
         // Read the terminal size.
-        cur_node->m_terminal_size = read_terminal_size(cur_byte, export_end);
-        if (cur_byte >= export_end) {
+        auto tmp_ptr = cur_byte;
+        cur_node->m_terminal_size = read_terminal_size(tmp_ptr, export_end);
+
+        // Adjust remaining bytes used by 'read_terminal_size'.
+        rem_size -= reinterpret_cast<uintptr_t>(tmp_ptr) - reinterpret_cast<uintptr_t>(cur_byte);
+        cur_byte = tmp_ptr;
+        if (tmp_ptr >= export_end) {
+            return false;
+        }
+
+        if (cur_node->m_terminal_size >= rem_size) {
             return false;
         }
 
         // Skip the symbol properties to get to the children.
         cur_byte += cur_node->m_terminal_size;
-        if (cur_byte >= export_end) {
-            return false;
-        }
+        rem_size -= cur_node->m_terminal_size;
 
         uint8_t child_count = *cur_byte;
         cur_byte++;
+        rem_size--;
         if (cur_byte >= export_end) {
             return false;
         }
-
 
         for (unsigned i = 0; i < child_count; i++) {
             // Current child label.
@@ -3634,7 +3689,6 @@ bool MachoBinary::parse_dyld_info(struct load_command *lc) {
         LOG_ERR("Error loading segment from load command");
         return false;
     }
-
 
     LOG_DEBUG("Rebase information: rebase_off = 0x%.8x rebase_size = 0x%.8x", cmd->rebase_off, cmd->rebase_size);
     LOG_DEBUG("Binding information: bind_off = 0x%.8x bind_size = 0x%.8x", cmd->bind_off, cmd->bind_size);
