@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Options.
-option(DEBUG "Build with debugging on" OFF)
+option(BUILD_TYPE, "Select type of build [DEBUG | RELEASE | FUZZING | COVERAGE]")
 option(USE_CCACHE "Build with ccache" OFF)
-option(FUZZING "Build for fuzzing (disables all output)" OFF)
 
 # Configure ccache if available.
 if(USE_CCACHE)
@@ -26,21 +25,24 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-unwind-tables -fno-asynchronous-unw
 # Enable @rpath for shared libraries.
 set(CMAKE_MACOSX_RPATH 1)
 
-# Enable debugging.
-if(DEBUG)
-    message(STATUS "Debugging is ON")
+if(BUILD_TYPE STREQUAL "COVERAGE")
+    message(STATUS "Code coverage build")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fno-omit-frame-pointer -fprofile-arcs -ftest-coverage")
+
+elseif(BUILD_TYPE STREQUAL "DEBUG")
+    message(STATUS "Debug build")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g -fno-omit-frame-pointer -w -Wall -Wextra")
-else()
-    message(STATUS "Debugging is OFF")
+
+elseif(BUILD_TYPE STREQUAL "RELEASE")
+    message(STATUS "Release build")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wno-int-to-void-pointer-cast -Wno-format")
     add_definitions(-DNDEBUG)
-endif(DEBUG)
 
-# Enable a fuzzing build.
-if(FUZZING)
-    message(STATUS "Fuzzing mode is ON")
+elseif(BUILD_TYPE STREQUAL "FUZZING")
+    message(STATUS "Fuzzing build")
     add_definitions(-DFUZZING)
-endif(FUZZING)
+
+endif()
 
 # Build third party dependencies.
 add_subdirectory(third_party)
