@@ -41,7 +41,7 @@ template<> struct Traits<section_64> {
 };
 
 class MachoBinary: public AbstractBinary {
-private:
+public:
     // Methods to access the correct version of the fields in the mach-o header.
     DEFINE_HEADER_ACCESSOR(uint32_t, magic)
     DEFINE_HEADER_ACCESSOR(cpu_type_t, cputype)
