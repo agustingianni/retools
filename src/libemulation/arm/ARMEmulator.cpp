@@ -17,7 +17,7 @@ namespace Emulator {
     ARMEmulator::ARMEmulator(ARMContext *context, Memory::AbstractMemory *memory, ARMMode mode, ARMVariants variant) :
 		m_mode{mode}, m_contex{context}, m_memory{memory} {
 			m_dis = new ARMDisassembler(variant);
-			m_interpreter = new ARMInterpreter(m_contex);
+			m_interpreter = new ARMInterpreter(*m_contex);
     }
 
     ARMEmulator::~ARMEmulator() {
