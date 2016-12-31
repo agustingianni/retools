@@ -29,6 +29,14 @@
 #define LOG_DEBUG(M, ...) fprintf(stdout, BOLDBLUE "[DBG] %20s -> " M "\n" RESET, __FUNCTION__, ##__VA_ARGS__)
 #endif
 
+#define LOG_RED(M, ...) fprintf(stderr, BOLDRED "[LOG] " M "\n" RESET, ##__VA_ARGS__)
+#define LOG_GREEN(M, ...) fprintf(stderr, BOLDGREEN "[LOG] " M "\n" RESET, ##__VA_ARGS__)
+#define LOG_YELLOW(M, ...) fprintf(stderr, BOLDYELLOW "[LOG] " M "\n" RESET, ##__VA_ARGS__)
+#define LOG_BLUE(M, ...) fprintf(stderr, BOLDBLUE "[LOG] " M "\n" RESET, ##__VA_ARGS__)
+#define LOG_MAGENTA(M, ...) fprintf(stderr, BOLDMAGENTA "[LOG] " M "\n" RESET, ##__VA_ARGS__)
+#define LOG_CYAN(M, ...) fprintf(stderr, BOLDCYAN "[LOG] " M "\n" RESET, ##__VA_ARGS__)
+#define LOG_WHITE(M, ...) fprintf(stderr, BOLDWHITE "[LOG] " M "\n" RESET, ##__VA_ARGS__)
+
 #ifndef FUZZING
 // Enable basic logging for regular builds.
 #define CLEAN_ERRNO() (errno == 0 ? "None" : (const char *) strerror(errno))
