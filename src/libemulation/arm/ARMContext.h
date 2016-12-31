@@ -42,12 +42,29 @@ template<typename T> T FPDefaultNaN(unsigned N);
 
 class ARMContext {
 public:
-    const unsigned IMPLEMENTATION_DEFINED = 0;
+    unsigned IMPLEMENTATION_DEFINED = 0;
 
+    ARMContext() = default;
 	ARMContext(Memory::AbstractMemory *memory);
 	virtual ~ARMContext();
 
 	void dump();
+
+    std::array<uint32_t, Register::ARM_REG_CORE_MAX> getCoreRegisters() {
+        return m_core_regs;
+    }
+
+    std::array<uint64_t, Register::ARM_REG_DOUBLE_MAX> getDoubleRegisters() {
+        return m_double_regs;
+    }
+
+    void setCoreRegisters(std::array<uint32_t, Register::ARM_REG_CORE_MAX> registers) {
+        m_core_regs = registers;
+    }
+
+    void setDoubleRegisters(std::array<uint64_t, Register::ARM_REG_DOUBLE_MAX> registers) {
+        m_double_regs = registers;
+    }
 
 	void setRegister(Register::Core reg, uint32_t value);
 	void getRegister(Register::Core reg, uint32_t &value);
