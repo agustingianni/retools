@@ -39,8 +39,8 @@ namespace Emulator {
 
 			// 2. Decode it.
 			ARMInstruction ins = m_dis->disassemble(cur_opcode, cur_mode);
-			LOG_INFO("Emulating instruction @ cur_pc=0x%.8x cur_opcode=0x%.8x string='%s' size=%d",
-			        cur_pc, cur_opcode, ins.toString().c_str(), ins.size);
+			LOG_INFO("Emulating instruction @ cur_pc=0x%.8x cur_opcode=0x%.8x string='%s' size=%d decoder='%s'",
+			        cur_pc, cur_opcode, ins.toString().c_str(), ins.ins_size, ins.m_decoded_by.c_str());
 
 			// 3. Execute the instruction.
 			m_interpreter->execute(ins);
@@ -48,7 +48,11 @@ namespace Emulator {
 			// 4. Print the status of the registers.
 			m_contex->dump();
 
-			cur_pc += sizeof(uint32_t);
+			if (cur_pc == m_contex->PC()) {
+				cur_pc += ins.ins_size / 8;
+				m_contex->PC(cur_pc);
+			}
+
 			n_executed++;
 		}
     }

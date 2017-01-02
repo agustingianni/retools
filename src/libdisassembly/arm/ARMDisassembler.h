@@ -233,7 +233,7 @@ namespace Disassembler {
 	}
 
 	typedef enum ARMInstrSize {
-		eSize16, eSize32
+		eSize16 = 16, eSize32 = 32
 	} ARMInstrSize;
 
 	class ARMInstruction {
