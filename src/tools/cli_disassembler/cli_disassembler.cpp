@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
     uint32_t opcode = std::stoul(arg_opcode, nullptr, 16);
 
-    ARMMode mode;
+    ARMMode mode = ARMMode_ARM;
     if (arg_mode == "thumb") {
         mode = ARMMode_Thumb;
         cout << "Using mode THUMB" << endl;
@@ -33,9 +33,6 @@ int main(int argc, char **argv) {
         if (opcode > 0xffff) {
             opcode = (opcode >> 16) | ((opcode << 16) & 0xffffffff);
         }
-    } else {
-        mode = ARMMode_ARM;
-        cout << "Using mode THUMB" << endl;
     }
 
     ARMDisassembler dis { ARMv7All };
