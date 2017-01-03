@@ -7,8 +7,11 @@
 #include <array>
 #include <algorithm>
 #include <memory>
+#include <vector>
+#include <tuple>
 
 #include <unicorn/unicorn.h>
+#include <capstone/capstone.h>
 
 #include <arm/ARMArch.h>
 #include <arm/ARMEmulator.h>
@@ -29,27 +32,97 @@ std::string retools_disassemble(uint32_t opcode, unsigned mode) {
 	return ins.toString();
 }
 
+std::string capstone_disassemble(uint32_t op_code, unsigned mode) {
+	csh handle;
+	cs_insn *insn;
+	size_t count;
+	std::string ret = "INVALID";
+
+	cs_mode cmode = mode == 0 ? CS_MODE_ARM : CS_MODE_THUMB;
+	cs_open(CS_ARCH_ARM, cmode, &handle);
+	{
+		count = cs_disasm(handle, (unsigned char *) &op_code, sizeof(op_code), 0, 0, &insn);
+		if (count) {
+			ret = std::string(insn[0].mnemonic) + " " + std::string(insn[0].op_str);
+			cs_free(insn, count);
+		}
+	}
+	cs_close(&handle);
+
+	return ret;
+}
+
+
 using f64_t = double;
 using u32_t = uint32_t;
 using u64_t = uint64_t;
 
-template <typename T>
-void uc_reg_read_batch(uc_engine *uc, int regid, int count, T *buffer) {
-	for (auto i = 0; i < count; i++) {
-		uc_reg_read(uc, regid + i, &buffer[i]);
-	}
+static std::array<int, 16> all_rr = {
+	UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_R2, UC_ARM_REG_R3,
+	UC_ARM_REG_R4, UC_ARM_REG_R5, UC_ARM_REG_R6, UC_ARM_REG_R7,
+	UC_ARM_REG_R8, UC_ARM_REG_R9, UC_ARM_REG_R10, UC_ARM_REG_R11,
+	UC_ARM_REG_R12, UC_ARM_REG_R13, UC_ARM_REG_R14, UC_ARM_REG_R15
+};
+
+static std::array<int, 32> all_dr = {
+	UC_ARM_REG_D0, UC_ARM_REG_D1, UC_ARM_REG_D2, UC_ARM_REG_D3,
+	UC_ARM_REG_D4, UC_ARM_REG_D5, UC_ARM_REG_D6, UC_ARM_REG_D7,
+	UC_ARM_REG_D8, UC_ARM_REG_D9, UC_ARM_REG_D10, UC_ARM_REG_D11,
+	UC_ARM_REG_D12, UC_ARM_REG_D13, UC_ARM_REG_D14, UC_ARM_REG_D15,
+	UC_ARM_REG_D16, UC_ARM_REG_D17, UC_ARM_REG_D18, UC_ARM_REG_D19,
+	UC_ARM_REG_D20, UC_ARM_REG_D21, UC_ARM_REG_D22, UC_ARM_REG_D23,
+	UC_ARM_REG_D24, UC_ARM_REG_D25, UC_ARM_REG_D26, UC_ARM_REG_D27,
+	UC_ARM_REG_D28, UC_ARM_REG_D29, UC_ARM_REG_D30, UC_ARM_REG_D31
+};
+
+// uc_err uc_reg_read_batch(uc_engine *uc, int *ids, void **vals, int count)
+
+void uc_reg_read_batch(uc_engine *uc, u32_t *buffer) {
+	std::array<u32_t *, 16> ptrs;
+	for (auto i = 0; i < 16; i++)
+		ptrs[i] = &buffer[i];
+
+	uc_reg_read_batch(uc, all_rr.data(), (void **) ptrs.data(), all_rr.size());
 }
 
-template <typename T>
-void uc_reg_write_batch(uc_engine *uc, int regid, int count, T *buffer) {
-	for (auto i = 0; i < count; i++) {
-		uc_reg_write(uc, regid + i, &buffer[i]);
-	}
+void uc_reg_read_batch(uc_engine *uc, u64_t *buffer) {
+	std::array<u64_t *, 32> ptrs;
+	for (auto i = 0; i < 32; i++)
+		ptrs[i] = &buffer[i];
+
+	uc_reg_read_batch(uc, all_dr.data(), (void **) ptrs.data(), all_dr.size());
+}
+
+void uc_reg_write_batch(uc_engine *uc, u32_t *buffer) {
+	std::array<u32_t *, 16> ptrs;
+	for (auto i = 0; i < 16; i++)
+		ptrs[i] = &buffer[i];
+
+	uc_reg_write_batch(uc, all_rr.data(), (void **) ptrs.data(), all_rr.size());
+}
+
+void uc_reg_write_batch(uc_engine *uc, u64_t *buffer) {
+	std::array<u64_t *, 32> ptrs;
+	for (auto i = 0; i < 32; i++)
+		ptrs[i] = &buffer[i];
+
+	uc_reg_write_batch(uc, all_dr.data(), (void **) ptrs.data(), all_dr.size());
 }
 
 struct instruction_effects {
-    std::array<u32_t, 16> regular_regs;
-	std::array<u64_t, 32> double_regs;
+	static constexpr unsigned N_REGULAR_REGS = 16;
+	static constexpr unsigned N_DOUBLE_REGS = 32;
+
+    std::array<u32_t, N_REGULAR_REGS> regular_regs;
+	std::array<u64_t, N_DOUBLE_REGS> double_regs;
+
+	bool operator==(const instruction_effects &other) const {
+		return this->regular_regs == other.regular_regs && this->double_regs == other.double_regs;
+	}
+
+	bool operator!=(const instruction_effects &other) const {
+		return !(*this == other);
+	}
 
 	static void print(const instruction_effects &effects) {
 		LOG_BLUE("| Regular 32 bit registers:");
@@ -126,16 +199,58 @@ struct instruction_effects {
 			effects.double_regs[30], effects.double_regs[31]
 		);
 	}
-};
 
-enum class CPUMode {
-	ARM_MODE,
-	THUMB_MODE
+	static void print_diff(const char *desc0, const char *desc1, const instruction_effects &base, const instruction_effects &e0, const instruction_effects &e1) {
+		std::vector<std::tuple<unsigned, u32_t, u32_t>> rr_diffs;
+		std::vector<std::tuple<unsigned, u64_t, u64_t>> dr_diffs;
+
+		for (unsigned i = 0; i < N_REGULAR_REGS; i++) {
+			if (e0.regular_regs[i] != e1.regular_regs[i]) {
+				auto entry = std::make_tuple(i, e0.regular_regs[i], e1.regular_regs[i]);
+				rr_diffs.push_back(entry);
+			}
+		}
+
+		for (unsigned i = 0; i < N_DOUBLE_REGS; i++) {
+			if (e0.double_regs[i] != e1.double_regs[i]) {
+				auto entry = std::make_tuple(i, e0.double_regs[i], e1.double_regs[i]);
+				dr_diffs.push_back(entry);
+			}
+		}
+
+		if (!rr_diffs.empty()) {
+			LOG_BLUE("Regular registers differences:");
+			LOG_RED("|---------------|----------------|---------------|");
+			LOG_RED("|%-14s | %-14s | %-14s|", "original", desc0, desc1);
+			LOG_RED("|---------------|----------------|---------------|");
+
+			unsigned reg_no;
+			u32_t val0, val1;
+			for (const auto &diff : rr_diffs) {
+				std::tie(reg_no, val0, val1) = diff;
+				LOG_RED("|r%-2u:0x%.8x | r%-2u:0x%.8x | r%-2u:0x%.8x|", reg_no, base.regular_regs[reg_no], reg_no, val0, reg_no, val1);
+			}
+			LOG_RED("|---------------|----------------|---------------|");
+
+			instruction_effects::print(base);
+		}
+
+		if (!dr_diffs.empty()) {
+			LOG_BLUE("Double registers differences:");
+
+			unsigned reg_no;
+			u64_t val0, val1;
+			for (const auto &diff : dr_diffs) {
+				std::tie(reg_no, val0, val1) = diff;
+				LOG_RED("r%-2u:0x%.16llx != r%-2u:0x%.16llx", reg_no, val0, reg_no, val1);
+			}
+		}
+	}
 };
 
 class InstructionInspector {
 public:
-	virtual void run(CPUMode mode, uint32_t opcode) = 0;
+	virtual void run(ARMMode mode, uint32_t opcode) = 0;
 	virtual void reset() = 0;
 	virtual instruction_effects effects() = 0;
 
@@ -170,8 +285,8 @@ public:
 		});
 
 		// Write the test values.
-		uc_reg_write_batch<u32_t>(m_engine, UC_ARM_REG_R0, u32_values.size(), u32_values.data());
-		uc_reg_write_batch<u64_t>(m_engine, UC_ARM_REG_D0, f64_values.size(), f64_values.data());
+		uc_reg_write_batch(m_engine, u32_values.data());
+		uc_reg_write_batch(m_engine, f64_values.data());
 
 		// Create a backup context for later fast restoration.
 		uc_context_alloc(m_engine, &m_context);
@@ -183,18 +298,19 @@ public:
 		uc_close(m_engine);
 	}
 
-	void run(CPUMode mode, uint32_t opcode) override {
+	void run(ARMMode mode, uint32_t opcode) override {
 		// Write the instruction and emulate it.
 		uc_mem_write(m_engine, m_base, &opcode, sizeof(opcode) - 1);
-		uc_emu_start(m_engine, m_base, m_base + sizeof(opcode) - 1, 0, 1);
+		if (uc_emu_start(m_engine, m_base, m_base + sizeof(opcode) - 1, 0, 1) != UC_ERR_OK) {
+			LOG_ERR("Error emulating instruction.");
+			abort();
+		}
 	}
 
 	instruction_effects effects() override {
 		instruction_effects effects;
-
-		uc_reg_read_batch<u32_t>(m_engine, UC_ARM_REG_R0, effects.regular_regs.size(), effects.regular_regs.data());
-		uc_reg_read_batch<u64_t>(m_engine, UC_ARM_REG_D0, effects.double_regs.size(), effects.double_regs.data());
-
+		uc_reg_read_batch(m_engine, effects.regular_regs.data());
+		uc_reg_read_batch(m_engine, effects.double_regs.data());
 		return effects;
 	}
 
@@ -220,7 +336,7 @@ public:
 	REToolsInstructionInspector() {
 		m_memory = std::make_unique<ConcreteMemory>();
 		m_context = std::make_unique<ARMContext>(m_memory.get());
-		m_emulator = std::make_unique<ARMEmulator>(m_context.get(), m_memory.get(), ARMMode::ARMMode_ARM);
+		m_emulator = std::make_unique<ARMEmulator>(m_context.get(), m_memory.get(), ARMMode_ARM);
 
 		m_memory->map(m_base, m_base_size, 0);
 
@@ -241,15 +357,15 @@ public:
 
 		m_context->setCoreRegisters(u32_values);
 		m_context->setDoubleRegisters(f64_values);
-		m_context->setRegister(ARM_REG_PC, 0xcafe0000);
-
 		m_saved_context = *m_context;
 	}
 
 	~REToolsInstructionInspector() {
 	}
 
-	void run(CPUMode mode, uint32_t opcode) override {
+	void run(ARMMode mode, uint32_t opcode) override {
+		m_context->SelectInstrSet(mode);
+		m_context->setRegister(Register::ARM_REG_PC, m_base);
 		m_memory->write_value(m_base, opcode);
 		m_emulator->start(1);
 	}
@@ -274,7 +390,7 @@ public:
 	~HardwareInstructionInspector() {
 	}
 
-	void run(CPUMode mode, uint32_t opcode) override {
+	void run(ARMMode mode, uint32_t opcode) override {
 	}
 
 	instruction_effects effects() override {
@@ -285,95 +401,102 @@ public:
 	}
 };
 
-void test_arm(unsigned n, unsigned start, unsigned finish, FILE *file) {
-	uint32_t mask;
-	uint32_t value;
-	uint32_t op_code;
-
-	if (start == finish || finish > n_arm_opcodes) {
-		finish = n_arm_opcodes - 1;
+class InstructionGenerator {
+public:
+	InstructionGenerator(size_t start, size_t finish, size_t n) {
+		m_idx = start;
+		m_number = n;
+		m_cnt = 0;
 	}
 
-	UnicornInstructionInspector unicorn_inspector;
-	REToolsInstructionInspector retools_inspector;
-	HardwareInstructionInspector hardware_inspector;
+	bool get(uint32_t &instruction) {
+		if (m_cnt == m_number) {
+			// Reset instruction counter.
+			m_cnt = 0;
 
-	for (unsigned i = start; i < finish; ++i) {
-		mask = arm_opcodes[i].mask;
-		value = arm_opcodes[i].value;
-
-		LOG_YELLOW("Emulating instruction '%s'", arm_opcodes[i].name);
-
-		for (unsigned j = 0; j < n; ++j) {
-			op_code = get_masked_random(mask, value);
-
-			// We avoid generating condition codes of 0b1111.
-			if (get_bit(mask, 28) == 0) {
-				op_code &= 0xefffffff;
+			// Advance to the next instruction.
+			m_idx++;
+			if (m_idx == m_finish) {
+				instruction = 0;
+				return false;
 			}
 
-			LOG_GREEN("+------------------------------------------------------------------------------+");
-			LOG_GREEN("| %s", retools_disassemble(op_code, 0).c_str());
-			LOG_GREEN("+------------------------------------------------------------------------------+");
-
-			// Run the instruction.
-            unicorn_inspector.run(CPUMode::ARM_MODE, op_code);
-            retools_inspector.run(CPUMode::ARM_MODE, op_code);
-			hardware_inspector.run(CPUMode::ARM_MODE, op_code);
-
-			// Collect the effects.
-			auto r0 = unicorn_inspector.effects();
-			auto r1 = retools_inspector.effects();
-			auto r2 = hardware_inspector.effects();
-
-			// Reset to initial state.
-			unicorn_inspector.reset();
-			retools_inspector.reset();
-			hardware_inspector.reset();
-
-			// Debug.
-			LOG_WHITE("+------------------------------------------------------------------------------+");
-			instruction_effects::print(r0);
-			LOG_WHITE("+------------------------------------------------------------------------------+");
-			instruction_effects::print(r1);
-			LOG_WHITE("+------------------------------------------------------------------------------+");
-
-			// instruction_effects::print(r2);
+			m_mask = m_opcodes[m_idx].mask;
+			m_value = m_opcodes[m_idx].value;
 		}
-	}
-}
 
-void test_thumb(unsigned n, unsigned start, unsigned finish, FILE *file) {
-	uint32_t mask;
-	uint32_t value;
-	uint32_t size;
-	uint32_t op_code;
+		// Increment instruction counter.
+		m_cnt++;
 
-	if (start == finish || finish > n_thumb_opcodes) {
-		finish = n_thumb_opcodes - 1;
+		instruction = generate();
+		return true;
 	}
 
-	for (unsigned i = start; i < finish; ++i) {
-		mask = thumb_opcodes[i].mask;
-		value = thumb_opcodes[i].value;
-		size = thumb_opcodes[i].ins_size == eSize16 ? 16 : 32;
+protected:
+	virtual uint32_t generate() = 0;
 
-        LOG_INFO("Emulating instruction '%s'", thumb_opcodes[i].name);
+	size_t m_idx;
+	size_t m_cnt;
+	size_t m_finish;
+	size_t m_number;
 
-		for (unsigned j = 0; j < n; ++j) {
-			op_code = get_masked_random(mask, value, size);
-			unsigned caps_op_code = size == 32 ? ((op_code & 0xffff) << 16 ) | (op_code >> 16) : op_code;
+	ARMOpcode *m_opcodes;
+	uint32_t m_mask;
+	uint32_t m_value;
+	uint32_t m_size;
+};
+
+struct ARMInstructionGenerator: public InstructionGenerator {
+public:
+	ARMInstructionGenerator(size_t start, size_t finish, size_t n) : InstructionGenerator(start, finish, n) {
+		if (start == finish || finish > n_arm_opcodes) {
+			finish = n_arm_opcodes - 1;
 		}
-	}
-}
 
-void test(unsigned n, unsigned start, unsigned finish, unsigned mode, char *path) {
-	if (mode == 0) {
-		test_arm(n, start, finish, nullptr);
-	} else {
-		test_thumb(n, start, finish, nullptr);
+		// Set the correct opcode table pointer.
+		m_opcodes = arm_opcodes;
+
+		m_finish = finish;
+		m_mask = m_opcodes[m_idx].mask;
+		m_value = m_opcodes[m_idx].value;
 	}
-}
+
+private:
+	uint32_t generate() override {
+		// We avoid generating condition codes of 0b1111.
+		uint32_t instruction = get_masked_random(m_mask, m_value);
+		if (get_bit(m_mask, 28) == 0) {
+			instruction &= 0xefffffff;
+		}
+
+		// Make the instruction unconditional.
+		instruction |= 0xe0000000;
+		return instruction;
+	}
+};
+
+struct ThumbInstructionGenerator: public InstructionGenerator {
+public:
+	ThumbInstructionGenerator(size_t start, size_t finish, size_t n) : InstructionGenerator(start, finish, n) {
+		if (start == finish || finish > n_thumb_opcodes) {
+			finish = n_thumb_opcodes - 1;
+		}
+
+		// Set the correct opcode table pointer.
+		m_opcodes = thumb_opcodes;
+
+		m_finish = finish;
+		m_mask = m_opcodes[m_idx].mask;
+		m_value = m_opcodes[m_idx].value;
+		m_size = m_opcodes[m_idx].ins_size == eSize16 ? 16 : 32;
+	}
+
+private:
+	uint32_t generate() override {
+		uint32_t instruction = get_masked_random(m_mask, m_value, m_size);
+		return instruction;
+	}
+};
 
 int main(int argc, char **argv) {
 	if (argc <= 5) {
@@ -390,14 +513,62 @@ int main(int argc, char **argv) {
 	}
 
 	unsigned n = std::stoi(argv[1]);
-	unsigned i = std::stoi(argv[2]);
-	unsigned j = std::stoi(argv[3]);
-	unsigned k = std::stoi(argv[4]);
+	unsigned start = std::stoi(argv[2]);
+	unsigned finish = std::stoi(argv[3]);
+	unsigned mode = std::stoi(argv[4]);
 	char *path = argv[5];
 
-	LOG_INFO("Testing random instructions from %u to %u, %u times in mode %s.", i, j, n, !k ? "ARM" : "THUMB");
+	// Create 'N' instruction inspectors.
+	UnicornInstructionInspector unicorn_inspector;
+	REToolsInstructionInspector retools_inspector;
+
+	// Get the initial context values.
+	auto unicorn_base_context = unicorn_inspector.effects();
+	auto retools_base_context = retools_inspector.effects();
+
+	// Verify that they match.
+	if (unicorn_base_context != retools_base_context) {
+		LOG_ERR("Initial instrution inspectors contexts do not match.");
+		instruction_effects::print(unicorn_base_context);
+		instruction_effects::print(retools_base_context);
+
+		LOG_DEBUG("Differences:");
+		instruction_effects::print_diff("unicorn", "retools", unicorn_base_context, unicorn_base_context, retools_base_context);
+		exit(-1);
+	}
+
+	LOG_INFO("Testing random instructions from %u to %u, %u times in mode %s.", start, finish, n, !mode ? "ARM" : "THUMB");
 	LOG_INFO("Saving results to '%s'", path);
 
-	test(n, i, j, k, path);
+	// Create the right generator.
+	InstructionGenerator *gen = mode == 0 ?
+		static_cast<InstructionGenerator *>(new ARMInstructionGenerator(start, finish, n)) :
+		static_cast<InstructionGenerator *>(new ThumbInstructionGenerator(start, finish, n));
+
+	// Generate random opcodes.
+	uint32_t op_code;
+	while (gen->get(op_code)) {
+		LOG_GREEN("+------------------------------------------------------------------------------+");
+		LOG_GREEN("| 0x%.8x - %s | %s", op_code, retools_disassemble(op_code, 0).c_str(), capstone_disassemble(op_code, 0).c_str());
+		LOG_GREEN("+------------------------------------------------------------------------------+");
+
+		// Run the instruction.
+		unicorn_inspector.run(ARMMode_ARM, op_code);
+		retools_inspector.run(ARMMode_ARM, op_code);
+
+		// Collect the effects.
+		auto r0 = unicorn_inspector.effects();
+		auto r1 = retools_inspector.effects();
+
+		// Reset to initial state.
+		unicorn_inspector.reset();
+		retools_inspector.reset();
+
+		// Debug.
+		LOG_WHITE("+------------------------------------------------------------------------------+");
+		instruction_effects::print_diff("unicorn", "retools", unicorn_base_context, r0, r1);
+		LOG_WHITE("+------------------------------------------------------------------------------+");
+	}
+
 	return 0;
 }

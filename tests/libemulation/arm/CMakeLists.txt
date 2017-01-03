@@ -27,6 +27,7 @@ target_link_libraries(
 	random
 	emulation
 	disassembly
+	capstone
 	${UNICORN_LIBRARIES}
 )
 
