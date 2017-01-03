@@ -9,7 +9,7 @@ fi
 apt-get update
 apt-get install build-essential git cmake python-setuptools \
     python-dev libboost-python-dev libglib2.0-dev pkg-config \
-    llvm clang -y
+    llvm clang python-pyparsing -y
 
 # Create a temporary directory.
 DEPS_DIR=$(mktemp -d)
