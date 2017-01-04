@@ -1,20 +1,21 @@
-#include <arm/ARMDisassembler.h>
-#include <arm/gen/ARMDecodingTable.h>
-#include <iostream>
-#include <limits>
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstdio>
-#include <array>
-#include <algorithm>
+#include <iostream>
+#include <limits>
 #include <memory>
-#include <vector>
+#include <random>
 #include <tuple>
+#include <vector>
 
 #include <unicorn/unicorn.h>
 #include <capstone/capstone.h>
 
 #include <arm/ARMArch.h>
+#include <arm/ARMDisassembler.h>
 #include <arm/ARMEmulator.h>
+#include <arm/gen/ARMDecodingTable.h>
 #include <memory/Memory.h>
 
 #include "Utilities.h"
@@ -25,6 +26,9 @@ using namespace Memory;
 using namespace Register;
 using namespace Emulator;
 using namespace Disassembler;
+
+using u32_t = uint32_t;
+using u64_t = uint64_t;
 
 std::string retools_disassemble(uint32_t opcode, unsigned mode) {
 	ARMDisassembler dis(ARMvAll);
@@ -52,11 +56,6 @@ std::string capstone_disassemble(uint32_t op_code, unsigned mode) {
 	return ret;
 }
 
-
-using f64_t = double;
-using u32_t = uint32_t;
-using u64_t = uint64_t;
-
 static std::array<int, 16> all_rr = {
 	UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_R2, UC_ARM_REG_R3,
 	UC_ARM_REG_R4, UC_ARM_REG_R5, UC_ARM_REG_R6, UC_ARM_REG_R7,
@@ -74,8 +73,6 @@ static std::array<int, 32> all_dr = {
 	UC_ARM_REG_D24, UC_ARM_REG_D25, UC_ARM_REG_D26, UC_ARM_REG_D27,
 	UC_ARM_REG_D28, UC_ARM_REG_D29, UC_ARM_REG_D30, UC_ARM_REG_D31
 };
-
-// uc_err uc_reg_read_batch(uc_engine *uc, int *ids, void **vals, int count)
 
 void uc_reg_read_batch(uc_engine *uc, u32_t *buffer) {
 	std::array<u32_t *, 16> ptrs;
@@ -248,6 +245,81 @@ struct instruction_effects {
 	}
 };
 
+namespace RegisterInitPolicy {
+	struct Zero {
+		template <typename T>
+		void initialize_registers(T &registers) {
+			registers = {};
+		}
+	};
+
+	template <unsigned initial_value=0>
+	struct Inc {
+		template <typename T>
+		void initialize_registers(T &registers) {
+			using integer_type = typename T::value_type;
+			integer_type val = initial_value;
+			std::generate_n(registers.begin(), registers.size(), [&val] {
+				return val++;
+			});
+		}
+	};
+
+	struct Min {
+		template <typename T>
+		void initialize_registers(T &registers) {
+			using integer_type = typename T::value_type;
+			std::generate_n(registers.begin(), registers.size(), [] {
+				return std::numeric_limits<integer_type>::min();
+			});
+		}
+	};
+
+	struct Max {
+		template <typename T>
+		void initialize_registers(T &registers) {
+			using integer_type = typename T::value_type;
+			std::generate_n(registers.begin(), registers.size(), [] {
+				return std::numeric_limits<integer_type>::max();
+			});
+		}
+	};
+
+	struct Prime {
+		template <typename T>
+		void initialize_registers(T &registers) {
+			using integer_type = typename T::value_type;
+			std::array<integer_type, 32> primes = {
+				2, 3, 5, 7, 11, 13, 17, 19,
+				23, 29, 31, 37, 41, 43, 47,
+				53, 59, 61, 67, 71, 73, 79,
+				83, 89, 97, 101, 103, 107,
+				109, 113, 127, 131
+			};
+
+			std::copy_n(std::begin(primes), registers.size(), std::begin(registers));
+		}
+	};
+
+	struct Random {
+		template <typename T>
+		void initialize_registers(T &registers) {
+			using integer_type = typename T::value_type;
+
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_int_distribution<integer_type> dis(
+				std::numeric_limits<integer_type>::min(),
+				std::numeric_limits<integer_type>::max()
+			);
+
+			std::generate_n(registers.begin(), registers.size(), [&dis, &gen] {
+				return dis(gen);
+			});
+		}
+	};
+}
+
 class InstructionInspector {
 public:
 	virtual void run(ARMMode mode, uint32_t opcode) = 0;
@@ -259,7 +331,10 @@ protected:
 	constexpr static size_t m_base_size = 4096;
 };
 
-class UnicornInstructionInspector: public InstructionInspector {
+template <typename RegInitPolicy>
+class UnicornInstructionInspector: public InstructionInspector, public RegInitPolicy {
+	using RegInitPolicy::initialize_registers;
+
 public:
 	UnicornInstructionInspector() {
 		// Create an ARM cpu.
@@ -270,19 +345,11 @@ public:
 		uc_mem_write(m_engine, m_base, &zero[0], zero.size());
 
 		// Generate special values for registers.
-		u32_t integer_init_val = 2;
 		std::array<u32_t, 16> u32_values;
-		std::generate_n(u32_values.begin(), u32_values.size(), [&integer_init_val] {
-			integer_init_val = integer_init_val * 2;
-			return integer_init_val;
-		});
-
-		u64_t double_init_val = 2;
 		std::array<u64_t, 32> f64_values;
-		std::generate_n(f64_values.begin(), f64_values.size(), [&double_init_val] {
-			double_init_val = double_init_val * 2;
-			return double_init_val;
-		});
+
+		initialize_registers(u32_values);
+		initialize_registers(f64_values);
 
 		// Write the test values.
 		uc_reg_write_batch(m_engine, u32_values.data());
@@ -326,11 +393,14 @@ private:
 	std::array<uint8_t, m_base_size> zero{};
 };
 
-class REToolsInstructionInspector: public InstructionInspector {
+template <typename RegInitPolicy>
+class REToolsInstructionInspector: public InstructionInspector, public RegInitPolicy {
 	std::unique_ptr<ARMEmulator> m_emulator;
 	std::unique_ptr<ConcreteMemory> m_memory;
 	std::unique_ptr<ARMContext> m_context;
 	ARMContext m_saved_context;
+
+	using RegInitPolicy::initialize_registers;
 
 public:
 	REToolsInstructionInspector() {
@@ -341,19 +411,10 @@ public:
 		m_memory->map(m_base, m_base_size, 0);
 
 		// Generate special values for registers.
-		u32_t integer_init_val = 2;
 		std::array<u32_t, 16> u32_values;
-		std::generate_n(u32_values.begin(), u32_values.size(), [&integer_init_val] {
-			integer_init_val = integer_init_val * 2;
-			return integer_init_val;
-		});
-
-		u64_t double_init_val = 2;
 		std::array<u64_t, 32> f64_values;
-		std::generate_n(f64_values.begin(), f64_values.size(), [&double_init_val] {
-			double_init_val = double_init_val * 2;
-			return double_init_val;
-		});
+		initialize_registers(u32_values);
+		initialize_registers(f64_values);
 
 		m_context->setCoreRegisters(u32_values);
 		m_context->setDoubleRegisters(f64_values);
@@ -382,7 +443,8 @@ public:
 	}
 };
 
-class HardwareInstructionInspector: public InstructionInspector {
+template <typename RegInitPolicy>
+class HardwareInstructionInspector: public InstructionInspector, public RegInitPolicy {
 public:
 	HardwareInstructionInspector() {
 	}
@@ -519,8 +581,8 @@ int main(int argc, char **argv) {
 	char *path = argv[5];
 
 	// Create 'N' instruction inspectors.
-	UnicornInstructionInspector unicorn_inspector;
-	REToolsInstructionInspector retools_inspector;
+	UnicornInstructionInspector<RegisterInitPolicy::Inc<0xcafe0000>> unicorn_inspector;
+	REToolsInstructionInspector<RegisterInitPolicy::Inc<0xcafe0000>> retools_inspector;
 
 	// Get the initial context values.
 	auto unicorn_base_context = unicorn_inspector.effects();
