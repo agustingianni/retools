@@ -22,7 +22,7 @@ if [ ! -f /usr/lib/libcapstone.a ]; then
     # Install capstone + python bindings.
     git clone https://github.com/aquynh/capstone.git
     pushd capstone
-        ./make.sh
+        CAPSTONE_ARCHS=arm ./make.sh
         sudo ./make.sh install
         pushd bindings/python
             make
@@ -36,7 +36,7 @@ if [ ! -f /usr/lib/libunicorn.a ]; then
     # Install unicorn + python bindings.
     git clone https://github.com/unicorn-engine/unicorn.git
     pushd unicorn
-        ./make.sh
+        UNICORN_ARCHS=arm UNICORN_DEBUG=true ./make.sh
         sudo ./make.sh install
         pushd bindings/python
             make
