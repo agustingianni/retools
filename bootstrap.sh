@@ -68,6 +68,8 @@ if [ ! -f /usr/local/bin/afl-fuzz ]; then
     make
     cd ..
     sudo make install
+fi
+
 popd
 
 rm -rf $DEPS_DIR
