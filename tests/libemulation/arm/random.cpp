@@ -377,7 +377,7 @@ public:
 
 	void run(ARMMode mode, uint32_t opcode) override {
 		// Write the instruction and emulate it.
-		uc_mem_write(m_engine, m_base, &opcode, sizeof(opcode) - 1);
+		uc_mem_write(m_engine, m_base, &opcode, sizeof(opcode));
 		uc_err err = uc_emu_start(m_engine, m_base, m_base + sizeof(opcode) - 1, 0, 1);
 		if (err != UC_ERR_OK) {
 			LOG_ERR("Error emulating instruction: %s.", uc_strerror(err));
