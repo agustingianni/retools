@@ -15,6 +15,6 @@ Vagrant.configure("2") do |config|
 
   # Create a debian vm.
   config.vm.define "debian" do |debian|
-    debian.vm.box = "debian/jessie64"
+    debian.vm.box = "fujimakishouten/debian-stretch64"
   end
 end
