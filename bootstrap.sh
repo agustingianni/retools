@@ -61,8 +61,9 @@ fi
 if [ ! -f /usr/local/bin/afl-fuzz ]; then
     echo "Could not find afl-fuzz, installing it from sources."
     wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz
+    AFL_DIRNAME=$(tar tzf afl-latest.tgz | sed -e 's@/.*@@' | uniq)
     tar xzf afl-latest.tgz
-    cd afl*
+    cd $AFL_DIRNAME
     make
     cd llvm_mode
     make
