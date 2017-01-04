@@ -327,8 +327,14 @@ public:
 	virtual instruction_effects effects() = 0;
 
 protected:
+	// Address of code scratch area.
 	constexpr static uintptr_t m_base = 0xcafe0000;
 	constexpr static size_t m_base_size = 4096;
+
+	// Address of our stack.
+	constexpr static uintptr_t m_stack_base = 0x44440000;
+	constexpr static size_t m_stack_size = 4096;
+	constexpr static size_t m_stack_alignment = 8;
 };
 
 template <typename RegInitPolicy>
@@ -340,9 +346,9 @@ public:
 		// Create an ARM cpu.
 		uc_open(UC_ARCH_ARM, UC_MODE_ARM, &m_engine);
 
-		// Create a scratch area for code.
+		// Create a scratch area for code and a stack.
 		uc_mem_map(m_engine, m_base, m_base_size, UC_PROT_ALL);
-		uc_mem_write(m_engine, m_base, &zero[0], zero.size());
+		uc_mem_map(m_engine, m_stack_base, m_stack_size, UC_PROT_READ | UC_PROT_WRITE);
 
 		// Generate special values for registers.
 		std::array<u32_t, 16> u32_values;
@@ -350,6 +356,10 @@ public:
 
 		initialize_registers(u32_values);
 		initialize_registers(f64_values);
+
+		// Initialize SP & PC.
+		u32_values[13] = m_stack_base + m_stack_size - m_stack_alignment;
+		u32_values[15] = m_base;
 
 		// Write the test values.
 		uc_reg_write_batch(m_engine, u32_values.data());
@@ -408,13 +418,19 @@ public:
 		m_context = std::make_unique<ARMContext>(m_memory.get());
 		m_emulator = std::make_unique<ARMEmulator>(m_context.get(), m_memory.get(), ARMMode_ARM);
 
+		// Create a scratch area for code and a stack.
 		m_memory->map(m_base, m_base_size, 0);
+		m_memory->map(m_stack_base, m_stack_size, 0);
 
 		// Generate special values for registers.
 		std::array<u32_t, 16> u32_values;
 		std::array<u64_t, 32> f64_values;
 		initialize_registers(u32_values);
 		initialize_registers(f64_values);
+
+		// Initialize SP & PC.
+		u32_values[13] = m_stack_base + m_stack_size - m_stack_alignment;
+		u32_values[15] = m_base;
 
 		m_context->setCoreRegisters(u32_values);
 		m_context->setDoubleRegisters(f64_values);
