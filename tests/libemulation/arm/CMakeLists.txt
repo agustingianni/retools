@@ -6,6 +6,9 @@ project(random)
 find_path(UNICORN_INCLUDE_DIR NAMES unicorn/unicorn.h)
 find_library(UNICORN_LIBRARIES NAMES unicorn)
 
+# For some reason unicorn on linux is not linked with threads so we need to link it ourselves.
+find_package(Threads)
+
 message("-- Include dirs of UNICORN  : " ${UNICORN_INCLUDE_DIR} )
 message("-- Library dirs of UNICORN  : " ${UNICORN_LIBRARIES} )
 
@@ -29,5 +32,5 @@ target_link_libraries(
 	disassembly
 	capstone
 	${UNICORN_LIBRARIES}
+	${CMAKE_THREAD_LIBS_INIT}
 )
-
