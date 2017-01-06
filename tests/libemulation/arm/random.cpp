@@ -8,6 +8,7 @@
 #include <random>
 #include <tuple>
 #include <vector>
+#include <stdio.h>
 
 #include <unicorn/unicorn.h>
 #include <capstone/capstone.h>
@@ -29,6 +30,17 @@ using namespace Disassembler;
 
 using u32_t = uint32_t;
 using u64_t = uint64_t;
+
+constexpr const u32_t INITIAL_CPSR_VALUE = 0x40000010;
+
+std::string cpsr_to_string(u32_t value) {
+	cpsr_t cpsr = *reinterpret_cast<cpsr_t *>(&value);
+	char buffer[512];
+	snprintf(buffer, sizeof(buffer), "0x%.8x -> N=%u Z=%u C=%u V=%u Q=%u IT_1_0=%2u J=%u RAZ=%4u GE=%4u IT_7_2=%4u E=%u A=%u I=%u F=%u T=%u M=%4u",
+		value, cpsr.N, cpsr.Z, cpsr.C, cpsr.V, cpsr.Q, cpsr.IT_1_0, cpsr.J, cpsr.RAZ, cpsr.GE, cpsr.IT_7_2, cpsr.E, cpsr.A, cpsr.I, cpsr.F, cpsr.T, cpsr.M);
+
+	return std::string(buffer);
+}
 
 std::string retools_disassemble(uint32_t opcode, unsigned mode) {
 	ARMDisassembler dis(ARMvAll);
@@ -112,9 +124,10 @@ struct instruction_effects {
 
     std::array<u32_t, N_REGULAR_REGS> regular_regs;
 	std::array<u64_t, N_DOUBLE_REGS> double_regs;
+	u32_t cpsr;
 
 	bool operator==(const instruction_effects &other) const {
-		return this->regular_regs == other.regular_regs && this->double_regs == other.double_regs;
+		return this->regular_regs == other.regular_regs && this->double_regs == other.double_regs && this->cpsr == other.cpsr;
 	}
 
 	bool operator!=(const instruction_effects &other) const {
@@ -122,75 +135,77 @@ struct instruction_effects {
 	}
 
 	static void print(const instruction_effects &effects) {
+		LOG_BLUE("| CPSR: %s", cpsr_to_string(effects.cpsr).c_str());
+
 		LOG_BLUE("| Regular 32 bit registers:");
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"|  r0:0x%.8x  r1:0x%.8x  r2:0x%.8x  r3:0x%.8x",
 			effects.regular_regs[0], effects.regular_regs[1],
 			effects.regular_regs[2], effects.regular_regs[3]
 		);
 
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"|  r4:0x%.8x  r5:0x%.8x  r6:0x%.8x  r7:0x%.8x",
 			effects.regular_regs[4], effects.regular_regs[5],
 			effects.regular_regs[6], effects.regular_regs[7]
 		);
 
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"|  r8:0x%.8x  r9:0x%.8x r10:0x%.8x r11:0x%.8x",
 			effects.regular_regs[8], effects.regular_regs[9],
 			effects.regular_regs[10], effects.regular_regs[11]
 		);
 
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"| r12:0x%.8x r13:0x%.8x r14:0x%.8x r15:0x%.8x",
 			effects.regular_regs[12], effects.regular_regs[13],
 			effects.regular_regs[14], effects.regular_regs[15]
 		);
 
 		LOG_BLUE("| Floating point 64 bit registers:");
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"|  d0:0x%.16llx  d1:0x%.16llx  d2:0x%.16llx  d3:0x%.16llx",
 			effects.double_regs[0], effects.double_regs[1],
 			effects.double_regs[2], effects.double_regs[3]
 		);
 
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"|  d4:0x%.16llx  d5:0x%.16llx  d6:0x%.16llx  d7:0x%.16llx",
 			effects.double_regs[4], effects.double_regs[5],
 			effects.double_regs[6], effects.double_regs[7]
 		);
 
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"|  d8:0x%.16llx  d9:0x%.16llx d10:0x%.16llx d11:0x%.16llx",
 			effects.double_regs[8], effects.double_regs[9],
 			effects.double_regs[10], effects.double_regs[11]
 		);
 
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"| d12:0x%.16llx d13:0x%.16llx d14:0x%.16llx d15:0x%.16llx",
 			effects.double_regs[12], effects.double_regs[13],
 			effects.double_regs[14], effects.double_regs[15]
 		);
 
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"| d16:0x%.16llx d17:0x%.16llx d18:0x%.16llx d19:0x%.16llx",
 			effects.double_regs[16], effects.double_regs[17],
 			effects.double_regs[18], effects.double_regs[19]
 		);
 
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"| d20:0x%.16llx d21:0x%.16llx d22:0x%.16llx d23:0x%.16llx",
 			effects.double_regs[20], effects.double_regs[21],
 			effects.double_regs[22], effects.double_regs[23]
 		);
 
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"| d24:0x%.16llx d25:0x%.16llx d26:0x%.16llx d27:0x%.16llx",
 			effects.double_regs[24], effects.double_regs[25],
 			effects.double_regs[26], effects.double_regs[27]
 		);
 
-		LOG_MAGENTA(
+		LOG_BLUE(
 			"| d28:0x%.16llx d29:0x%.16llx d30:0x%.16llx d31:0x%.16llx",
 			effects.double_regs[28], effects.double_regs[29],
 			effects.double_regs[30], effects.double_regs[31]
@@ -200,6 +215,12 @@ struct instruction_effects {
 	static void print_diff(const char *desc0, const char *desc1, const instruction_effects &base, const instruction_effects &e0, const instruction_effects &e1) {
 		std::vector<std::tuple<unsigned, u32_t, u32_t>> rr_diffs;
 		std::vector<std::tuple<unsigned, u64_t, u64_t>> dr_diffs;
+
+		if (e0.cpsr != e1.cpsr) {
+			LOG_RED("%-14s: %s", "original", cpsr_to_string(base.cpsr).c_str());
+			LOG_RED("%-14s: %s", desc0, cpsr_to_string(e0.cpsr).c_str());
+			LOG_RED("%-14s: %s", desc1, cpsr_to_string(e1.cpsr).c_str());
+		}
 
 		for (unsigned i = 0; i < N_REGULAR_REGS; i++) {
 			if (e0.regular_regs[i] != e1.regular_regs[i]) {
@@ -216,20 +237,14 @@ struct instruction_effects {
 		}
 
 		if (!rr_diffs.empty()) {
-			LOG_BLUE("Regular registers differences:");
-			LOG_RED("|---------------|----------------|---------------|");
-			LOG_RED("|%-14s | %-14s | %-14s|", "original", desc0, desc1);
-			LOG_RED("|---------------|----------------|---------------|");
+			LOG_RED("%-14s  %-14s  %-14s", "original", desc0, desc1);
 
 			unsigned reg_no;
 			u32_t val0, val1;
 			for (const auto &diff : rr_diffs) {
 				std::tie(reg_no, val0, val1) = diff;
-				LOG_RED("|r%-2u:0x%.8x | r%-2u:0x%.8x | r%-2u:0x%.8x|", reg_no, base.regular_regs[reg_no], reg_no, val0, reg_no, val1);
+				LOG_RED("r%-2u:0x%.8x  r%-2u:0x%.8x  r%-2u:0x%.8x", reg_no, base.regular_regs[reg_no], reg_no, val0, reg_no, val1);
 			}
-			LOG_RED("|---------------|----------------|---------------|");
-
-			instruction_effects::print(base);
 		}
 
 		if (!dr_diffs.empty()) {
@@ -361,6 +376,10 @@ public:
 		u32_values[13] = m_stack_base + m_stack_size - m_stack_alignment;
 		u32_values[15] = m_base;
 
+		// Initialize CPSR.
+		uint32_t cpsr_val = INITIAL_CPSR_VALUE;
+		uc_reg_write(m_engine, UC_ARM_REG_CPSR, &cpsr_val);
+
 		// Write the test values.
 		uc_reg_write_batch(m_engine, u32_values.data());
 		uc_reg_write_batch(m_engine, f64_values.data());
@@ -378,15 +397,18 @@ public:
 	void run(ARMMode mode, uint32_t opcode) override {
 		// Write the instruction and emulate it.
 		uc_mem_write(m_engine, m_base, &opcode, sizeof(opcode));
+
+		// Emulate.
 		uc_err err = uc_emu_start(m_engine, m_base, m_base + sizeof(opcode) - 1, 0, 1);
 		if (err != UC_ERR_OK) {
 			LOG_ERR("Error emulating instruction: %s.", uc_strerror(err));
-			abort();
+			return;
 		}
 	}
 
 	instruction_effects effects() override {
 		instruction_effects effects;
+		uc_reg_read(m_engine, UC_ARM_REG_CPSR, &effects.cpsr);
 		uc_reg_read_batch(m_engine, effects.regular_regs.data());
 		uc_reg_read_batch(m_engine, effects.double_regs.data());
 		return effects;
@@ -433,6 +455,7 @@ public:
 		u32_values[13] = m_stack_base + m_stack_size - m_stack_alignment;
 		u32_values[15] = m_base;
 
+		m_context->CPSR = INITIAL_CPSR_VALUE;
 		m_context->setCoreRegisters(u32_values);
 		m_context->setDoubleRegisters(f64_values);
 		m_saved_context = *m_context;
@@ -450,6 +473,7 @@ public:
 
 	instruction_effects effects() override {
 		instruction_effects effects;
+		effects.cpsr = m_context->CPSR;
 		effects.regular_regs = m_context->getCoreRegisters();
 		effects.double_regs = m_context->getDoubleRegisters();
 		return effects;
@@ -627,9 +651,9 @@ int main(int argc, char **argv) {
 	// Generate random opcodes.
 	uint32_t op_code;
 	while (gen->get(op_code)) {
-		LOG_GREEN("+------------------------------------------------------------------------------+");
-		LOG_GREEN("| 0x%.8x - %s | %s", op_code, retools_disassemble(op_code, 0).c_str(), capstone_disassemble(op_code, 0).c_str());
-		LOG_GREEN("+------------------------------------------------------------------------------+");
+		LOG_INFO("");
+		LOG_INFO("%-10s %-30s %-30s", "opcode", "retools", "capstone");
+		LOG_INFO("0x%.8x %-30s %-30s", op_code, retools_disassemble(op_code, 0).c_str(), capstone_disassemble(op_code, 0).c_str());
 
 		// Run the instruction.
 		unicorn_inspector.run(ARMMode_ARM, op_code);
@@ -644,9 +668,7 @@ int main(int argc, char **argv) {
 		retools_inspector.reset();
 
 		// Debug.
-		LOG_WHITE("+------------------------------------------------------------------------------+");
 		instruction_effects::print_diff("unicorn", "retools", unicorn_base_context, r0, r1);
-		LOG_WHITE("+------------------------------------------------------------------------------+");
 	}
 
 	return 0;
