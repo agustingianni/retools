@@ -13,32 +13,32 @@
 #include <iostream>
 
 typedef struct fpscr {
-	unsigned IOC :1; 	// Invalid Operation cumulative flag
-	unsigned DZC :1; 	// Division by Zero cumulative flag
-	unsigned OFC :1; 	// Overflow cumulative flag
-	unsigned UFC :1; 	// Underflow cumulative flag
-	unsigned IXC :1; 	// Inexact cumulative flag
-	unsigned DNM1 :2; 	// Do Not Modify
-	unsigned IDC :1; 	// Input Subnormal cumulative flag
-	unsigned IOE :1; 	// Invalid Operation exception enable bit
-	unsigned DZE :1; 	// Division by Zero exception enable bit
-	unsigned OFE :1; 	// Overflow exception enable bit
-	unsigned UFE :1; 	// Underflow exception enable bit
-	unsigned IXE :1; 	// Inexact exception enable bit
-	unsigned DNM2 :2; 	// Do Not Modify
-	unsigned IDE :1; 	// Input Subnormal exception enable bit
-	unsigned LEN :3; 	//
-	unsigned DNM3 :1;	// Do Not Modify
-	unsigned STRIDE :2;	//
-	unsigned RMODE :2; 	// Rounding mode control field
-	unsigned FZ :1; // Flush-to-zero mode enable bit: 0 = flush-to-zero mode disabled 1 = flush-to-zero mode enabled.
-	unsigned DN :1; // Default NaN mode enable bit: 0 = default NaN mode disabled 1 = default NaN mode enabled.
-	unsigned DNM4 :1; 	// Do Not Modify
-	unsigned QC :1; 	// Saturation cumulative flag
-	unsigned V :1; 		// Set if comparison produces an unordered result
-	unsigned C :1; // Set if comparison produces an equal, greater than, or unordered result
-	unsigned Z :1; 		// Set if comparison produces an equal result
-	unsigned N :1; 		// Set if comparison produces a less than result
+    unsigned N :1;      // Set if comparison produces a less than result
+    unsigned Z :1;      // Set if comparison produces an equal result
+    unsigned C :1; // Set if comparison produces an equal, greater than, or unordered result
+    unsigned V :1;      // Set if comparison produces an unordered result
+    unsigned QC :1;     // Saturation cumulative flag
+    unsigned DNM4 :1;   // Do Not Modify
+    unsigned DN :1; // Default NaN mode enable bit: 0 = default NaN mode disabled 1 = default NaN mode enabled.
+    unsigned FZ :1; // Flush-to-zero mode enable bit: 0 = flush-to-zero mode disabled 1 = flush-to-zero mode enabled.
+    unsigned RMODE :2;  // Rounding mode control field
+    unsigned STRIDE :2; //
+    unsigned DNM3 :1;   // Do Not Modify
+    unsigned LEN :3;    //
+    unsigned IDE :1;    // Input Subnormal exception enable bit
+    unsigned DNM2 :2;   // Do Not Modify
+    unsigned IXE :1;    // Inexact exception enable bit
+    unsigned UFE :1;    // Underflow exception enable bit
+    unsigned OFE :1;    // Overflow exception enable bit
+    unsigned DZE :1;    // Division by Zero exception enable bit
+    unsigned IOE :1;    // Invalid Operation exception enable bit
+    unsigned IDC :1;    // Input Subnormal cumulative flag
+    unsigned DNM1 :2;   // Do Not Modify
+    unsigned IXC :1;    // Inexact cumulative flag
+    unsigned UFC :1;    // Underflow cumulative flag
+    unsigned OFC :1;    // Overflow cumulative flag
+    unsigned DZC :1;    // Division by Zero cumulative flag
+    unsigned IOC :1;    // Invalid Operation cumulative flag
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -51,15 +51,15 @@ typedef struct fpscr {
 } fpscr_t;
 
 typedef struct apsr {
-    unsigned DNM1 :16;  // Do not modify.
-    unsigned GE :4;     // The Greater than or Equal flags.
-    unsigned DNM2 :4;   // Do not modify.
-    unsigned RAZ :3;    // ?
-    unsigned Q :1;      // Set to 1 to indicate overflow or saturation.
-    unsigned V :1;      // Overflow condition flag.
-    unsigned C :1;      // Carry condition flag.
-    unsigned Z :1;      // Zero condition flag.
     unsigned N :1;      // Negative condition flag.
+    unsigned Z :1;      // Zero condition flag.
+    unsigned C :1;      // Carry condition flag.
+    unsigned V :1;      // Overflow condition flag.
+    unsigned Q :1;      // Set to 1 to indicate overflow or saturation.
+    unsigned RAZ :3;    // ?
+    unsigned DNM2 :4;   // Do not modify.
+    unsigned GE :4;     // The Greater than or Equal flags.
+    unsigned DNM1 :16;  // Do not modify.
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -72,38 +72,38 @@ typedef struct apsr {
 } apsr_t;
 
 typedef struct hsctlr {
-    unsigned UNK0 :1;
-    unsigned TE :1;
-    unsigned UNK1 :1;
-    unsigned UNK2 :1;
-    unsigned UNK3 :1;
-    unsigned UNK4 :1;
-    unsigned EE :1;
-    unsigned UNK5 :1;
-    unsigned UNK6 :1;
-    unsigned UNK7 :1;
-    unsigned FI :1;
-    unsigned UNK8 :1;
-    unsigned WXN :1;
-    unsigned UNK9 :1;
-    unsigned UNK10 :1;
-    unsigned UNK11 :1;
-    unsigned UNK12 :1;
-    unsigned UNK13 :1;
-    unsigned UNK14 :1;
-    unsigned I :1;
-    unsigned UNK15 :1;
-    unsigned UNK16 :1;
-    unsigned UNK17 :1;
-    unsigned UNK18 :1;
-    unsigned UNK19 :1;
-    unsigned UNK20 :1;
-    unsigned CP15BEN :1;
-    unsigned UNK21 :1;
-    unsigned UNK22 :1;
-    unsigned C :1;
-    unsigned A :1;
     unsigned M :1;
+    unsigned A :1;
+    unsigned C :1;
+    unsigned UNK22 :1;
+    unsigned UNK21 :1;
+    unsigned CP15BEN :1;
+    unsigned UNK20 :1;
+    unsigned UNK19 :1;
+    unsigned UNK18 :1;
+    unsigned UNK17 :1;
+    unsigned UNK16 :1;
+    unsigned UNK15 :1;
+    unsigned I :1;
+    unsigned UNK14 :1;
+    unsigned UNK13 :1;
+    unsigned UNK12 :1;
+    unsigned UNK11 :1;
+    unsigned UNK10 :1;
+    unsigned UNK9 :1;
+    unsigned WXN :1;
+    unsigned UNK8 :1;
+    unsigned FI :1;
+    unsigned UNK7 :1;
+    unsigned UNK6 :1;
+    unsigned UNK5 :1;
+    unsigned EE :1;
+    unsigned UNK4 :1;
+    unsigned UNK3 :1;
+    unsigned UNK2 :1;
+    unsigned UNK1 :1;
+    unsigned TE :1;
+    unsigned UNK0 :1;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -115,38 +115,38 @@ typedef struct hsctlr {
 } hsctlr_t;
 
 typedef struct sctlr {
-    unsigned SBZP :1;
-    unsigned TE :1; // Thumb Exception enable. This bit controls whether exceptions are taken in ARM or Thumb state.
-    unsigned AFE :1; // Access flag enable.
-    unsigned TRE :1;
-    unsigned NMFI :1;
-    unsigned UNK0 :1;
-    unsigned EE :1;
-    unsigned VE :1;
-    unsigned UNK1 :1;
-    unsigned U :1;
-    unsigned FI :1;
-    unsigned UWXN :1;
-    unsigned WXN :1;
-    unsigned UNK2 :1;
-    unsigned HA :1;
-    unsigned UNK3 :1;
-    unsigned UNK4 :1;
-    unsigned RR :1;
-    unsigned V :1;
-    unsigned I :1;
-    unsigned Z :1;
-    unsigned SW :1;
-    unsigned UNK5 :1;
-    unsigned UNK6 :1;
-    unsigned B :1;
-    unsigned UNK7 :1;
-    unsigned CP15BEN :1;
-    unsigned UNK8 :1;
-    unsigned UNK9 :1;
-    unsigned C :1;
-    unsigned A :1;
     unsigned M :1;
+    unsigned A :1;
+    unsigned C :1;
+    unsigned UNK9 :1;
+    unsigned UNK8 :1;
+    unsigned CP15BEN :1;
+    unsigned UNK7 :1;
+    unsigned B :1;
+    unsigned UNK6 :1;
+    unsigned UNK5 :1;
+    unsigned SW :1;
+    unsigned Z :1;
+    unsigned I :1;
+    unsigned V :1;
+    unsigned RR :1;
+    unsigned UNK4 :1;
+    unsigned UNK3 :1;
+    unsigned HA :1;
+    unsigned UNK2 :1;
+    unsigned WXN :1;
+    unsigned UWXN :1;
+    unsigned FI :1;
+    unsigned U :1;
+    unsigned UNK1 :1;
+    unsigned VE :1;
+    unsigned EE :1;
+    unsigned UNK0 :1;
+    unsigned NMFI :1;
+    unsigned TRE :1;
+    unsigned AFE :1; // Access flag enable.
+    unsigned TE :1; // Thumb Exception enable. This bit controls whether exceptions are taken in ARM or Thumb state.
+    unsigned SBZP :1;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -158,25 +158,25 @@ typedef struct sctlr {
 } sctlr_t;
 
 typedef struct hstr {
-    unsigned UNK :14;
-    unsigned TJDBX :1;
-    unsigned TTEE :1;
-    unsigned T15 :1;
-    unsigned T14 :1;
-    unsigned T13 :1;
-    unsigned T12 :1;
-    unsigned T11 :1;
-    unsigned T10 :1;
-    unsigned T9 :1;
-    unsigned T8 :1;
-    unsigned T7 :1;
-    unsigned T6 :1;
-    unsigned T5 :1;
-    unsigned T4 :1;
-    unsigned T3 :1;
-    unsigned T2 :1;
-    unsigned T1 :1;
     unsigned T0 :1;
+    unsigned T1 :1;
+    unsigned T2 :1;
+    unsigned T3 :1;
+    unsigned T4 :1;
+    unsigned T5 :1;
+    unsigned T6 :1;
+    unsigned T7 :1;
+    unsigned T8 :1;
+    unsigned T9 :1;
+    unsigned T10 :1;
+    unsigned T11 :1;
+    unsigned T12 :1;
+    unsigned T13 :1;
+    unsigned T14 :1;
+    unsigned T15 :1;
+    unsigned TTEE :1;
+    unsigned TJDBX :1;
+    unsigned UNK :14;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -189,8 +189,8 @@ typedef struct hstr {
 } hstr_t;
 
 typedef struct jmcr {
-    unsigned UNK :31;
     unsigned JE :1;
+    unsigned UNK :31;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -203,34 +203,34 @@ typedef struct jmcr {
 } jmcr_t;
 
 typedef struct hcr {
-    unsigned UNK :4;
-    unsigned TGE :1;
-    unsigned TVM :1;
-    unsigned TTLB :1;
-    unsigned TPU :1;
-    unsigned TPC :1;
-    unsigned TSW :1;
-    unsigned TAC :1;
-    unsigned TIDCP :1;
-    unsigned TSC :1;
-    unsigned TID3 :1;
-    unsigned TID2 :1;
-    unsigned TID1 :1;
-    unsigned TID0 :1;
-    unsigned TWE :1;
-    unsigned TWI :1;
-    unsigned MISSING_NAME :1;
-    unsigned BSU :2;
-    unsigned FB :1;
-    unsigned VA :1;
-    unsigned VI :1;
-    unsigned VF :1;
-    unsigned AMO :1;
-    unsigned IMO :1;
-    unsigned FMO :1;
-    unsigned PTW :1;
-    unsigned SWIO :1;
     unsigned VM :1;
+    unsigned SWIO :1;
+    unsigned PTW :1;
+    unsigned FMO :1;
+    unsigned IMO :1;
+    unsigned AMO :1;
+    unsigned VF :1;
+    unsigned VI :1;
+    unsigned VA :1;
+    unsigned FB :1;
+    unsigned BSU :2;
+    unsigned MISSING_NAME :1;
+    unsigned TWI :1;
+    unsigned TWE :1;
+    unsigned TID0 :1;
+    unsigned TID1 :1;
+    unsigned TID2 :1;
+    unsigned TID3 :1;
+    unsigned TSC :1;
+    unsigned TIDCP :1;
+    unsigned TAC :1;
+    unsigned TSW :1;
+    unsigned TPC :1;
+    unsigned TPU :1;
+    unsigned TTLB :1;
+    unsigned TVM :1;
+    unsigned TGE :1;
+    unsigned UNK :4;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -243,22 +243,22 @@ typedef struct hcr {
 } hcr_t;
 
 typedef struct cpsr {
-    unsigned N: 1;
-    unsigned Z: 1;
-    unsigned C: 1;
-    unsigned V: 1;
-    unsigned Q: 1;
-    unsigned IT_1_0: 2;
-    unsigned J: 1;
-    unsigned RAZ: 4;
-    unsigned GE: 4;
-    unsigned IT_7_2: 6;
-    unsigned E: 1;
-    unsigned A: 1;
-    unsigned I: 1;
-    unsigned F: 1;
-    unsigned T: 1;
     unsigned M: 5;
+    unsigned T: 1;
+    unsigned F: 1;
+    unsigned I: 1;
+    unsigned A: 1;
+    unsigned E: 1;
+    unsigned IT_7_2: 6;
+    unsigned GE: 4;
+    unsigned RAZ: 4;
+    unsigned J: 1;
+    unsigned IT_1_0: 2;
+    unsigned Q: 1;
+    unsigned V: 1;
+    unsigned C: 1;
+    unsigned Z: 1;
+    unsigned N: 1;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -277,9 +277,9 @@ typedef struct cpsr {
 typedef cpsr_t spsr_t;
 
 typedef struct hsr {
-    unsigned EC : 6;
-    unsigned IL : 1;
     unsigned ISS: 25;
+    unsigned IL : 1;
+    unsigned EC : 6;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -292,32 +292,32 @@ typedef struct hsr {
 } hsr_t;
 
 typedef struct fpexc {
-    unsigned EX: 1;
-    unsigned EN: 1;
     unsigned SUBARCHITECTURE_DEFINED: 30;
+    unsigned EN: 1;
+    unsigned EX: 1;
 } fpexc_t;
 
 typedef struct hcptr {
-    unsigned TCPAC: 1;
-    unsigned UNK0: 10;
-    unsigned TTA : 1;
-    unsigned UNK1: 4;
-    unsigned TASE: 1;
-    unsigned UNK2: 1;
-    unsigned TCP13: 1;
-    unsigned TCP12: 1;
-    unsigned TCP11: 1;
-    unsigned TCP10: 1;
-    unsigned TCP9: 1;
-    unsigned TCP8: 1;
-    unsigned TCP7: 1;
-    unsigned TCP6: 1;
-    unsigned TCP5: 1;
-    unsigned TCP4: 1;
-    unsigned TCP3: 1;
-    unsigned TCP2: 1;
-    unsigned TCP1: 1;
     unsigned TCP0: 1;
+    unsigned TCP1: 1;
+    unsigned TCP2: 1;
+    unsigned TCP3: 1;
+    unsigned TCP4: 1;
+    unsigned TCP5: 1;
+    unsigned TCP6: 1;
+    unsigned TCP7: 1;
+    unsigned TCP8: 1;
+    unsigned TCP9: 1;
+    unsigned TCP10: 1;
+    unsigned TCP11: 1;
+    unsigned TCP12: 1;
+    unsigned TCP13: 1;
+    unsigned UNK2: 1;
+    unsigned TASE: 1;
+    unsigned UNK1: 4;
+    unsigned TTA : 1;
+    unsigned UNK0: 10;
+    unsigned TCPAC: 1;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -330,24 +330,24 @@ typedef struct hcptr {
 } hcptr_t;
 
 typedef struct cpacr {
-    unsigned ASEDIS: 1;
-    unsigned D32DIS: 1;
-    unsigned UNK0: 1;
-    unsigned TRCDIS: 1;
-    unsigned cp13: 2;
-    unsigned cp12: 2;
-    unsigned cp11: 2;
-    unsigned cp10: 2;
-    unsigned cp9: 2;
-    unsigned cp8: 2;
-    unsigned cp7: 2;
-    unsigned cp6: 2;
-    unsigned cp5: 2;
-    unsigned cp4: 2;
-    unsigned cp3: 2;
-    unsigned cp2: 2;
-    unsigned cp1: 2;
     unsigned cp0: 2;
+    unsigned cp1: 2;
+    unsigned cp2: 2;
+    unsigned cp3: 2;
+    unsigned cp4: 2;
+    unsigned cp5: 2;
+    unsigned cp6: 2;
+    unsigned cp7: 2;
+    unsigned cp8: 2;
+    unsigned cp9: 2;
+    unsigned cp10: 2;
+    unsigned cp11: 2;
+    unsigned cp12: 2;
+    unsigned cp13: 2;
+    unsigned TRCDIS: 1;
+    unsigned UNK0: 1;
+    unsigned D32DIS: 1;
+    unsigned ASEDIS: 1;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -360,17 +360,17 @@ typedef struct cpacr {
 } cpacr_t;
 
 typedef struct scr {
-    unsigned UNK: 22;
-    unsigned SIF: 1;
-    unsigned HCE: 1;
-    unsigned SCD: 1;
-    unsigned nET: 1;
-    unsigned AW: 1;
-    unsigned FW: 1;
-    unsigned EA: 1;
-    unsigned FIQ: 1;
-    unsigned IRQ: 1;
     unsigned NS: 1;
+    unsigned IRQ: 1;
+    unsigned FIQ: 1;
+    unsigned EA: 1;
+    unsigned FW: 1;
+    unsigned AW: 1;
+    unsigned nET: 1;
+    unsigned SCD: 1;
+    unsigned HCE: 1;
+    unsigned SIF: 1;
+    unsigned UNK: 22;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
@@ -387,26 +387,26 @@ typedef struct itstate {
 } itstate_t;
 
 typedef struct nsacr {
-    unsigned UNK: 11;
-    unsigned NSTRCDIS: 1;
-    unsigned RFR: 1;
-    unsigned IMPLEMENTATION_DEFINED: 3;
-    unsigned NSASEDIS: 1;
-    unsigned NSD32DIS: 1;
-    unsigned cp13: 1;
-    unsigned cp12: 1;
-    unsigned cp11: 1;
-    unsigned cp10: 1;
-    unsigned cp9: 1;
-    unsigned cp8: 1;
-    unsigned cp7: 1;
-    unsigned cp6: 1;
-    unsigned cp5: 1;
-    unsigned cp4: 1;
-    unsigned cp3: 1;
-    unsigned cp2: 1;
-    unsigned cp1: 1;
     unsigned cp0: 1;
+    unsigned cp1: 1;
+    unsigned cp2: 1;
+    unsigned cp3: 1;
+    unsigned cp4: 1;
+    unsigned cp5: 1;
+    unsigned cp6: 1;
+    unsigned cp7: 1;
+    unsigned cp8: 1;
+    unsigned cp9: 1;
+    unsigned cp10: 1;
+    unsigned cp11: 1;
+    unsigned cp12: 1;
+    unsigned cp13: 1;
+    unsigned NSD32DIS: 1;
+    unsigned NSASEDIS: 1;
+    unsigned IMPLEMENTATION_DEFINED: 3;
+    unsigned RFR: 1;
+    unsigned NSTRCDIS: 1;
+    unsigned UNK: 11;
 
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
