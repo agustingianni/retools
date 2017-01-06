@@ -36,7 +36,7 @@ if [ ! -f /usr/lib/libunicorn.a ]; then
     # Install unicorn + python bindings.
     git clone https://github.com/unicorn-engine/unicorn.git
     pushd unicorn
-        UNICORN_ARCHS=arm UNICORN_DEBUG=true ./make.sh
+        MACOS_UNIVERSAL=yes UNICORN_ARCHS=arm UNICORN_DEBUG=yes ./make.sh
         sudo ./make.sh install
         pushd bindings/python
             make
