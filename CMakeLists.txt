@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Options.
-option(BUILD_TYPE, "Select type of build [DEBUG | RELEASE | FUZZING | COVERAGE]")
 option(USE_CCACHE "Build with ccache" OFF)
+set(BUILD_TYPE "DEBUG" CACHE STRING "Select type of build [DEBUG | RELEASE | FUZZING | COVERAGE]")
 
 # Configure ccache if available.
 if(USE_CCACHE)
