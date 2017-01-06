@@ -39,8 +39,6 @@ namespace Emulator {
 
 			// 2. Decode it.
 			ARMInstruction ins = m_dis->disassemble(cur_opcode, cur_mode);
-			LOG_INFO("Emulating instruction @ cur_pc=0x%.8x cur_opcode=0x%.8x string='%s' size=%d decoder='%s'",
-			        cur_pc, cur_opcode, ins.toString().c_str(), ins.ins_size, ins.m_decoded_by.c_str());
 
 			// 3. Execute the instruction.
 			m_interpreter->execute(ins);
