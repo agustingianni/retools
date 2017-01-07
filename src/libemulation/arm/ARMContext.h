@@ -247,8 +247,28 @@ public:
     }
 
     void SelectInstrSet(ARMMode instruction_set) {
-        if (instruction_set == ARMMode_ARM && CurrentInstrSet() == ARMMode_ThumbEE)
-            UNPREDICTABLE();
+        switch (instruction_set) {
+            case InstrSet_ARM:
+                if (CurrentInstrSet() == InstrSet_ThumbEE) UNPREDICTABLE();
+                CPSR.J = 0;
+                CPSR.T = 0;
+                break;
+
+            case InstrSet_Thumb:
+                CPSR.J = 0;
+                CPSR.T = 1;
+                break;
+
+            case InstrSet_Jazelle:
+                CPSR.J = 1;
+                CPSR.T = 0;
+                break;
+
+            case InstrSet_ThumbEE:
+                CPSR.J = 1;
+                CPSR.T = 1;
+                break;
+        }
 
         m_opcode_mode = instruction_set;
     }
