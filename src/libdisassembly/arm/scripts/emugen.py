@@ -182,7 +182,6 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += "    apsr_t APSR;\n"
         header += "    scr_t SCR;\n"
         header += "    unsigned ELR_hyp = 0;\n"
-        header += "    unsigned ENDIANSTATE = 0;\n"
 
         fd.write(header)
         for instruction in ARMv7OperationSpec.instructions:

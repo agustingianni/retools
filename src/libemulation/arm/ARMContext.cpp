@@ -436,9 +436,9 @@ bool ARMContext::HaveVirtExt() {
     return m_has_virtual_extensions;
 }
 
-// This function returns TRUE if ENDIANSTATE == 1.
+// Returns true if we are in big endian mode.
 bool ARMContext::BigEndian() {
-    return ENDIANSTATE;
+    return CPSR.E == 1;
 }
 
 // This function returns TRUE if the processor currently provides support for unaligned memory accesses,

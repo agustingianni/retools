@@ -16,7 +16,7 @@ instructions = [{
         APSR.V = overflow;
     endif
 endif"""
-}, { 
+}, {
     "name" : "ADC (register)",
     "operation" : """
 if ConditionPassed() then
@@ -37,7 +37,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ADC (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -46,7 +46,7 @@ if ConditionPassed() then
     shifted = Shift(R[m], shift_t, shift_n, APSR.C);
     (result, carry, overflow) = AddWithCarry(R[n], shifted, APSR.C);
     R[d] = result;
-    
+
     if setflags then
         APSR.N = result<31>;
         APSR.Z = IsZeroBit(result);
@@ -55,14 +55,14 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ADD (immediate, Thumb)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     (result, carry, overflow) = AddWithCarry(R[n], imm32, '0');
     R[d] = result;
-    
+
     if setflags then
         APSR.N = result<31>;
         APSR.Z = IsZeroBit(result);
@@ -71,13 +71,13 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ADD (immediate, ARM)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     (result, carry, overflow) = AddWithCarry(R[n], imm32, '0');
-    
+
     if d == 15 then
         ALUWritePC(result);
     else
@@ -91,14 +91,14 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ADD (register, Thumb)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     shifted = Shift(R[m], shift_t, shift_n, APSR.C);
     (result, carry, overflow) = AddWithCarry(R[n], shifted, '0');
-    
+
     if d == 15 then
         ALUWritePC(result);
     else
@@ -112,7 +112,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ADD (register, ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -132,7 +132,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ADD (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -149,13 +149,13 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ADD (SP plus immediate)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     (result, carry, overflow) = AddWithCarry(R[13], imm32, '0');
-    if d == 15 then 
+    if d == 15 then
         ALUWritePC(result);
     else
         R[d] = result;
@@ -168,7 +168,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ADD (SP plus register, Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -188,7 +188,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ADD (SP plus register, ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -208,7 +208,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ADR",
     "operation" : """
 if ConditionPassed() then
@@ -221,13 +221,13 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "AND (immediate)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     result = R[n] AND imm32;
-    if d == 15 then 
+    if d == 15 then
         ALUWritePC(result);
     else
         R[d] = result;
@@ -239,7 +239,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "AND (register)",
     "operation" : """
 if ConditionPassed() then
@@ -258,7 +258,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "AND (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -274,7 +274,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ASR (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -292,7 +292,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ASR (register)",
     "operation" : """
 if ConditionPassed() then
@@ -307,7 +307,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "B",
     "operation" : """
 if ConditionPassed() then
@@ -315,7 +315,7 @@ if ConditionPassed() then
     BranchWritePC(R[15] + imm32);
 endif
 """
-}, { 
+}, {
     "name" : "BFC",
     "operation" : """
 if ConditionPassed() then
@@ -329,7 +329,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "BFI",
     "operation" : """
 if ConditionPassed() then
@@ -344,7 +344,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "BIC (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -362,7 +362,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "BIC (register)",
     "operation" : """
 if ConditionPassed() then
@@ -381,7 +381,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "BIC (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -397,13 +397,13 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "BKPT",
     "operation" : """
 EncodingSpecificOperations();
 BKPTInstrDebugEvent();
 """
-}, { 
+}, {
     "name" : "BL, BLX (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -424,7 +424,7 @@ if ConditionPassed() then
     BranchWritePC(targetAddress);
 endif
 """
-}, { 
+}, {
     "name" : "BLX (register)",
     "operation" : """
 if ConditionPassed() then
@@ -441,7 +441,7 @@ if ConditionPassed() then
     BXWritePC(target);
 endif
 """
-}, { 
+}, {
     "name" : "BX",
     "operation" : """
 if ConditionPassed() then
@@ -449,7 +449,7 @@ if ConditionPassed() then
     BXWritePC(R[m]);
 endif
 """
-}, { 
+}, {
     "name" : "BXJ",
     "operation" : """
 if ConditionPassed() then
@@ -474,7 +474,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "CBNZ, CBZ",
     "operation" : """
 EncodingSpecificOperations();
@@ -482,7 +482,7 @@ if nonzero ^ IsZero(R[n]) then
     BranchWritePC(R[15] + imm32);
 endif
 """
-}, { 
+}, {
     "name" : "CDP, CDP2",
     "operation" : """
 if ConditionPassed() then
@@ -494,7 +494,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "CLREX",
     "operation" : """
 if ConditionPassed() then
@@ -502,7 +502,7 @@ if ConditionPassed() then
     ClearExclusiveLocal(ProcessorID());
 endif
 """
-}, { 
+}, {
     "name" : "CLZ",
     "operation" : """
 if ConditionPassed() then
@@ -511,7 +511,7 @@ if ConditionPassed() then
     R[d] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "CMN (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -523,7 +523,7 @@ if ConditionPassed() then
     APSR.V = overflow;
 endif
 """
-}, { 
+}, {
     "name" : "CMN (register)",
     "operation" : """
 if ConditionPassed() then
@@ -536,7 +536,7 @@ if ConditionPassed() then
     APSR.V = overflow;
 endif
 """
-}, { 
+}, {
     "name" : "CMN (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -550,7 +550,7 @@ if ConditionPassed() then
     APSR.V = overflow;
 endif
 """
-}, { 
+}, {
     "name" : "CMP (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -562,7 +562,7 @@ if ConditionPassed() then
     APSR.V = overflow;
 endif
 """
-}, { 
+}, {
     "name" : "CMP (register)",
     "operation" : """
 if ConditionPassed() then
@@ -575,7 +575,7 @@ if ConditionPassed() then
     APSR.V = overflow;
 endif
 """
-}, { 
+}, {
     "name" : "CMP (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -589,7 +589,7 @@ if ConditionPassed() then
     APSR.V = overflow;
 endif
 """
-}, { 
+}, {
     "name" : "CPS (Thumb)",
     "operation" : """
 EncodingSpecificOperations();
@@ -617,7 +617,7 @@ if CurrentModeIsNotUser() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "CPS (ARM)",
     "operation" : """
 EncodingSpecificOperations();
@@ -638,11 +638,11 @@ if CurrentModeIsNotUser() then
     if changemode then
         set_bits(cpsr_val, 4, 0, mode);
     endif
-    
+
     CPSRWriteByInstr(cpsr_val, '1111', FALSE);
 endif
 """
-}, { 
+}, {
     "name" : "DBG",
     "operation" : """
 if ConditionPassed() then
@@ -650,7 +650,7 @@ if ConditionPassed() then
     Hint_Debug(option);
 endif
 """
-}, { 
+}, {
     "name" : "DMB",
     "operation" : """
 if ConditionPassed() then
@@ -670,7 +670,7 @@ if ConditionPassed() then
         if HCR.BSU == '11' then
             domain = MBReqDomain_FullSystem;
         endif
-    
+
         if HCR.BSU == '10' && domain != MBReqDomain_FullSystem then
             domain = MBReqDomain_OuterShareable;
         endif
@@ -683,7 +683,7 @@ if ConditionPassed() then
     DataMemoryBarrier(domain, types);
 endif
 """
-}, { 
+}, {
     "name" : "DSB",
     "operation" : """
 if ConditionPassed() then
@@ -712,11 +712,11 @@ if ConditionPassed() then
             domain = MBReqDomain_InnerShareable;
         endif
     endif
-    
+
     DataSynchronizationBarrier(domain, types);
 endif
 """
-}, { 
+}, {
     "name" : "EOR (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -726,7 +726,7 @@ if ConditionPassed() then
         ALUWritePC(result);
     else
         R[d] = result;
-        
+
         if setflags then
             APSR.N = result<31>;
             APSR.Z = IsZeroBit(result);
@@ -735,7 +735,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "EOR (register)",
     "operation" : """
 if ConditionPassed() then
@@ -754,7 +754,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "EOR (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -770,7 +770,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ERET",
     "operation" : """
 if ConditionPassed() then
@@ -789,7 +789,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "HVC",
     "operation" : """
 EncodingSpecificOperations();
@@ -807,7 +807,7 @@ else
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ISB",
     "operation" : """
 if ConditionPassed() then
@@ -815,7 +815,7 @@ if ConditionPassed() then
     InstructionSynchronizationBarrier();
 endif
 """
-}, { 
+}, {
     "name" : "IT",
     "operation" : """
 EncodingSpecificOperations();
@@ -823,7 +823,7 @@ tmp_val = ITSTATE.IT;
 set_bits(tmp_val, 7, 0, firstcond:mask);
 ITSTATE.IT = tmp_val;
 """
-}, { 
+}, {
     "name" : "LDC, LDC2 (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -835,19 +835,19 @@ if ConditionPassed() then
         NullCheckIfThumbEE(n);
         offset_addr = if add then (R[n] + imm32) else (R[n] - imm32);
         address = if index then offset_addr else R[n];
-        
+
         repeat
             Coproc_SendLoadedWord(MemA[address,4], cp, ThisInstr());
             address = address + 4;
         until Coproc_DoneLoading(cp, ThisInstr())
-        
+
         if wback then
             R[n] = offset_addr;
         endif
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDC, LDC2 (literal)",
     "operation" : """
 if ConditionPassed() then
@@ -867,7 +867,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDM/LDMIA/LDMFD (Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -880,7 +880,7 @@ if ConditionPassed() then
             address = address + 4;
         endif
     endfor
-    
+
     if registers<15> == '1' then
         LoadWritePC(MemA[address,4]);
     endif
@@ -894,7 +894,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDM/LDMIA/LDMFD (ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -921,7 +921,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDMDA/LDMFA",
     "operation" : """
 if ConditionPassed() then
@@ -933,7 +933,7 @@ if ConditionPassed() then
             address = address + 4;
         endif
     endfor
-    
+
     if registers<15> == '1' then
         LoadWritePC(MemA[address,4]);
     endif
@@ -947,7 +947,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDMDB/LDMEA",
     "operation" : """
 if ConditionPassed() then
@@ -960,7 +960,7 @@ if ConditionPassed() then
             address = address + 4;
         endif
     endfor
-    
+
     if registers<15> == '1' then
         LoadWritePC(MemA[address,4]);
     endif
@@ -974,7 +974,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDMIB/LDMED",
     "operation" : """
 if ConditionPassed() then
@@ -1000,7 +1000,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDR (immediate, Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -1023,12 +1023,12 @@ if ConditionPassed() then
 
     if UnalignedSupport() || address<1:0> == '00' then
         R[t] = data;
-    else 
+    else
         R[t] = UNKNOWN_VALUE;
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDR (immediate, ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -1047,7 +1047,7 @@ if ConditionPassed() then
             UNPREDICTABLE;
         endif
     endif
-    
+
     if UnalignedSupport() || address<1:0> == '00' then
         R[t] = data;
     else
@@ -1055,7 +1055,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDR (literal)",
     "operation" : """
 if ConditionPassed() then
@@ -1084,7 +1084,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDR (register, Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -1094,7 +1094,7 @@ if ConditionPassed() then
     offset_addr = (R[n] + offset);
     address = offset_addr;
     data = MemU[address,4];
-    
+
     if t == 15 then
         if address<1:0> == '00' then
             LoadWritePC(data);
@@ -1110,7 +1110,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDR (register, ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -1137,7 +1137,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRB (immediate, Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -1151,7 +1151,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRB (immediate, ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -1164,7 +1164,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRB (literal)",
     "operation" : """
 if ConditionPassed() then
@@ -1175,7 +1175,7 @@ if ConditionPassed() then
     R[t] = ZeroExtend(MemU[address,1], 32);
 endif
 """
-}, { 
+}, {
     "name" : "LDRB (register)",
     "operation" : """
 if ConditionPassed() then
@@ -1190,7 +1190,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRBT",
     "operation" : """
 if ConditionPassed() then
@@ -1209,7 +1209,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRD (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -1217,7 +1217,7 @@ if ConditionPassed() then
     NullCheckIfThumbEE(n);
     offset_addr = if add then (R[n] + imm32) else (R[n] - imm32);
     address = if index then offset_addr else R[n];
-    
+
     if HaveLPAE() && address<2:0> == '000' then
         data = MemA[address,8];
         if BigEndian() then
@@ -1232,13 +1232,13 @@ if ConditionPassed() then
         R[t] = MemA[address,4];
         R[t2] = MemA[tmp1,4];
     endif
-    
+
     if wback then
         R[n] = offset_addr;
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRD (literal)",
     "operation" : """
 if ConditionPassed() then
@@ -1261,7 +1261,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRD (register)",
     "operation" : """
 if ConditionPassed() then
@@ -1288,7 +1288,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDREX",
     "operation" : """
 if ConditionPassed() then
@@ -1299,7 +1299,7 @@ if ConditionPassed() then
     R[t] = MemA[address,4];
 endif
 """
-}, { 
+}, {
     "name" : "LDREXB",
     "operation" : """
 if ConditionPassed() then
@@ -1310,7 +1310,7 @@ if ConditionPassed() then
     R[t] = ZeroExtend(MemA[address,1], 32);
 endif
 """
-}, { 
+}, {
     "name" : "LDREXD",
     "operation" : """
 if ConditionPassed() then
@@ -1323,7 +1323,7 @@ if ConditionPassed() then
     R[t2] = if BigEndian() then value<31:0> else value<63:32>;
 endif
 """
-}, { 
+}, {
     "name" : "LDREXH",
     "operation" : """
 if ConditionPassed() then
@@ -1334,7 +1334,7 @@ if ConditionPassed() then
     R[t] = ZeroExtend(MemA[address,2], 32);
 endif
 """
-}, { 
+}, {
     "name" : "LDRH (immediate, Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -1343,27 +1343,7 @@ if ConditionPassed() then
     offset_addr = if add then (R[n] + imm32) else (R[n] - imm32);
     address = if index then offset_addr else R[n];
     data = MemU[address,2];
-    
-    if wback then
-        R[n] = offset_addr;
-    endif
-    
-    if UnalignedSupport() || address<0> == '0' then
-        R[t] = ZeroExtend(data, 32);
-    else
-        R[t] = UNKNOWN_VALUE;
-    endif
-endif
-"""
-}, { 
-    "name" : "LDRH (immediate, ARM)",
-    "operation" : """
-if ConditionPassed() then
-    EncodingSpecificOperations();
-    offset_addr = if add then (R[n] + imm32) else (R[n] - imm32);
-    address = if index then offset_addr else R[n];
-    data = MemU[address,2];
-    
+
     if wback then
         R[n] = offset_addr;
     endif
@@ -1375,7 +1355,27 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
+    "name" : "LDRH (immediate, ARM)",
+    "operation" : """
+if ConditionPassed() then
+    EncodingSpecificOperations();
+    offset_addr = if add then (R[n] + imm32) else (R[n] - imm32);
+    address = if index then offset_addr else R[n];
+    data = MemU[address,2];
+
+    if wback then
+        R[n] = offset_addr;
+    endif
+
+    if UnalignedSupport() || address<0> == '0' then
+        R[t] = ZeroExtend(data, 32);
+    else
+        R[t] = UNKNOWN_VALUE;
+    endif
+endif
+"""
+}, {
     "name" : "LDRH (literal)",
     "operation" : """
 if ConditionPassed() then
@@ -1391,7 +1391,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRH (register)",
     "operation" : """
 if ConditionPassed() then
@@ -1401,7 +1401,7 @@ if ConditionPassed() then
     offset_addr = if add then (R[n] + offset) else (R[n] - offset);
     address = if index then offset_addr else R[n];
     data = MemU[address,2];
-    
+
     if wback then
         R[n] = offset_addr;
     endif
@@ -1413,7 +1413,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRHT",
     "operation" : """
 if ConditionPassed() then
@@ -1430,7 +1430,7 @@ if ConditionPassed() then
     if postindex then
         R[n] = offset_addr;
     endif
-    
+
     if UnalignedSupport() || address<0> == '0' then
         R[t] = ZeroExtend(data, 32);
     else
@@ -1438,7 +1438,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRSB (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -1452,7 +1452,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRSB (literal)",
     "operation" : """
 if ConditionPassed() then
@@ -1463,7 +1463,7 @@ if ConditionPassed() then
     R[t] = SignExtend(MemU[address,1], 32);
 endif
 """
-}, { 
+}, {
     "name" : "LDRSB (register)",
     "operation" : """
 if ConditionPassed() then
@@ -1473,13 +1473,13 @@ if ConditionPassed() then
     offset_addr = if add then (R[n] + offset) else (R[n] - offset);
     address = if index then offset_addr else R[n];
     R[t] = SignExtend(MemU[address,1], 32);
-    
+
     if wback then
         R[n] = offset_addr;
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRSBT",
     "operation" : """
 if ConditionPassed() then
@@ -1493,13 +1493,13 @@ if ConditionPassed() then
     offset_addr = if add then (R[n] + offset) else (R[n] - offset);
     address = if postindex then R[n] else offset_addr;
     R[t] = SignExtend(MemU_unpriv[address,1], 32);
-    
+
     if postindex then
         R[n] = offset_addr;
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRSH (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -1508,7 +1508,7 @@ if ConditionPassed() then
     offset_addr = if add then (R[n] + imm32) else (R[n] - imm32);
     address = if index then offset_addr else R[n];
     data = MemU[address,2];
-    
+
     if wback then
         R[n] = offset_addr;
     endif
@@ -1520,7 +1520,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRSH (literal)",
     "operation" : """
 if ConditionPassed() then
@@ -1529,7 +1529,7 @@ if ConditionPassed() then
     base = Align(R[15],4);
     address = if add then (base + imm32) else (base - imm32);
     data = MemU[address,2];
-    
+
     if UnalignedSupport() || address<0> == '0' then
         R[t] = SignExtend(data, 32);
     else
@@ -1537,7 +1537,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRSH (register)",
     "operation" : """
 if ConditionPassed() then
@@ -1558,7 +1558,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRSHT",
     "operation" : """
 if ConditionPassed() then
@@ -1572,7 +1572,7 @@ if ConditionPassed() then
     offset_addr = if add then (R[n] + offset) else (R[n] - offset);
     address = if postindex then R[n] else offset_addr;
     data = MemU_unpriv[address,2];
-    
+
     if postindex then
         R[n] = offset_addr;
     endif
@@ -1584,7 +1584,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LDRT",
     "operation" : """
 if ConditionPassed() then
@@ -1598,7 +1598,7 @@ if ConditionPassed() then
     offset_addr = if add then (R[n] + offset) else (R[n] - offset);
     address = if postindex then R[n] else offset_addr;
     data = MemU_unpriv[address,4];
-    
+
     if postindex then
         R[n] = offset_addr;
     endif
@@ -1614,7 +1614,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LSL (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -1632,7 +1632,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LSL (register)",
     "operation" : """
 if ConditionPassed() then
@@ -1647,7 +1647,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LSR (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -1665,7 +1665,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "LSR (register)",
     "operation" : """
 if ConditionPassed() then
@@ -1680,7 +1680,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MCR, MCR2",
     "operation" : """
 if ConditionPassed() then
@@ -1692,7 +1692,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MCRR, MCRR2",
     "operation" : """
 if ConditionPassed() then
@@ -1704,7 +1704,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MLA",
     "operation" : """
 if ConditionPassed() then
@@ -1723,7 +1723,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MLS",
     "operation" : """
 if ConditionPassed() then
@@ -1735,7 +1735,7 @@ if ConditionPassed() then
     R[d] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "MOV (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -1753,7 +1753,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MOV (register, Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -1770,7 +1770,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MOV (register, ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -1787,7 +1787,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MOVT",
     "operation" : """
 if ConditionPassed() then
@@ -1797,7 +1797,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "MRC, MRC2",
     "operation" : """
 if ConditionPassed() then
@@ -1817,7 +1817,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MRRC, MRRC2",
     "operation" : """
 if ConditionPassed() then
@@ -1831,7 +1831,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MRS",
     "operation" : """
 if ConditionPassed() then
@@ -1839,7 +1839,7 @@ if ConditionPassed() then
     R[d] = APSR;
 endif
 """
-}, { 
+}, {
     "name" : "MRS (Banked register)",
     "operation" : """
 if ConditionPassed() then
@@ -1902,7 +1902,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MSR (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -1920,7 +1920,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MSR (register)",
     "operation" : """
 if ConditionPassed() then
@@ -1931,13 +1931,13 @@ if ConditionPassed() then
     else
         CPSRWriteByInstr(R[n], mask, FALSE);
     endif
-    
+
     if CPSR<4:0> == '11010' && CPSR.J == '1' && CPSR.T == '1' then
         UNPREDICTABLE;
     endif
-endif    
+endif
 """
-}, { 
+}, {
     "name" : "MUL",
     "operation" : """
 if ConditionPassed() then
@@ -1946,7 +1946,7 @@ if ConditionPassed() then
     operand2 = SInt(R[m]);
     result = operand1 * operand2;
     R[d] = result<31:0>;
-    
+
     if setflags then
         APSR.N = result<31>;
         APSR.Z = IsZeroBit(result<31:0>);
@@ -1956,7 +1956,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MVN (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -1974,7 +1974,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MVN (register)",
     "operation" : """
 if ConditionPassed() then
@@ -1993,7 +1993,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "MVN (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -2009,14 +2009,14 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "NOP",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
 endif
 """
-}, { 
+}, {
     "name" : "ORN (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -2030,7 +2030,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ORN (register)",
     "operation" : """
 if ConditionPassed() then
@@ -2045,7 +2045,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ORR (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -2063,7 +2063,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ORR (register)",
     "operation" : """
 if ConditionPassed() then
@@ -2082,7 +2082,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ORR (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -2098,7 +2098,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "PKH",
     "operation" : """
 if ConditionPassed() then
@@ -2110,13 +2110,13 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "PLD, PLDW (immediate)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     address = if add then (R[n] + imm32) else (R[n] - imm32);
-    
+
     if is_pldw then
         Hint_PreloadDataForWrite(address);
     else
@@ -2124,7 +2124,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "PLD (literal)",
     "operation" : """
 if ConditionPassed() then
@@ -2133,7 +2133,7 @@ if ConditionPassed() then
     Hint_PreloadData(address);
 endif
 """
-}, { 
+}, {
     "name" : "PLD, PLDW (register)",
     "operation" : """
 if ConditionPassed() then
@@ -2147,7 +2147,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "PLI (immediate, literal)",
     "operation" : """
 if ConditionPassed() then
@@ -2157,7 +2157,7 @@ if ConditionPassed() then
     Hint_PreloadInstr(address);
 endif
 """
-}, { 
+}, {
     "name" : "PLI (register)",
     "operation" : """
 if ConditionPassed() then
@@ -2167,7 +2167,7 @@ if ConditionPassed() then
     Hint_PreloadInstr(address);
 endif
 """
-}, { 
+}, {
     "name" : "POP (Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -2202,7 +2202,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "POP (ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -2237,7 +2237,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "PUSH",
     "operation" : """
 if ConditionPassed() then
@@ -2259,7 +2259,7 @@ if ConditionPassed() then
             address = address + 4;
         endif
     endfor
-        
+
     if registers<15> == '1' then
         if UnalignedAllowed then
             MemU[address,4] = PCStoreValue();
@@ -2271,7 +2271,7 @@ if ConditionPassed() then
     R[13] = R[13] - 4*BitCount(registers);
 endif
 """
-}, { 
+}, {
     "name" : "QADD",
     "operation" : """
 if ConditionPassed() then
@@ -2282,7 +2282,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "QADD16",
     "operation" : """
 if ConditionPassed() then
@@ -2295,7 +2295,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "QADD8",
     "operation" : """
 if ConditionPassed() then
@@ -2312,7 +2312,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "QASX",
     "operation" : """
 if ConditionPassed() then
@@ -2325,7 +2325,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "QDADD",
     "operation" : """
 if ConditionPassed() then
@@ -2337,7 +2337,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "QDSUB",
     "operation" : """
 if ConditionPassed() then
@@ -2349,7 +2349,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "QSAX",
     "operation" : """
 if ConditionPassed() then
@@ -2362,7 +2362,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "QSUB",
     "operation" : """
 if ConditionPassed() then
@@ -2373,7 +2373,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "QSUB16",
     "operation" : """
 if ConditionPassed() then
@@ -2386,7 +2386,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "QSUB8",
     "operation" : """
 if ConditionPassed() then
@@ -2403,7 +2403,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "RBIT",
     "operation" : """
 if ConditionPassed() then
@@ -2415,7 +2415,7 @@ if ConditionPassed() then
     R[d] = result;
 endif
 """
-}, { 
+}, {
     "name" : "REV",
     "operation" : """
 if ConditionPassed() then
@@ -2428,7 +2428,7 @@ if ConditionPassed() then
     R[d] = result;
 endif
 """
-}, { 
+}, {
     "name" : "REV16",
     "operation" : """
 if ConditionPassed() then
@@ -2441,7 +2441,7 @@ if ConditionPassed() then
     R[d] = result;
 endif
 """
-}, { 
+}, {
     "name" : "REVSH",
     "operation" : """
 if ConditionPassed() then
@@ -2452,7 +2452,7 @@ if ConditionPassed() then
     R[d] = result;
 endif
 """
-}, { 
+}, {
     "name" : "RFE",
     "operation" : """
 if ConditionPassed() then
@@ -2476,7 +2476,7 @@ if ConditionPassed() then
         new_pc_value = MemA[address,4];
         tmp = address+4;
         CPSRWriteByInstr(MemA[tmp,4], '1111', TRUE);
-        
+
         if CPSR<4:0> == '11010' && CPSR.J == '1' && CPSR.T == '1' then
             UNPREDICTABLE;
         else
@@ -2485,7 +2485,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ROR (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -2503,7 +2503,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "ROR (register)",
     "operation" : """
 if ConditionPassed() then
@@ -2518,7 +2518,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "RRX",
     "operation" : """
 if ConditionPassed() then
@@ -2536,7 +2536,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "RSB (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -2555,7 +2555,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "RSB (register)",
     "operation" : """
 if ConditionPassed() then
@@ -2575,7 +2575,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "RSB (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -2592,7 +2592,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "RSC (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -2611,7 +2611,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "RSC (register)",
     "operation" : """
 if ConditionPassed() then
@@ -2631,7 +2631,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "RSC (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -2648,7 +2648,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SADD16",
     "operation" : """
 if ConditionPassed() then
@@ -2665,7 +2665,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SADD8",
     "operation" : """
 if ConditionPassed() then
@@ -2688,7 +2688,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SASX",
     "operation" : """
 if ConditionPassed() then
@@ -2705,7 +2705,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SBC (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -2724,7 +2724,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SBC (register)",
     "operation" : """
 if ConditionPassed() then
@@ -2744,7 +2744,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SBC (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -2761,7 +2761,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SBFX",
     "operation" : """
 if ConditionPassed() then
@@ -2774,7 +2774,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SDIV",
     "operation" : """
 if ConditionPassed() then
@@ -2792,7 +2792,7 @@ if ConditionPassed() then
     R[d] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "SEL",
     "operation" : """
 if ConditionPassed() then
@@ -2805,13 +2805,13 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SETEND",
     "operation" : """
 EncodingSpecificOperations();
-ENDIANSTATE = if set_bigend then '1' else '0';
+CPSR.E = if set_bigend then '1' else '0';
 """
-}, { 
+}, {
     "name" : "SEV",
     "operation" : """
 if ConditionPassed() then
@@ -2819,7 +2819,7 @@ if ConditionPassed() then
     SendEvent();
 endif
 """
-}, { 
+}, {
     "name" : "SHADD16",
     "operation" : """
 if ConditionPassed() then
@@ -2832,7 +2832,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SHADD8",
     "operation" : """
 if ConditionPassed() then
@@ -2849,7 +2849,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SHASX",
     "operation" : """
 if ConditionPassed() then
@@ -2862,7 +2862,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SHSAX",
     "operation" : """
 if ConditionPassed() then
@@ -2875,7 +2875,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SHSUB16",
     "operation" : """
 if ConditionPassed() then
@@ -2888,7 +2888,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SHSUB8",
     "operation" : """
 if ConditionPassed() then
@@ -2905,7 +2905,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SMC (previously SMI)",
     "operation" : """
 if ConditionPassed() then
@@ -2931,7 +2931,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SMLABB, SMLABT, SMLATB, SMLATT",
     "operation" : """
 if ConditionPassed() then
@@ -2945,7 +2945,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SMLAD",
     "operation" : """
 if ConditionPassed() then
@@ -2960,7 +2960,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SMLAL",
     "operation" : """
 if ConditionPassed() then
@@ -2978,7 +2978,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SMLALBB, SMLALBT, SMLALTB, SMLALTT",
     "operation" : """
 if ConditionPassed() then
@@ -2990,7 +2990,7 @@ if ConditionPassed() then
     R[dLo] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "SMLALD",
     "operation" : """
 if ConditionPassed() then
@@ -3003,7 +3003,7 @@ if ConditionPassed() then
     R[dLo] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "SMLAWB, SMLAWT",
     "operation" : """
 if ConditionPassed() then
@@ -3016,7 +3016,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SMLSD",
     "operation" : """
 if ConditionPassed() then
@@ -3031,7 +3031,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SMLSLD",
     "operation" : """
 if ConditionPassed() then
@@ -3044,7 +3044,7 @@ if ConditionPassed() then
     R[dLo] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "SMMLA",
     "operation" : """
 if ConditionPassed() then
@@ -3056,7 +3056,7 @@ if ConditionPassed() then
     R[d] = result<63:32>;
 endif
 """
-}, { 
+}, {
     "name" : "SMMLS",
     "operation" : """
 if ConditionPassed() then
@@ -3068,7 +3068,7 @@ if ConditionPassed() then
     R[d] = result<63:32>;
 endif
 """
-}, { 
+}, {
     "name" : "SMMUL",
     "operation" : """
 if ConditionPassed() then
@@ -3080,7 +3080,7 @@ if ConditionPassed() then
     R[d] = result<63:32>;
 endif
 """
-}, { 
+}, {
     "name" : "SMUAD",
     "operation" : """
 if ConditionPassed() then
@@ -3095,7 +3095,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SMULBB, SMULBT, SMULTB, SMULTT",
     "operation" : """
 if ConditionPassed() then
@@ -3106,7 +3106,7 @@ if ConditionPassed() then
     R[d] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "SMULL",
     "operation" : """
 if ConditionPassed() then
@@ -3124,7 +3124,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SMULWB, SMULWT",
     "operation" : """
 if ConditionPassed() then
@@ -3134,7 +3134,7 @@ if ConditionPassed() then
     R[d] = product<47:16>;
 endif
 """
-}, { 
+}, {
     "name" : "SMUSD",
     "operation" : """
 if ConditionPassed() then
@@ -3146,7 +3146,7 @@ if ConditionPassed() then
     R[d] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "SRS, Thumb",
     "operation" : """
 if ConditionPassed() then
@@ -3183,7 +3183,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SRS, ARM",
     "operation" : """
 if ConditionPassed() then
@@ -3220,7 +3220,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SSAT",
     "operation" : """
 if ConditionPassed() then
@@ -3233,7 +3233,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SSAT16",
     "operation" : """
 if ConditionPassed() then
@@ -3249,7 +3249,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SSAX",
     "operation" : """
 if ConditionPassed() then
@@ -3266,7 +3266,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SSUB16",
     "operation" : """
 if ConditionPassed() then
@@ -3283,7 +3283,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SSUB8",
     "operation" : """
 if ConditionPassed() then
@@ -3306,7 +3306,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "STC, STC2",
     "operation" : """
 if ConditionPassed() then
@@ -3328,7 +3328,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STM (STMIA, STMEA)",
     "operation" : """
 if ConditionPassed() then
@@ -3356,7 +3356,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STMDA (STMED)",
     "operation" : """
 if ConditionPassed() then
@@ -3369,7 +3369,7 @@ if ConditionPassed() then
             else
                 MemA[address,4] = R[i];
             endif
-            
+
             address = address + 4;
         endif
     endfor
@@ -3383,7 +3383,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STMDB (STMFD)",
     "operation" : """
 if ConditionPassed() then
@@ -3397,7 +3397,7 @@ if ConditionPassed() then
             else
                 MemA[address,4] = R[i];
             endif
-            
+
             address = address + 4;
         endif
     endfor
@@ -3411,7 +3411,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STMIB (STMFA)",
     "operation" : """
 if ConditionPassed() then
@@ -3424,10 +3424,10 @@ if ConditionPassed() then
             else
                 MemA[address,4] = R[i];
             endif
-            
+
             address = address + 4;
         endif
-    endfor 
+    endfor
 
     if registers<15> == '1' then
         MemA[address,4] = PCStoreValue();
@@ -3438,7 +3438,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STR (immediate, Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -3457,7 +3457,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STR (immediate, ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -3470,7 +3470,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STR (register)",
     "operation" : """
 if ConditionPassed() then
@@ -3496,7 +3496,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRB (immediate, Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -3510,7 +3510,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRB (immediate, ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -3523,7 +3523,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRB (register)",
     "operation" : """
 if ConditionPassed() then
@@ -3538,7 +3538,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRBT",
     "operation" : """
 if ConditionPassed() then
@@ -3557,7 +3557,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRD (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -3565,7 +3565,7 @@ if ConditionPassed() then
     NullCheckIfThumbEE(n);
     offset_addr = if add then (R[n] + imm32) else (R[n] - imm32);
     address = if index then offset_addr else R[n];
-    
+
     if HaveLPAE() && address<2:0> == '000' then
         data = 0;
         if BigEndian() then
@@ -3588,7 +3588,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRD (register)",
     "operation" : """
 if ConditionPassed() then
@@ -3604,7 +3604,7 @@ if ConditionPassed() then
             set_bits(data, 31,0, R[t]);
             set_bits(data, 63,32, R[t2]);
         endif
-        
+
         MemA[address,8] = data;
     else
         tmp = address + 4;
@@ -3617,7 +3617,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STREX",
     "operation" : """
 if ConditionPassed() then
@@ -3632,7 +3632,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STREXB",
     "operation" : """
 if ConditionPassed() then
@@ -3647,7 +3647,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STREXD",
     "operation" : """
 if ConditionPassed() then
@@ -3663,7 +3663,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STREXH",
     "operation" : """
 if ConditionPassed() then
@@ -3678,7 +3678,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRH (immediate, Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -3697,7 +3697,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRH (immediate, ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -3715,7 +3715,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRH (register)",
     "operation" : """
 if ConditionPassed() then
@@ -3735,7 +3735,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRHT",
     "operation" : """
 if ConditionPassed() then
@@ -3759,7 +3759,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "STRT",
     "operation" : """
 if ConditionPassed() then
@@ -3772,7 +3772,7 @@ if ConditionPassed() then
     offset = if register_form then Shift(R[m], shift_t, shift_n, APSR.C) else imm32;
     offset_addr = if add then (R[n] + offset) else (R[n] - offset);
     address = if postindex then R[n] else offset_addr;
-    
+
     if t == 15 then
         data = PCStoreValue();
     else
@@ -3790,7 +3790,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SUB (immediate, Thumb)",
     "operation" : """
 if ConditionPassed() then
@@ -3805,7 +3805,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SUB (immediate, ARM)",
     "operation" : """
 if ConditionPassed() then
@@ -3824,7 +3824,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SUB (register)",
     "operation" : """
 if ConditionPassed() then
@@ -3844,7 +3844,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SUB (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -3861,7 +3861,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SUB (SP minus immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -3880,7 +3880,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SUB (SP minus register)",
     "operation" : """
 if ConditionPassed() then
@@ -3900,7 +3900,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SUBS PC, LR, Thumb",
     "operation" : """
 if ConditionPassed() then
@@ -3919,7 +3919,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SUBS PC, LR and related instructions, ARM",
     "operation" : """
 if ConditionPassed() then
@@ -3956,7 +3956,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SVC",
     "operation" : """
 if ConditionPassed() then
@@ -3964,7 +3964,7 @@ if ConditionPassed() then
     CallSupervisor(imm32<15:0>);
 endif
 """
-}, { 
+}, {
     "name" : "SWP, SWPB",
     "operation" : """
 if ConditionPassed() then
@@ -3977,7 +3977,7 @@ if ConditionPassed() then
     data = MemA[val, size];
     tmp = 8*size-1;
     MemA[val, size] = R[t2]<tmp:0>;
-    
+
     if size == 1 then
         R[t] = ZeroExtend(data, 32);
     else
@@ -3985,7 +3985,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "SXTAB",
     "operation" : """
 if ConditionPassed() then
@@ -3994,7 +3994,7 @@ if ConditionPassed() then
     R[d] = R[n] + SignExtend(rotated<7:0>, 32);
 endif
 """
-}, { 
+}, {
     "name" : "SXTAB16",
     "operation" : """
 if ConditionPassed() then
@@ -4006,7 +4006,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SXTAH",
     "operation" : """
 if ConditionPassed() then
@@ -4015,7 +4015,7 @@ if ConditionPassed() then
     R[d] = R[n] + SignExtend(rotated<15:0>, 32);
 endif
 """
-}, { 
+}, {
     "name" : "SXTB",
     "operation" : """
 if ConditionPassed() then
@@ -4024,7 +4024,7 @@ if ConditionPassed() then
     R[d] = SignExtend(rotated<7:0>, 32);
 endif
 """
-}, { 
+}, {
     "name" : "SXTB16",
     "operation" : """
 if ConditionPassed() then
@@ -4036,7 +4036,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "SXTH",
     "operation" : """
 if ConditionPassed() then
@@ -4045,7 +4045,7 @@ if ConditionPassed() then
     R[d] = SignExtend(rotated<15:0>, 32);
 endif
 """
-}, { 
+}, {
     "name" : "TBB",
     "operation" : """
 if ConditionPassed() then
@@ -4056,7 +4056,7 @@ if ConditionPassed() then
     BranchWritePC(R[15] + 2*halfwords);
 endif
 """
-}, { 
+}, {
     "name" : "TBH",
     "operation" : """
 if ConditionPassed() then
@@ -4067,7 +4067,7 @@ if ConditionPassed() then
     BranchWritePC(R[15] + 2*halfwords);
 endif
 """
-}, { 
+}, {
     "name" : "TEQ (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -4078,7 +4078,7 @@ if ConditionPassed() then
     APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
 endif
 """
-}, { 
+}, {
     "name" : "TEQ (register)",
     "operation" : """
 if ConditionPassed() then
@@ -4090,7 +4090,7 @@ if ConditionPassed() then
     APSR.C = carry;
 endif
 """
-}, { 
+}, {
     "name" : "TEQ (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -4103,7 +4103,7 @@ if ConditionPassed() then
     APSR.C = carry;
 endif
 """
-}, { 
+}, {
     "name" : "TST (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -4114,7 +4114,7 @@ if ConditionPassed() then
     APSR.C = ExpandImm_C(encoding, imm12, APSR.C);
 endif
 """
-}, { 
+}, {
     "name" : "TST (register)",
     "operation" : """
 if ConditionPassed() then
@@ -4126,7 +4126,7 @@ if ConditionPassed() then
     APSR.C = carry;
 endif
 """
-}, { 
+}, {
     "name" : "TST (register-shifted register)",
     "operation" : """
 if ConditionPassed() then
@@ -4139,7 +4139,7 @@ if ConditionPassed() then
     APSR.C = carry;
 endif
 """
-}, { 
+}, {
     "name" : "UADD16",
     "operation" : """
 if ConditionPassed() then
@@ -4156,7 +4156,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UADD8",
     "operation" : """
 if ConditionPassed() then
@@ -4179,7 +4179,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UASX",
     "operation" : """
 if ConditionPassed() then
@@ -4196,7 +4196,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UBFX",
     "operation" : """
 if ConditionPassed() then
@@ -4209,7 +4209,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "UDF",
     "operation" : """
 if ConditionPassed() then
@@ -4217,7 +4217,7 @@ if ConditionPassed() then
     UNDEFINED;
 endif
 """
-}, { 
+}, {
     "name" : "UDIV",
     "operation" : """
 if ConditionPassed() then
@@ -4235,7 +4235,7 @@ if ConditionPassed() then
     R[d] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "UHADD16",
     "operation" : """
 if ConditionPassed() then
@@ -4248,7 +4248,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UHADD8",
     "operation" : """
 if ConditionPassed() then
@@ -4265,7 +4265,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UHASX",
     "operation" : """
 if ConditionPassed() then
@@ -4278,7 +4278,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UHSAX",
     "operation" : """
 if ConditionPassed() then
@@ -4291,7 +4291,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UHSUB16",
     "operation" : """
 if ConditionPassed() then
@@ -4304,7 +4304,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UHSUB8",
     "operation" : """
 if ConditionPassed() then
@@ -4321,7 +4321,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UMAAL",
     "operation" : """
 if ConditionPassed() then
@@ -4331,7 +4331,7 @@ if ConditionPassed() then
     R[dLo] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "UMLAL",
     "operation" : """
 if ConditionPassed() then
@@ -4349,7 +4349,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "UMULL",
     "operation" : """
 if ConditionPassed() then
@@ -4367,7 +4367,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "UQADD16",
     "operation" : """
 if ConditionPassed() then
@@ -4380,7 +4380,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UQADD8",
     "operation" : """
 if ConditionPassed() then
@@ -4397,7 +4397,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UQASX",
     "operation" : """
 if ConditionPassed() then
@@ -4410,7 +4410,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UQSAX",
     "operation" : """
 if ConditionPassed() then
@@ -4423,7 +4423,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UQSUB16",
     "operation" : """
 if ConditionPassed() then
@@ -4436,7 +4436,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UQSUB8",
     "operation" : """
 if ConditionPassed() then
@@ -4453,7 +4453,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "USAD8",
     "operation" : """
 if ConditionPassed() then
@@ -4466,7 +4466,7 @@ if ConditionPassed() then
     R[d] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "USADA8",
     "operation" : """
 if ConditionPassed() then
@@ -4479,7 +4479,7 @@ if ConditionPassed() then
     R[d] = result<31:0>;
 endif
 """
-}, { 
+}, {
     "name" : "USAT",
     "operation" : """
 if ConditionPassed() then
@@ -4492,7 +4492,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "USAT16",
     "operation" : """
 if ConditionPassed() then
@@ -4508,7 +4508,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "USAX",
     "operation" : """
 if ConditionPassed() then
@@ -4525,7 +4525,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "USUB16",
     "operation" : """
 if ConditionPassed() then
@@ -4542,7 +4542,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "USUB8",
     "operation" : """
 if ConditionPassed() then
@@ -4557,7 +4557,7 @@ if ConditionPassed() then
     set_bits(tmp_val, 23, 16, diff3<7:0>);
     set_bits(tmp_val, 31, 24, diff4<7:0>);
     R[d] = tmp_val;
-    tmp_val = APSR.GE;    
+    tmp_val = APSR.GE;
     set_bit(tmp_val, 0, if diff1 >= 0 then '1' else '0');
     set_bit(tmp_val, 1, if diff2 >= 0 then '1' else '0');
     set_bit(tmp_val, 2, if diff3 >= 0 then '1' else '0');
@@ -4565,7 +4565,7 @@ if ConditionPassed() then
     APSR.GE = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UXTAB",
     "operation" : """
 if ConditionPassed() then
@@ -4574,7 +4574,7 @@ if ConditionPassed() then
     R[d] = R[n] + ZeroExtend(rotated<7:0>, 32);
 endif
 """
-}, { 
+}, {
     "name" : "UXTAB16",
     "operation" : """
 if ConditionPassed() then
@@ -4586,7 +4586,7 @@ if ConditionPassed() then
     R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UXTAH",
     "operation" : """
 if ConditionPassed() then
@@ -4595,7 +4595,7 @@ if ConditionPassed() then
     R[d] = R[n] + ZeroExtend(rotated<15:0>, 32);
 endif
 """
-}, { 
+}, {
     "name" : "UXTB",
     "operation" : """
 if ConditionPassed() then
@@ -4604,7 +4604,7 @@ if ConditionPassed() then
     R[d] = ZeroExtend(rotated<7:0>, 32);
 endif
 """
-}, { 
+}, {
     "name" : "UXTB16",
     "operation" : """
 if ConditionPassed() then
@@ -4613,10 +4613,10 @@ if ConditionPassed() then
     tmp_val = R[d];
     set_bits(tmp_val, 15, 0, ZeroExtend(rotated<7:0>, 16));
     set_bits(tmp_val, 31, 16, ZeroExtend(rotated<23:16>, 16));
-    R[d] = tmp_val;    
+    R[d] = tmp_val;
 endif
 """
-}, { 
+}, {
     "name" : "UXTH",
     "operation" : """
 if ConditionPassed() then
@@ -4625,7 +4625,7 @@ if ConditionPassed() then
     R[d] = ZeroExtend(rotated<15:0>, 32);
 endif
 """
-}, { 
+}, {
     "name" : "VABA, VABAL",
     "operation" : """
 if ConditionPassed() then
@@ -4640,7 +4640,7 @@ if ConditionPassed() then
             val2 = Din[mpr];
             op1 = Elem[val1, e, esize];
             op2 = Elem[val2, e, esize];
-            
+
             absdiff = Abs(Int(op1,unsigned_) - Int(op2,unsigned_));
             if long_destination then
                 ds = d >> 1;
@@ -4658,7 +4658,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VABD, VABDL (integer)",
     "operation" : """
 if ConditionPassed() then
@@ -4689,7 +4689,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VABD (floating-point)",
     "operation" : """
 if ConditionPassed() then
@@ -4698,7 +4698,7 @@ if ConditionPassed() then
     for r = 0 to regs-1
         for e = 0 to elements-1
             npr = n + r;
-            mpr = m + r; 
+            mpr = m + r;
             val1 = D[npr];
             val2 = D[mpr];
             op1 = Elem[val1,e,esize];
@@ -4711,7 +4711,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VABS",
     "operation" : """
 if ConditionPassed() then
@@ -4742,7 +4742,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VACGE, VACGT, VACLE, VACLT",
     "operation" : """
 if ConditionPassed() then
@@ -4766,7 +4766,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VADD (integer)",
     "operation" : """
 if ConditionPassed() then
@@ -4782,7 +4782,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VADD (floating-point)",
     "operation" : """
 if ConditionPassed() then
@@ -4806,7 +4806,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VADDHN",
     "operation" : """
 if ConditionPassed() then
@@ -4820,7 +4820,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VADDL, VADDW",
     "operation" : """
 if ConditionPassed() then
@@ -4839,7 +4839,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VAND (register)",
     "operation" : """
 if ConditionPassed() then
@@ -4850,7 +4850,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VBIC (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -4861,7 +4861,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VBIC (register)",
     "operation" : """
 if ConditionPassed() then
@@ -4872,7 +4872,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VBIF, VBIT, VBSL",
     "operation" : """
 if ConditionPassed() then
@@ -4887,7 +4887,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCEQ (register)",
     "operation" : """
 if ConditionPassed() then
@@ -4908,7 +4908,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCEQ (immediate #0)",
     "operation" : """
 if ConditionPassed() then
@@ -4926,7 +4926,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCGE (register)",
     "operation" : """
 if ConditionPassed() then
@@ -4947,7 +4947,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCGE (immediate #0)",
     "operation" : """
 if ConditionPassed() then
@@ -4966,7 +4966,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCGT (register)",
     "operation" : """
 if ConditionPassed() then
@@ -4987,7 +4987,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCGT (immediate #0)",
     "operation" : """
 if ConditionPassed() then
@@ -5005,7 +5005,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCLE (immediate #0)",
     "operation" : """
 if ConditionPassed() then
@@ -5023,7 +5023,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCLS",
     "operation" : """
 if ConditionPassed() then
@@ -5036,7 +5036,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCLT (immediate #0)",
     "operation" : """
 if ConditionPassed() then
@@ -5055,7 +5055,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCLZ",
     "operation" : """
 if ConditionPassed() then
@@ -5068,7 +5068,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCMP, VCMPE",
     "operation" : """
 if ConditionPassed() then
@@ -5085,7 +5085,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VCNT",
     "operation" : """
 if ConditionPassed() then
@@ -5098,7 +5098,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCVT (between floating-point and integer, AdvancedSIMD)",
     "operation" : """
 if ConditionPassed() then
@@ -5117,7 +5117,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCVT, VCVTR (between floating-point and integer, Floating-point)",
     "operation" : """
 if ConditionPassed() then
@@ -5138,7 +5138,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VCVT (between floating-point and fixed-point, AdvancedSIMD)",
     "operation" : """
 if ConditionPassed() then
@@ -5152,13 +5152,13 @@ if ConditionPassed() then
             else
                 result = FixedToFP(operand, esize, frac_bits, unsigned_, round_nearest, FALSE);
             endif
-            
+
             Elem[D[d+r],e,esize] = result;
         endfor
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCVT (between floating-point and fixed-point, Floating-point)",
     "operation" : """
 if ConditionPassed() then
@@ -5181,7 +5181,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VCVT (between double-precision and single-precision)",
     "operation" : """
 if ConditionPassed() then
@@ -5194,7 +5194,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VCVT (between half-precision and single-precision, AdvancedSIMD)",
     "operation" : """
 if ConditionPassed() then
@@ -5209,7 +5209,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VCVTB, VCVTT",
     "operation" : """
 if ConditionPassed() then
@@ -5224,7 +5224,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VDIV",
     "operation" : """
 if ConditionPassed() then
@@ -5237,7 +5237,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VDUP (scalar)",
     "operation" : """
 if ConditionPassed() then
@@ -5251,7 +5251,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VDUP (ARM core register)",
     "operation" : """
 if ConditionPassed() then
@@ -5265,7 +5265,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VEOR",
     "operation" : """
 if ConditionPassed() then
@@ -5276,7 +5276,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VEXT",
     "operation" : """
 if ConditionPassed() then
@@ -5284,7 +5284,7 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
 endif
 """
-}, { 
+}, {
     "name" : "VFMA, VFMS",
     "operation" : """
 if ConditionPassed() then
@@ -5312,7 +5312,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VFNMA, VFNMS",
     "operation" : """
 if ConditionPassed() then
@@ -5327,7 +5327,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VHADD, VHSUB",
     "operation" : """
 if ConditionPassed() then
@@ -5343,7 +5343,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VLD1 (multiple single elements)",
     "operation" : """
 if ConditionPassed() then
@@ -5375,7 +5375,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VLD1 (single element to one lane)",
     "operation" : """
 if ConditionPassed() then
@@ -5394,7 +5394,7 @@ if ConditionPassed() then
     Elem[D[d],index,esize] = MemU[address,ebytes];
 endif
 """
-}, { 
+}, {
     "name" : "VLD1 (single element to all lanes)",
     "operation" : """
 if ConditionPassed() then
@@ -5406,7 +5406,7 @@ if ConditionPassed() then
         GenerateAlignmentException();
     endif
 
-    if wback then 
+    if wback then
         R[n] = R[n] + (if register_index then R[m] else ebytes);
     endif
 
@@ -5416,7 +5416,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VLD2 (multiple 2-element structures)",
     "operation" : """
 if ConditionPassed() then
@@ -5442,7 +5442,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VLD2 (single 2-element structure to one lane)",
     "operation" : """
 if ConditionPassed() then
@@ -5462,7 +5462,7 @@ if ConditionPassed() then
     Elem[D[d2],index,esize] = MemU[address+ebytes,ebytes];
 endif
 """
-}, { 
+}, {
     "name" : "VLD2 (single 2-element structure to all lanes)",
     "operation" : """
 if ConditionPassed() then
@@ -5482,7 +5482,7 @@ if ConditionPassed() then
     D[d2] = Replicate(MemU[address+ebytes,ebytes], elements);
 endif
 """
-}, { 
+}, {
     "name" : "VLD3 (multiple 3-element structures)",
     "operation" : """
 if ConditionPassed() then
@@ -5507,7 +5507,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VLD3 (single 3-element structure to one lane)",
     "operation" : """
 if ConditionPassed() then
@@ -5524,7 +5524,7 @@ if ConditionPassed() then
     Elem[D[d3],index,esize] = MemU[address+2*ebytes,ebytes];
 endif
 """
-}, { 
+}, {
     "name" : "VLD3 (single 3-element structure to all lanes)",
     "operation" : """
 if ConditionPassed() then
@@ -5541,7 +5541,7 @@ if ConditionPassed() then
     D[d3] = Replicate(MemU[address+2*ebytes,ebytes], elements);
 endif
 """
-}, { 
+}, {
     "name" : "VLD4 (multiple 4-element structures)",
     "operation" : """
 if ConditionPassed() then
@@ -5566,7 +5566,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VLD4 (single 4-element structure to one lane)",
     "operation" : """
 if ConditionPassed() then
@@ -5588,7 +5588,7 @@ if ConditionPassed() then
     Elem[D[d4],index,esize] = MemU[address+3*ebytes,ebytes];
 endif
 """
-}, { 
+}, {
     "name" : "VLD4 (single 4-element structure to all lanes)",
     "operation" : """
 if ConditionPassed() then
@@ -5610,7 +5610,7 @@ if ConditionPassed() then
     D[d4] = Replicate(MemU[address+3*ebytes,ebytes], elements);
 endif
 """
-}, { 
+}, {
     "name" : "VLDM",
     "operation" : """
 if ConditionPassed() then
@@ -5635,7 +5635,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VLDR",
     "operation" : """
 if ConditionPassed() then
@@ -5653,7 +5653,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VMAX, VMIN (integer)",
     "operation" : """
 if ConditionPassed() then
@@ -5669,7 +5669,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VMAX, VMIN (floating-point)",
     "operation" : """
 if ConditionPassed() then
@@ -5684,7 +5684,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VMLA, VMLAL, VMLS, VMLSL (integer)",
     "operation" : """
 if ConditionPassed() then
@@ -5703,7 +5703,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VMLA, VMLS (floating-point)",
     "operation" : """
 if ConditionPassed() then
@@ -5728,7 +5728,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VMLA, VMLAL, VMLS, VMLSL (by scalar)",
     "operation" : """
 if ConditionPassed() then
@@ -5736,7 +5736,7 @@ if ConditionPassed() then
     CheckAdvSIMDEnabled();
     op2 = Elem[Din[m],index,esize];
     op2val = Int(op2, unsigned_);
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             op1 = Elem[Din[n+r],e,esize];
@@ -5757,7 +5757,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VMOV (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -5772,7 +5772,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VMOV (register)",
     "operation" : """
 if ConditionPassed() then
@@ -5787,7 +5787,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VMOV (ARM core register to scalar)",
     "operation" : """
 if ConditionPassed() then
@@ -5796,7 +5796,7 @@ if ConditionPassed() then
     Elem[D[d],index,esize] = R[t]<esize-1:0>;
 endif
 """
-}, { 
+}, {
     "name" : "VMOV (scalar to ARM core register)",
     "operation" : """
 if ConditionPassed() then
@@ -5809,7 +5809,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VMOV (between ARM core register and single-precision register)",
     "operation" : """
 if ConditionPassed() then
@@ -5822,7 +5822,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VMOV (between two ARM core registers and two single-precision registers)",
     "operation" : """
 if ConditionPassed() then
@@ -5837,7 +5837,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VMOV (between two ARM core registers and a doubleword extension register)",
     "operation" : """
 if ConditionPassed() then
@@ -5854,7 +5854,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VMOVL",
     "operation" : """
 if ConditionPassed() then
@@ -5866,7 +5866,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VMOVN",
     "operation" : """
 if ConditionPassed() then
@@ -5877,7 +5877,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VMRS",
     "operation" : """
 if ConditionPassed() then
@@ -5885,7 +5885,7 @@ if ConditionPassed() then
     CheckVFPEnabled(TRUE);
     SerializeVFP();
     VFPExcBarrier();
-    
+
     if t != 15 then
         R[t] = FPSCR;
     else
@@ -5896,7 +5896,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VMSR",
     "operation" : """
 if ConditionPassed() then
@@ -5907,7 +5907,7 @@ if ConditionPassed() then
     FPSCR = R[t];
 endif
 """
-}, { 
+}, {
     "name" : "VMUL, VMULL (integer and polynomial)",
     "operation" : """
 if ConditionPassed() then
@@ -5936,7 +5936,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VMUL (floating-point)",
     "operation" : """
 if ConditionPassed() then
@@ -5957,7 +5957,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VMUL, VMULL (by scalar)",
     "operation" : """
 if ConditionPassed() then
@@ -5985,37 +5985,37 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VMVN (immediate)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         D[d+r] = NOT(imm64);
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VMVN (register)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         D[d+r] = NOT(D[m+r]);
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VNEG",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDOrVFPEnabled(TRUE, advsimd);
-    
+
     if advsimd then
         for r = 0 to regs-1
             for e = 0 to elements-1
@@ -6036,7 +6036,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VNMLA, VNMLS, VNMUL",
     "operation" : """
 if ConditionPassed() then
@@ -6060,49 +6060,49 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VORN (register)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         D[d+r] = D[n+r] OR NOT(D[m+r]);
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VORR (immediate)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         D[d+r] = D[d+r] OR imm64;
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VORR (register)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         D[d+r] = D[n+r] OR D[m+r];
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VPADAL",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     h = elements/2;
     for r = 0 to regs-1
         for e = 0 to h-1
@@ -6114,7 +6114,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VPADD (integer)",
     "operation" : """
 if ConditionPassed() then
@@ -6130,7 +6130,7 @@ if ConditionPassed() then
     D[d] = dest;
 endif
 """
-}, { 
+}, {
     "name" : "VPADD (floating-point)",
     "operation" : """
 if ConditionPassed() then
@@ -6146,13 +6146,13 @@ if ConditionPassed() then
     D[d] = dest;
 endif
 """
-}, { 
+}, {
     "name" : "VPADDL",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     h = elements/2;
     for r = 0 to regs-1
         for e = 0 to h-1
@@ -6164,13 +6164,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VPMAX, VPMIN (integer)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     dest = 0;
     h = elements/2;
     for e = 0 to h-1
@@ -6186,13 +6186,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VPMAX, VPMIN (floating-point)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     dest = 0;
     h = elements/2;
     for e = 0 to h-1
@@ -6206,17 +6206,17 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VPOP",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckVFPEnabled(TRUE);
     NullCheckIfThumbEE(13);
-    
+
     address = R[13];
     R[13] = address + imm32;
-    
+
     if single_regs then
         for r = 0 to regs-1
             S[d+r] = MemA[address,4];
@@ -6232,17 +6232,17 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VPUSH",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckVFPEnabled(TRUE);
     NullCheckIfThumbEE(13);
-    
+
     address = R[13] - imm32;
     R[13] = R[13] - imm32;
-    
+
     if single_regs then
         for r = 0 to regs-1
             MemA[address,4] = S[d+r];
@@ -6257,7 +6257,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VQABS",
     "operation" : """
 if ConditionPassed() then
@@ -6275,7 +6275,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQADD",
     "operation" : """
 if ConditionPassed() then
@@ -6292,7 +6292,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQDMLAL, VQDMLSL",
     "operation" : """
 if ConditionPassed() then
@@ -6317,14 +6317,14 @@ if ConditionPassed() then
         endif
 
         (Elem[Q[d>>1],e,2*esize], sat2) = SignedSatQ(result, 2*esize);
-        
+
         if sat1 || sat2 then
             FPSCR.QC = '1';
         endif
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQDMULH",
     "operation" : """
 if ConditionPassed() then
@@ -6351,13 +6351,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQDMULL",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     if scalar_form then
         op2 = SInt(Elem[Din[m],index,esize]);
     endif
@@ -6376,7 +6376,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQMOVN, VQMOVUN",
     "operation" : """
 if ConditionPassed() then
@@ -6391,13 +6391,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQNEG",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             result = -SInt(Elem[D[m+r],e,esize]);
@@ -6409,13 +6409,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQRDMULH",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     round_const = 1 << (esize-1);
     if scalar_form then
         op2 = SInt(Elem[D[m],index,esize]);
@@ -6437,7 +6437,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQRSHL",
     "operation" : """
 if ConditionPassed() then
@@ -6458,13 +6458,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQRSHRN, VQRSHRUN",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     round_const = 1 << (shift_amount - 1);
     for e = 0 to elements-1
         operand = Int(Elem[Qin[m>>1],e,2*esize], src_unsigned);
@@ -6476,13 +6476,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQSHL (register)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             shift = SInt(Elem[D[n+r],e,esize]<7:0>);
@@ -6496,7 +6496,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQSHL, VQSHLU (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -6515,13 +6515,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQSHRN, VQSHRUN",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for e = 0 to elements-1
         operand = Int(Elem[Qin[m>>1],e,2*esize], src_unsigned);
         (result, sat) = SatQ(operand >> shift_amount, esize, dest_unsigned);
@@ -6532,7 +6532,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VQSUB",
     "operation" : """
 if ConditionPassed() then
@@ -6550,7 +6550,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRADDHN",
     "operation" : """
 if ConditionPassed() then
@@ -6564,13 +6564,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRECPE",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             if floating_point then
@@ -6582,7 +6582,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRECPS",
     "operation" : """
 if ConditionPassed() then
@@ -6596,13 +6596,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VREV16, VREV32, VREV64",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     dest = 0;
     for r = 0 to regs-1
         for e = 0 to elements-1
@@ -6616,13 +6616,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRHADD",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             op1 = Int(Elem[D[n+r],e,esize], unsigned_);
@@ -6633,13 +6633,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRSHL",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             shift = SInt(Elem[D[n+r],e,esize]<7:0>);
@@ -6650,13 +6650,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRSHR",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     round_const = 1 << (shift_amount - 1);
     for r = 0 to regs-1
         for e = 0 to elements-1
@@ -6666,13 +6666,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRSHRN",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     round_const = 1 << (shift_amount-1);
     for e = 0 to elements-1
         result = LSR(Elem[Qin[m>>1],e,2*esize] + round_const, shift_amount);
@@ -6680,7 +6680,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRSQRTE",
     "operation" : """
 if ConditionPassed() then
@@ -6698,7 +6698,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRSQRTS",
     "operation" : """
 if ConditionPassed() then
@@ -6712,7 +6712,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRSRA",
     "operation" : """
 if ConditionPassed() then
@@ -6728,13 +6728,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VRSUBHN",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     round_const = 1 << (esize-1);
     for e = 0 to elements-1
         result = Elem[Qin[n>>1],e,2*esize] - Elem[Qin[m>>1],e,2*esize] + round_const;
@@ -6742,7 +6742,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSHL (immediate)",
     "operation" : """
 if ConditionPassed() then
@@ -6756,13 +6756,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSHL (register)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             shift = SInt(Elem[D[n+r],e,esize]<7:0>);
@@ -6772,7 +6772,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSHLL",
     "operation" : """
 if ConditionPassed() then
@@ -6784,13 +6784,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSHR",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             result = Int(Elem[D[m+r],e,esize], unsigned_) >> shift_amount;
@@ -6799,26 +6799,26 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSHRN",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for e = 0 to elements-1
         result = LSR(Elem[Qin[m>>1],e,2*esize], shift_amount);
         Elem[D[d],e,esize] = result<esize-1:0>;
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSLI",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     mask = LSL(Ones(esize), shift_amount);
     for r = 0 to regs-1
         for e = 0 to elements-1
@@ -6828,13 +6828,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSQRT",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckVFPEnabled(TRUE);
-    
+
     if dp_operation then
         D[d] = FPSqrt(D[m]);
     else
@@ -6842,7 +6842,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VSRA",
     "operation" : """
 if ConditionPassed() then
@@ -6857,7 +6857,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSRI",
     "operation" : """
 if ConditionPassed() then
@@ -6873,7 +6873,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VST1 (multiple single elements)",
     "operation" : """
 if ConditionPassed() then
@@ -6889,7 +6889,7 @@ if ConditionPassed() then
     if wback then
         R[n] = R[n] + (if register_index then R[m] else 8*regs);
     endif
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             if ebytes != 8 then
@@ -6905,7 +6905,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VST1 (single element from one lane)",
     "operation" : """
 if ConditionPassed() then
@@ -6925,7 +6925,7 @@ if ConditionPassed() then
     MemU[address,ebytes] = Elem[D[d],index,esize];
 endif
 """
-}, { 
+}, {
     "name" : "VST2 (multiple 2-element structures)",
     "operation" : """
 if ConditionPassed() then
@@ -6951,7 +6951,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VST2 (single 2-element structure from one lane)",
     "operation" : """
 if ConditionPassed() then
@@ -6972,7 +6972,7 @@ if ConditionPassed() then
     MemU[address+ebytes,ebytes] = Elem[D[d2],index,esize];
 endif
 """
-}, { 
+}, {
     "name" : "VST3 (multiple 3-element structures)",
     "operation" : """
 if ConditionPassed() then
@@ -6997,7 +6997,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VST3 (single 3-element structure from one lane)",
     "operation" : """
 if ConditionPassed() then
@@ -7015,14 +7015,14 @@ if ConditionPassed() then
     MemU[address+2*ebytes,ebytes] = Elem[D[d3],index,esize];
 endif
 """
-}, { 
+}, {
     "name" : "VST4 (multiple 4-element structures)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
     NullCheckIfThumbEE(n);
-    
+
     address = R[n];
     if (address MOD alignment) != 0 then
         GenerateAlignmentException();
@@ -7041,7 +7041,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VST4 (single 4-element structure from one lane)",
     "operation" : """
 if ConditionPassed() then
@@ -7064,7 +7064,7 @@ if ConditionPassed() then
     MemU[address+3*ebytes,ebytes] = Elem[D[d4],index,esize];
 endif
 """
-}, { 
+}, {
     "name" : "VSTM",
     "operation" : """
 if ConditionPassed() then
@@ -7088,7 +7088,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSTR",
     "operation" : """
 if ConditionPassed() then
@@ -7105,13 +7105,13 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VSUB (integer)",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             Elem[D[d+r],e,esize] = Elem[D[n+r],e,esize] - Elem[D[m+r],e,esize];
@@ -7119,7 +7119,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSUB (floating-point)",
     "operation" : """
 if ConditionPassed() then
@@ -7140,7 +7140,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "VSUBHN",
     "operation" : """
 if ConditionPassed() then
@@ -7153,7 +7153,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSUBL, VSUBW",
     "operation" : """
 if ConditionPassed() then
@@ -7172,7 +7172,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VSWP",
     "operation" : """
 if ConditionPassed() then
@@ -7189,21 +7189,21 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VTBL, VTBX",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     table3 = if length == 4 then D[n+3] else Zeros(64);
     table2 = if length >= 3 then D[n+2] else Zeros(64);
     table1 = if length >= 2 then D[n+1] else Zeros(64);
     table = table3 : table2 : table1 : D[n];
-    
+
     for i = 0 to 7
         index = UInt(Elem[D[m],i,8]);
-        
+
         if index < 8*length then
             Elem[D[d],i,8] = Elem[table,index,8];
         else
@@ -7214,7 +7214,7 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VTRN",
     "operation" : """
 if ConditionPassed() then
@@ -7234,13 +7234,13 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VTST",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     for r = 0 to regs-1
         for e = 0 to elements-1
             if !IsZero(Elem[D[n+r],e,esize] AND Elem[D[m+r],e,esize]) then
@@ -7252,20 +7252,20 @@ if ConditionPassed() then
     endfor
 endif
 """
-}, { 
+}, {
     "name" : "VUZP",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
     CheckAdvSIMDEnabled();
-    
+
     if quadword_operation then
         if d == m then
             Q[d>>1] = UNKNOWN_VALUE;
             Q[m>>1] = UNKNOWN_VALUE;
         else
             zipped_q = Q[m>>1]:Q[d>>1];
-    
+
             for e = 0 to (128 DIV esize) - 1
                 Elem[Q[d>>1],e,esize] = Elem[zipped_q,2*e,esize];
                 Elem[Q[m>>1],e,esize] = Elem[zipped_q,2*e+1,esize];
@@ -7285,7 +7285,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     # XXX: bits(256) zipped_q; & bits(128) zipped_d;
     "name" : "VZIP",
     "operation" : """
@@ -7324,12 +7324,12 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "WFE",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    
+
     if EventRegistered() then
         ClearEventRegister();
     else
@@ -7344,12 +7344,12 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "WFI",
     "operation" : """
 if ConditionPassed() then
     EncodingSpecificOperations();
-    
+
     if HaveVirtExt() && !IsSecure() && !CurrentModeIsHyp() && HCR.TWI == '1' then
         HSRString = Zeros(25);
         set_bit(HSRString, 0, '1');
@@ -7360,7 +7360,7 @@ if ConditionPassed() then
     endif
 endif
 """
-}, { 
+}, {
     "name" : "YIELD",
     "operation" : """
 if ConditionPassed() then

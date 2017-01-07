@@ -4,7 +4,6 @@ field_names = [
     "CPACR",
     "CPSR",
     "ELR_hyp",
-    "ENDIANSTATE",
     "FPEXC",
     "FPSCR",
     "HCPTR",

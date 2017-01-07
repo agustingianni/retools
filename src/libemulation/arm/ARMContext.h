@@ -375,7 +375,6 @@ public:
     uint32_t HVBAR = 0;
     uint32_t TEEHBR = 0;
     uint32_t ELR_hyp = 0;
-    bool ENDIANSTATE = false;
 
 private:
     Memory::AbstractMemory *m_memory;

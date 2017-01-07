@@ -50,7 +50,6 @@ known_types.append({"name" : "CurrentModeIsUserOrSystem",        "type" : ("int"
 known_types.append({"name" : "DecodeImmShift",                   "type" : ("list", 2)})
 known_types.append({"name" : "DecodeRegShift",                   "type" : ("int", 32)})
 known_types.append({"name" : "ELR_hyp",                          "type" : ("int", 32)})
-known_types.append({"name" : "ENDIANSTATE",                      "type" : ("int",  1)})
 known_types.append({"name" : "FPCompare",                        "type" : ("list", 4)})
 known_types.append({"name" : "FPCompareEQ",                      "type" : ("int",  1)})
 known_types.append({"name" : "FPCompareGE",                      "type" : ("int",  1)})
