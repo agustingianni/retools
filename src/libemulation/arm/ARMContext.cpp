@@ -680,9 +680,53 @@ bool ARMContext::Coproc_DoneStoring(unsigned cp_num, unsigned instr) {
     return true;
 }
 
+// Returns true for T1 and T3 encodings of the Branch instruction.
+static bool is_special_branch(uint32_t opcode, uint32_t &cond) {
+    if ((opcode & 0xfffff000) == 0x0000d000) {
+        cond = get_bits(opcode, 11, 8);
+        return true;
+    }
+
+    if ((opcode & 0xf800d000) == 0xf0008000) {
+        cond = get_bits(opcode, 25, 22);
+        return true;
+    }
+
+    return false;
+}
+
 uint32_t ARMContext::CurrentCond() {
-    assert("Method not implemented.");
-    return 0;
+    uint32_t cond = 0;
+    switch (CurrentInstrSet()) {
+        case InstrSet_ARM:
+            cond = get_bits(ThisInstr(), 31, 28);
+            break;
+
+        case InstrSet_Thumb:
+        case InstrSet_ThumbEE:
+            if (is_special_branch(ThisInstr(), cond)) {
+                break;
+            }
+
+            if (get_bits(CPSR.IT(), 3, 0) != 0) {
+                cond = get_bits(CPSR.IT(), 7, 4);
+                break;
+            }
+
+            if (get_bits(CPSR.IT(), 7, 0) == 0) {
+                cond = 0x0e;
+                break;
+            }
+
+            UNPREDICTABLE();
+            break;
+
+        default:
+            UNPREDICTABLE();
+            break;
+    }
+
+    return cond;
 }
 
 // Returns TRUE if the current instruction passes its condition code check.
