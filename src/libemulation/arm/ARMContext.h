@@ -219,20 +219,13 @@ public:
     void BankedRegisterAccessValid(unsigned SYSm, unsigned mode);
 
     void LoadWritePC(unsigned address) {
-        if (ArchVersion() >= ARMv5) {
-            BXWritePC(address);
-        } else {
-            BranchWritePC(address);
-        }
+        (ArchVersion() >= ARMv5) ?
+            BXWritePC(address) : BranchWritePC(address);
     }
 
 	void ALUWritePC(uint32_t address) {
-        if (ArchVersion() >= ARMv7 && CurrentInstrSet() == InstrSet_ARM)
-            BXWritePC(address);
-        else
-            BranchWritePC(address);
-
-		return;
+        (ArchVersion() >= ARMv7 && CurrentInstrSet() == InstrSet_ARM) ?
+            BXWritePC(address) : BranchWritePC(address);
 	}
 
     void BXWritePC(uint32_t address) {
@@ -315,16 +308,22 @@ public:
     }
 
     void BranchWritePC(uint32_t address) {
-        if (CurrentInstrSet() == InstrSet_ARM) {
-            if (ArchVersion() < ARMv6 && (address & 3) != 0) {
-                UNPREDICTABLE();
-            }
+        switch (CurrentInstrSet()) {
+            case InstrSet_ARM:
+                if (ArchVersion() < ARMv6 && (address & 3) != 0) {
+                    UNPREDICTABLE();
+                }
 
-            BranchTo(address & 0xfffffffc);
-        } else if (CurrentInstrSet() == InstrSet_Jazelle) {
-            BranchTo(address);
-        } else {
-            BranchTo(address & 1);
+                BranchTo(address & 0xfffffffc);
+                break;
+
+            case InstrSet_Jazelle:
+                BranchTo(address);
+                break;
+
+            default:
+                BranchTo(address & 0xfffffffe);
+                break;
         }
     }
 
