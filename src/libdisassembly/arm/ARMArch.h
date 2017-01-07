@@ -260,6 +260,10 @@ typedef struct cpsr {
     unsigned Z: 1;
     unsigned N: 1;
 
+    unsigned IT() const {
+        return (IT_7_2 << 2) | IT_1_0;
+    }
+
     operator unsigned() const {
         return *reinterpret_cast<const unsigned *>(this);
     }
