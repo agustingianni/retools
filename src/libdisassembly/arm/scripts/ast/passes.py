@@ -133,9 +133,12 @@ class IdentifierRenamer(TransformationPass):
         """
         The identifiers in the specification are not part of an object. The
         task of this is to change the right identifiers to be part of the
-        ARMInstruction object being used.
+        object being used.
         """
-        if node.name in self.identifiers:
+        # TODO(agustin): Our parser does not break <id_name>.<field_name> so we need to
+        # account for that here by splitting the identifier.
+        node_name = node.name.split(".", 1)[0]
+        if node_name in self.identifiers:
             node.name = self.prefix + node.name
 
 class FunctionRenamer(TransformationPass):
