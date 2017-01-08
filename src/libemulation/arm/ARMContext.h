@@ -354,8 +354,13 @@ public:
     hsr_t HSR;
     sctlr_t SCTLR;
     hsctlr_t HSCTLR;
-    apsr_t APSR;
-    cpsr_t CPSR;
+
+    // APSR is an alias for CPSR in ARMv7.
+    union {
+        cpsr_t APSR;
+        cpsr_t CPSR;
+    };
+
     fpscr_t FPSCR;
     hcr_t HCR;
     hstr_t HSTR;
