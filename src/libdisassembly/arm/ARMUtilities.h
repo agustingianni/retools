@@ -112,13 +112,19 @@ inline uint32_t RRX(uint32_t value, uint32_t carry_in) {
 }
 
 // Implementation of: (bits(N), bit, bit) AddWithCarry(bits(N) x, bits(N) y, bit carry_in)
-inline std::tuple<uint32_t, uint32_t, uint32_t> AddWithCarry(uint32_t x, uint32_t y, uint32_t carry_in) {
-    uint64_t unsigned_sum = static_cast<uint64_t>(x) + static_cast<uint64_t>(y) + carry_in;
-    int64_t signed_sum = static_cast<int64_t>(x) + static_cast<int64_t>(y) + carry_in;
-    uint32_t result = static_cast<uint32_t>(unsigned_sum);
-    uint32_t carry_out = (static_cast<uint32_t>(result) == unsigned_sum) ? 0 : 1;
-    uint32_t overflow_out = (static_cast<int32_t>(result) == signed_sum) ? 0 : 1;
-    return std::make_tuple(result, carry_out, overflow_out);
+inline std::tuple<uint32_t, bool, bool> AddWithCarry(uint32_t x, uint32_t y, bool c) {
+	uint64_t ux64 = x;
+	uint64_t uy64 = y;
+	uint64_t usum = ux64 + uy64 + static_cast<uint64_t>(c);
+
+	int64_t  sx64 = static_cast<int32_t>(x);
+	int64_t  sy64 = static_cast<int32_t>(y);
+	int64_t  ssum = sx64 + sy64 + static_cast<int64_t>(c);
+
+	uint32_t uresult = usum;
+	int32_t  sresult = usum;
+
+    return std::make_tuple(uresult, uresult != usum, sresult != ssum);
 }
 
 // Implementation of: (SRType, integer) DecodeImmShift(bits(2) type, bits(5) imm5)
@@ -286,7 +292,7 @@ inline uint64_t Replicate(uint64_t bit, int N) {
 	if (!bit)
 		return 0;
 
-	if (N == 64) 
+	if (N == 64)
 		return 0xffffffffffffffffLL;
 
 	return (1ULL << N) - 1;
