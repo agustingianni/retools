@@ -348,7 +348,7 @@ namespace RegisterInitPolicy {
 
 class InstructionInspector {
 public:
-	virtual void run(ARMMode mode, uint32_t opcode) = 0;
+	virtual bool run(ARMMode mode, uint32_t opcode) = 0;
 	virtual void reset() = 0;
 	virtual instruction_effects effects() = 0;
 
@@ -405,16 +405,17 @@ public:
 		uc_close(m_engine);
 	}
 
-	void run(ARMMode mode, uint32_t opcode) override {
+	bool run(ARMMode mode, uint32_t opcode) override {
 		// Write the instruction and emulate it.
 		uc_mem_write(m_engine, m_base, &opcode, sizeof(opcode));
 
 		// Emulate.
 		uc_err err = uc_emu_start(m_engine, m_base, m_base + sizeof(opcode) - 1, 0, 1);
 		if (err != UC_ERR_OK) {
-			LOG_ERR("Error emulating instruction: %s.", uc_strerror(err));
-			return;
+			return false;
 		}
+
+		return true;
 	}
 
 	instruction_effects effects() override {
@@ -475,11 +476,12 @@ public:
 	~REToolsInstructionInspector() {
 	}
 
-	void run(ARMMode mode, uint32_t opcode) override {
+	bool run(ARMMode mode, uint32_t opcode) override {
 		m_context->SelectInstrSet(mode);
 		m_context->setRegister(Register::ARM_REG_PC, m_base);
 		m_memory->write_value(m_base, opcode);
 		m_emulator->start(1);
+		return true;
 	}
 
 	instruction_effects effects() override {
@@ -504,7 +506,8 @@ public:
 	~HardwareInstructionInspector() {
 	}
 
-	void run(ARMMode mode, uint32_t opcode) override {
+	bool run(ARMMode mode, uint32_t opcode) override {
+		return false;
 	}
 
 	instruction_effects effects() override {
@@ -666,9 +669,13 @@ int main(int argc, char **argv) {
 		LOG_INFO("%-10s %-30s %-30s", "opcode", "retools", "capstone");
 		LOG_INFO("0x%.8x %-30s %-30s", op_code, retools_disassemble(op_code, 0).c_str(), capstone_disassemble(op_code, 0).c_str());
 
-		// Run the instruction.
-		unicorn_inspector.run(ARMMode_ARM, op_code);
-		retools_inspector.run(ARMMode_ARM, op_code);
+		if (!unicorn_inspector.run(ARMMode_ARM, op_code)) {
+			continue;
+		}
+
+		if (!retools_inspector.run(ARMMode_ARM, op_code)) {
+			continue;
+		}
 
 		// Collect the effects.
 		auto r0 = unicorn_inspector.effects();
