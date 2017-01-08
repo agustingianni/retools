@@ -16,6 +16,15 @@ class TransformationPass(Visitor):
 def MakeAssignmentStatement(lhs, rhs):
     return BinaryExpression("assign", lhs, rhs)
 
+def remove_node_from_parent(parent, node):
+    # TODO(agustin): Expand this to other node types.
+    if type(parent) is If:
+        parent.if_statements = filter(lambda statement: statement != node, parent.if_statements)
+        parent.else_statements = filter(lambda statement: statement != node, parent.else_statements)
+        return True
+
+    return False
+
 class ListAssignmentRewriter(TransformationPass):
     name = "ListAssignmentRewriter"
     description = "Fixes untranslatable list assignments."
@@ -29,7 +38,7 @@ class ListAssignmentRewriter(TransformationPass):
             needs_update = False
             new_assignments = []
             new_list_values = []
-            
+
             # Iterate all the values from the 'List'.
             for val in node.left_expr.values:
                 if not type(val) is ArrayAccess:
@@ -76,7 +85,7 @@ class ListAssignmentRewriter(TransformationPass):
                         new_statements.extend(new_assignments)
 
                 parent.else_statements = new_statements
-            
+
 
     def accept_BinaryExpression(self, parent, node):
         if node.type == "assign":
@@ -94,11 +103,8 @@ class SimpleFunctionOptimization(TransformationPass):
     description = "Simplify simple function calls when we can."
 
     def accept_ProcedureCall(self, parent, node):
-        if node.name.name == "IsZeroBit":
-            print "IsZeroBit node -> %r" % node
-
-        elif node.name.name == "get_bit":
-            print "get_bit node -> %r" % node
+        if node.name.name == "EncodingSpecificOperations":
+            remove_node_from_parent(parent, node)
 
 class IdentifierRenamer(TransformationPass):
     """
