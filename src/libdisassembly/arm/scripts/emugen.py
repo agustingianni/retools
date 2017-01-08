@@ -7,7 +7,7 @@ import tempfile
 import argparse
 
 from parser import ARMv7Parser
-from specification import ARMv7OperationSpec, ARMv7Types
+from specification import ARMv7OperationSpec, ARMv7Types, ARMv7Context
 from ast.passes import IdentifierRenamer, ListAssignmentRewriter, SimpleFunctionOptimization
 from ast.translators import InterpreterCPPTranslator, indent, NeedsSemiColon
 from disgen import instruction_id_name
@@ -164,26 +164,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += "    template<class T> const T& FPMax(const T& a, const T& b, bool val) { return (a < b) ? b : a; }\n"
         header += "    template<class T> const T& FPMin(const T& a, const T& b, bool val) { return (a < b) ? a : b; }\n"
         header += "    unsigned PolynomialMult(unsigned op1, unsigned op2) { return 0; }\n"
-
         header += "\n"
-        header += "    fpscr_t FPSCR;\n"
-        header += "    nsacr_t NSACR;\n"
-        header += "    itstate_t ITSTATE;\n"
-        header += "    spsr_t SPSR_fiq;\n"
-        header += "    spsr_t SPSR_irq;\n"
-        header += "    spsr_t SPSR_svc;\n"
-        header += "    spsr_t SPSR_abt;\n"
-        header += "    spsr_t SPSR_und;\n"
-        header += "    spsr_t SPSR_mon;\n"
-        header += "    spsr_t SPSR_hyp;\n"
-        header += "    hstr_t HSTR;\n"
-        header += "    jmcr_t JMCR;\n"
-        header += "    hcr_t HCR;\n"
-        header += "    cpsr_t CPSR;\n"
-        header += "    spsr_t SPSR;\n"
-        header += "    apsr_t APSR;\n"
-        header += "    scr_t SCR;\n"
-        header += "    unsigned ELR_hyp = 0;\n"
 
         fd.write(header)
         for instruction in ARMv7OperationSpec.instructions:
@@ -216,6 +197,13 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         body += "}\n\n"
         fd.write(body)
 
+        # Fix the type name of variables that are in ARMContext by adding the 'm_ctx.' prefix.
+        for entry in known_types:
+            original_name = entry["name"]
+            real_name = original_name.split(".", 1)[0]
+            if real_name in ARMv7Context.field_names:
+                entry["name"] = "m_ctx." + original_name
+
         for i, instruction in enumerate(ARMv7OperationSpec.instructions):
             ins_name = instruction["name"]
             logging.info("Processing instruction '%s' (%d)" % (ins_name, i))
@@ -242,6 +230,9 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
 
             # Convert all the local variables to instance variables.
             IdentifierRenamer(symbols[ins_id], "ins.").transform(program_ast)
+
+            # Add the m_ctx prefix to variables present in ARMContext.
+            IdentifierRenamer(ARMv7Context.field_names, "m_ctx.").transform(program_ast)
 
             # Fix untranslatable list assignments.
             ListAssignmentRewriter().transform(program_ast)
