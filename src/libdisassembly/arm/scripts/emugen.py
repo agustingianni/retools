@@ -1,12 +1,14 @@
 import os
 import re
 import json
+import shutil
 import logging
+import tempfile
 import argparse
 
 from parser import ARMv7Parser
 from specification import ARMv7OperationSpec, ARMv7Types
-from ast.passes import IdentifierRenamer, ListAssignmentRewriter
+from ast.passes import IdentifierRenamer, ListAssignmentRewriter, SimpleFunctionOptimization
 from ast.translators import InterpreterCPPTranslator, indent, NeedsSemiColon
 from disgen import instruction_id_name
 
@@ -235,6 +237,9 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
                 symbol = "ins." + symbol
                 ins_types.append({"name" : symbol, "type" : ("int", 32)})
 
+            # Remove useless elements from AST.
+            SimpleFunctionOptimization().transform(program_ast)
+
             # Convert all the local variables to instance variables.
             IdentifierRenamer(symbols[ins_id], "ins.").transform(program_ast)
 
@@ -280,9 +285,11 @@ def main():
     parser.add_argument("-o", "--directory", default="../gen/", help="Directory where the generated files will be placed.")
     parser.add_argument("-g", "--generate", action='store_true', help="Generate ARMInterpreter[.h|.cpp]")
     parser.add_argument("-d", "--debug", action='store_true', help="Enable debugging information, just for developers.")
+    parser.add_argument("-n", "--dry_mode", action='store_true', help="Do not write output to files.")
 
     args = parser.parse_args()
 
+    DRY_MODE = args.dry_mode
     DEBUG = args.debug
     gen_decoder = args.generate
 
@@ -290,6 +297,12 @@ def main():
         logging.error("Nothing to generate, please choose one option")
         parser.print_help()
         return False
+
+    # Create dummy 'gen' dir and dummy 'symbols.sym'.
+    if DRY_MODE:
+        logging.info("Running in dry mode, I will not actually write any output.")
+        args.directory = tempfile.mkdtemp()
+        open(os.path.join(args.directory, "symbols.sym"), "a").close()
 
     # Filenames and path's.
     gen_dir = os.path.abspath(args.directory)
