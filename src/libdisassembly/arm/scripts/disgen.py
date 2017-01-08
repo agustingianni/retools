@@ -335,7 +335,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
         fd.write("            ARMOpcode *opcode = &thumb_opcodes[i];\n")
         fd.write("            ARMInstruction ins = (this->*opcode->decoder)(op_code, opcode->ins_size, opcode->encoding);\n")
         fd.write("\n")
-        fd.write("            // Skip instruction when there is a SEE command.\n")        
+        fd.write("            // Skip instruction when there is a SEE command.\n")
         fd.write("            if (!ins.m_skip) {\n")
         fd.write("                return ins;\n")
         fd.write("            }\n")
@@ -372,7 +372,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
 
             # Define the decoder.
             fd.write("ARMInstruction ARMDecoder::%s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n" % decoder_name)
-            
+
             # Generate the local variables containing the bits decoded from the opcode.
             ret = __translate_bit_patterns__(instruction["pattern"].split())
             for r in ret:
@@ -429,7 +429,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
             # Add the 'encoding' field to the instruction fields.
             instruction_fields[ins_name].add("encoding")
 
-            # Save all the variables defined inside the decoding procedure.  
+            # Save all the variables defined inside the decoding procedure.
             for var in translator.define_me:
                 # Ignored variables should not be propagated.
                 if "ignored" in var:
@@ -467,7 +467,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
             fd.write("    struct %s {\n" % name)
             for field in sorted(values):
                 fd.write("        unsigned %s;\n" % field)
-            
+
             fd.write("    };\n\n")
 
         fd.write("} m_fields;\n")
@@ -512,7 +512,7 @@ string banked_reg(const ARMInstruction *ins) {
                 break;
             case 6: // 0b110
                 tmp = "LR_usr";
-                break;                
+                break;
             case 8: // 0b1000
                 tmp = "R8_fiq";
                 break;
@@ -607,12 +607,12 @@ string banked_reg(const ARMInstruction *ins) {
 }
 
 string effect_str(const ARMInstruction *ins) {
-    if (ins->enable) 
+    if (ins->enable)
         return "IE";
-        
-    if (ins->disable) 
+
+    if (ins->disable)
         return "ID";
-        
+
     return "";
 }
 
@@ -621,7 +621,7 @@ string align_str(const ARMInstruction *ins) {
         case vst4_multiple_4_element_structures:
         case vst3_multiple_3_element_structures:
         case vst1_multiple_single_elements:
-        case vst2_multiple_2_element_structures:    
+        case vst2_multiple_2_element_structures:
         case vld1_multiple_single_elements:         // VLD1 (multiple single elements)
         case vld2_multiple_2_element_structures:    // VLD2 (multiple 2-element structures)
         case vld4_multiple_4_element_structures:    // VLD4 (multiple 4-element structures)
@@ -795,12 +795,12 @@ string list_str(const ARMInstruction *ins) {
                         ", D" + to_string(ins->d + 2) +
                         ", D" + to_string(ins->d + 4) +
                         ", D" + to_string(ins->d + 6) +
-                        "}";                
+                        "}";
                 case 5:
                     return "{D" + to_string(ins->d) +
                         ", D" + to_string(ins->d + 2) +
                         ", D" + to_string(ins->d + 4) +
-                        "}";                
+                        "}";
                 case 8:
                     return "{D" + to_string(ins->d) +
                         ", D" + to_string(ins->d + 1) +
@@ -822,7 +822,7 @@ string list_str(const ARMInstruction *ins) {
                         ", D" + to_string(ins->d + 1) +
                         "}";
                 case 4:
-                case 6:                
+                case 6:
                     return "{D" + to_string(ins->d) +
                         ", D" + to_string(ins->d + 1) +
                         ", D" + to_string(ins->d + 2) +
