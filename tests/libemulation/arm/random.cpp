@@ -213,6 +213,7 @@ struct instruction_effects {
 	}
 
 	static void print_diff(const char *desc0, const char *desc1, const instruction_effects &base, const instruction_effects &e0, const instruction_effects &e1) {
+		bool differs = false;
 		std::vector<std::tuple<unsigned, u32_t, u32_t>> rr_diffs;
 		std::vector<std::tuple<unsigned, u64_t, u64_t>> dr_diffs;
 
@@ -220,6 +221,8 @@ struct instruction_effects {
 			LOG_RED("%-14s: %s", "original", cpsr_to_string(base.cpsr).c_str());
 			LOG_RED("%-14s: %s", desc0, cpsr_to_string(e0.cpsr).c_str());
 			LOG_RED("%-14s: %s", desc1, cpsr_to_string(e1.cpsr).c_str());
+
+			differs = true;
 		}
 
 		for (unsigned i = 0; i < N_REGULAR_REGS; i++) {
@@ -245,6 +248,8 @@ struct instruction_effects {
 				std::tie(reg_no, val0, val1) = diff;
 				LOG_RED("r%-2u:0x%.8x  r%-2u:0x%.8x  r%-2u:0x%.8x", reg_no, base.regular_regs[reg_no], reg_no, val0, reg_no, val1);
 			}
+
+			differs = true;
 		}
 
 		if (!dr_diffs.empty()) {
@@ -256,6 +261,12 @@ struct instruction_effects {
 				std::tie(reg_no, val0, val1) = diff;
 				LOG_RED("r%-2u:0x%.16llx != r%-2u:0x%.16llx", reg_no, val0, reg_no, val1);
 			}
+
+			differs = true;
+		}
+
+		if (!differs) {
+			LOG_GREEN("No differences found!");
 		}
 	}
 };
