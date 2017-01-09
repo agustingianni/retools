@@ -130,7 +130,7 @@ void ARMContext::setRegister(Register::Core reg, uint32_t value) {
     m_core_regs[reg] = value;
 }
 
-void ARMContext::getRegister(Register::Core reg, uint32_t &value) {
+void ARMContext::getRegister(Register::Core reg, uint32_t &value) const {
     LOG_DEBUG("reg=%s", Register::name(reg).c_str());
     value = m_core_regs[reg];
 }
@@ -140,7 +140,7 @@ void ARMContext::setRegister(Register::Coproc reg, uint32_t value) {
     m_coproc_regs[reg] = value;
 }
 
-void ARMContext::getRegister(Register::Coproc reg, uint32_t &value) {
+void ARMContext::getRegister(Register::Coproc reg, uint32_t &value) const {
     LOG_DEBUG("reg=%s", Register::name(reg).c_str());
     value = m_coproc_regs[reg];
 }
@@ -150,7 +150,7 @@ void ARMContext::setRegister(Register::Single reg, uint32_t value) {
     m_single_regs[reg] = value;
 }
 
-void ARMContext::getRegister(Register::Single reg, uint32_t &value) {
+void ARMContext::getRegister(Register::Single reg, uint32_t &value) const {
     LOG_DEBUG("reg=%s", Register::name(reg).c_str());
     value = m_single_regs[reg];
 }
@@ -160,7 +160,7 @@ void ARMContext::setRegister(Register::Double reg, uint64_t value) {
     m_double_regs[reg] = value;
 }
 
-void ARMContext::getRegister(Register::Double reg, uint64_t &value) {
+void ARMContext::getRegister(Register::Double reg, uint64_t &value) const {
     LOG_DEBUG("reg=%s", Register::name(reg).c_str());
     value = m_double_regs[reg];
 }
@@ -170,34 +170,34 @@ void ARMContext::setRegister(Register::Quad reg, uint64_t value) {
     m_quad_regs[reg] = value;
 }
 
-void ARMContext::getRegister(Register::Quad reg, uint64_t &value) {
+void ARMContext::getRegister(Register::Quad reg, uint64_t &value) const {
     LOG_DEBUG("reg=%s", Register::name(reg).c_str());
     value = m_quad_regs[reg];
 }
 
-uint32_t ARMContext::readRegularRegister(unsigned regno) {
+uint32_t ARMContext::readRegularRegister(unsigned regno) const {
     uint32_t value;
     getRegister(static_cast<Register::Core>(regno), value);
     return value;
 }
 
-uint32_t ARMContext::readRmode(unsigned regno, unsigned n) {
+uint32_t ARMContext::readRmode(unsigned regno, unsigned n) const {
     return 0;
 }
 
-uint32_t ARMContext::readSingleRegister(unsigned regno) {
+uint32_t ARMContext::readSingleRegister(unsigned regno) const {
     uint32_t value;
     getRegister(static_cast<Register::Single>(regno), value);
     return value;
 }
 
-uint64_t ARMContext::readDoubleRegister(unsigned regno) {
+uint64_t ARMContext::readDoubleRegister(unsigned regno) const {
     uint64_t value;
     getRegister(static_cast<Register::Double>(regno), value);
     return value;
 }
 
-uint64_t ARMContext::readQuadRegister(unsigned regno) {
+uint64_t ARMContext::readQuadRegister(unsigned regno) const {
     uint64_t value;
     getRegister(static_cast<Register::Quad>(regno), value);
     return value;
@@ -223,15 +223,15 @@ void ARMContext::writeQuadRegister(unsigned regno, uint64_t value) {
     setRegister(static_cast<Register::Quad>(regno), value);
 }
 
-uint32_t ARMContext::read_MemA(uintptr_t address, unsigned size) {
+uint32_t ARMContext::read_MemA(uintptr_t address, unsigned size) const {
     return read_MemA_with_priv(address, size, CurrentModeIsNotUser());
 }
 
-uint32_t ARMContext::read_MemA_unpriv(uintptr_t address, unsigned size) {
+uint32_t ARMContext::read_MemA_unpriv(uintptr_t address, unsigned size) const {
     return read_MemA_with_priv(address, size, false);
 }
 
-uint32_t ARMContext::read_MemA_with_priv(uintptr_t address, unsigned size, bool privileged) {
+uint32_t ARMContext::read_MemA_with_priv(uintptr_t address, unsigned size, bool privileged) const {
     if (address != Align(address, size)) {
         if (SCTLR.A && SCTLR.U) {
             AlignmentFault(address, false);
@@ -248,15 +248,15 @@ uint32_t ARMContext::read_MemA_with_priv(uintptr_t address, unsigned size, bool 
     return value;
 }
 
-uint32_t ARMContext::read_MemU(uintptr_t address, unsigned size) {
+uint32_t ARMContext::read_MemU(uintptr_t address, unsigned size) const {
     return read_MemU_with_priv(address, size, CurrentModeIsNotUser());
 }
 
-uint32_t ARMContext::read_MemU_unpriv(uintptr_t address, unsigned size) {
+uint32_t ARMContext::read_MemU_unpriv(uintptr_t address, unsigned size) const {
     return read_MemU_with_priv(address, size, false);
 }
 
-uint32_t ARMContext::read_MemU_with_priv(uintptr_t address, unsigned size, bool privileged) {
+uint32_t ARMContext::read_MemU_with_priv(uintptr_t address, unsigned size, bool privileged) const {
     if (SCTLR.A == 0 && SCTLR.U == 0) {
         address = Align(address, size);
     }
@@ -281,7 +281,6 @@ uint32_t ARMContext::read_MemU_with_priv(uintptr_t address, unsigned size, bool 
 
 void ARMContext::write_MemA(uint32_t value, uintptr_t address, unsigned size) {
     write_MemA_with_priv(value, address, size, CurrentModeIsNotUser());
-
 }
 
 void ARMContext::write_MemA_unpriv(uint32_t value, uintptr_t address, unsigned size) {
@@ -332,7 +331,7 @@ void ARMContext::write_MemU_with_priv(uint32_t value, uintptr_t address, unsigne
     }
 }
 
-uint32_t ARMContext::readMemory(uintptr_t address, unsigned size) {
+uint32_t ARMContext::readMemory(uintptr_t address, unsigned size) const {
     LOG_DEBUG("address=0x%.8x, size=0x%.8x", address, size);
     uint64_t value = 0;
     m_memory->read(address, &value, size);
@@ -344,7 +343,7 @@ uint32_t ARMContext::writeMemory(uintptr_t address, unsigned size, uintptr_t val
     return 0;
 }
 
-uint32_t ARMContext::readElement(uintptr_t address, uintptr_t value, unsigned size) {
+uint32_t ARMContext::readElement(uintptr_t address, uintptr_t value, unsigned size) const {
     LOG_DEBUG("address=0x%.8x, value=0x%.8x, size=0x%.8x", address, value, size);
     return 0;
 }
@@ -355,7 +354,7 @@ uint32_t ARMContext::writeElement(uintptr_t address, unsigned size, uintptr_t va
 }
 
 // The BadMode() function tests whether a 5-bit mode number corresponds to one of the permitted modes:
-bool ARMContext::BadMode(unsigned mode) {
+bool ARMContext::BadMode(unsigned mode) const {
     bool result;
 
     switch (mode) {
@@ -385,7 +384,7 @@ bool ARMContext::BadMode(unsigned mode) {
 }
 
 // Returns TRUE if current mode executes at PL1 or higher.
-bool ARMContext::CurrentModeIsNotUser() {
+bool ARMContext::CurrentModeIsNotUser() const {
     if (BadMode(CPSR.M))
         UNPREDICTABLE();
 
@@ -396,7 +395,7 @@ bool ARMContext::CurrentModeIsNotUser() {
 }
 
 // Returns TRUE if current mode is User or System mode.
-bool ARMContext::CurrentModeIsUserOrSystem() {
+bool ARMContext::CurrentModeIsUserOrSystem() const {
     if (BadMode(CPSR.M))
         UNPREDICTABLE();
 
@@ -410,7 +409,7 @@ bool ARMContext::CurrentModeIsUserOrSystem() {
 }
 
 // Returns TRUE if current mode is Hyp mode
-bool ARMContext::CurrentModeIsHyp() {
+bool ARMContext::CurrentModeIsHyp() const {
     if (BadMode(CPSR.M))
         UNPREDICTABLE();
 
@@ -421,40 +420,40 @@ bool ARMContext::CurrentModeIsHyp() {
 }
 
 // The HaveSecurityExt() function returns TRUE if the implementation includes the Security Extensions, and FALSE otherwise.
-bool ARMContext::HaveSecurityExt() {
+bool ARMContext::HaveSecurityExt() const {
     return m_has_security_extension;
 }
 
 // The IsSecure() function returns TRUE if the processor is in Secure state, or if the
 // implementation does not include the Security Extensions, and FALSE otherwise.
-bool ARMContext::IsSecure() {
+bool ARMContext::IsSecure() const {
     return !HaveSecurityExt() || SCR.NS == 0 || CPSR.M == 22; // Monitor mode
 }
 
 // This function returns TRUE if the implementation includes the Virtualization Extensions.
-bool ARMContext::HaveVirtExt() {
+bool ARMContext::HaveVirtExt() const {
     return m_has_virtual_extensions;
 }
 
 // Returns true if we are in big endian mode.
-bool ARMContext::BigEndian() {
+bool ARMContext::BigEndian() const {
     return CPSR.E == 1;
 }
 
 // This function returns TRUE if the processor currently provides support for unaligned memory accesses,
 // or FALSE otherwise. This is always TRUE in ARMv7, controllable by the SCTLR.U bit in ARMv6, and always
 // FALSE before ARMv6.
-bool ARMContext::UnalignedSupport() {
+bool ARMContext::UnalignedSupport() const {
     return m_supports_unaligned;
 }
 
 // This function returns TRUE if the implementation includes the Virtualization Extensions.
-bool ARMContext::HasVirtExt() {
+bool ARMContext::HasVirtExt() const {
     return m_has_virtual_extensions;
 }
 
 // This function returns TRUE if the implementation includes the Large Physical Address Extension.
-bool ARMContext::HaveLPAE() {
+bool ARMContext::HaveLPAE() const {
     return m_have_lpae;
 }
 
@@ -462,17 +461,17 @@ bool ARMContext::HaveLPAE() {
 // instructions SDIV and UDIV is enabled, and FALSE otherwise.
 // In the ARMv7-R profile, this is controlled by the SCTLR.DZ bit. The ARMv7-A profile does
 // not support trapping of integer division by zero.
-bool ARMContext::IntegerZeroDivideTrappingEnabled() {
+bool ARMContext::IntegerZeroDivideTrappingEnabled() const {
     return m_int_zero_div_trap_enabled;
 }
 
 // This function indicates whether Jazelle hardware will take over execution when a BXJ instruction is executed.
-bool ARMContext::JazelleAcceptsExecution() {
+bool ARMContext::JazelleAcceptsExecution() const {
     return m_jazelle_accepts_execution;
 }
 
 // This function returns TRUE if the implementation includes the Multiprocessing Extensions.
-bool ARMContext::HaveMPExt() {
+bool ARMContext::HaveMPExt() const {
     return m_have_mp_extensions;
 }
 
@@ -547,13 +546,13 @@ void ARMContext::Hint_Yield() {
 }
 
 // This function returns the bitstring encoding of the currently-executing instruction.
-unsigned ARMContext::ThisInstr() {
+unsigned ARMContext::ThisInstr() const {
     assert("Method not implemented.");
     return 0;
 }
 
 // This function returns the length, in bits, of the current instruction. This means it returns 32 or 16.
-unsigned ARMContext::ThisInstrLength() {
+unsigned ARMContext::ThisInstrLength() const {
     assert("Method not implemented.");
     return 0;
 }
@@ -622,7 +621,7 @@ void ARMContext::WaitForInterrupt() {
 }
 
 // This function returns an integer that uniquely identifies the executing processor in the system.
-unsigned ARMContext::ProcessorID() {
+unsigned ARMContext::ProcessorID() const {
     assert("Not implemented");
     return 0;
 }
@@ -695,7 +694,7 @@ static bool is_special_branch(uint32_t opcode, uint32_t &cond) {
     return false;
 }
 
-uint32_t ARMContext::CurrentCond() {
+uint32_t ARMContext::CurrentCond() const {
     uint32_t cond = 0;
     switch (CurrentInstrSet()) {
         case InstrSet_ARM:
@@ -730,7 +729,7 @@ uint32_t ARMContext::CurrentCond() {
 }
 
 // Returns TRUE if the current instruction passes its condition code check.
-bool ARMContext::ConditionPassed() {
+bool ARMContext::ConditionPassed() const {
     uint32_t cond = CurrentCond();
     bool result = false;
 

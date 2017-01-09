@@ -54,7 +54,7 @@ public:
         return m_core_regs;
     }
 
-    std::array<uint64_t, Register::ARM_REG_DOUBLE_MAX> getDoubleRegisters() {
+    std::array<uint64_t, Register::ARM_REG_DOUBLE_MAX> getDoubleRegisters() const {
         return m_double_regs;
     }
 
@@ -67,21 +67,21 @@ public:
     }
 
 	void setRegister(Register::Core reg, uint32_t value);
-	void getRegister(Register::Core reg, uint32_t &value);
+	void getRegister(Register::Core reg, uint32_t &value) const;
 	void setRegister(Register::Coproc reg, uint32_t value);
-	void getRegister(Register::Coproc reg, uint32_t &value);
+	void getRegister(Register::Coproc reg, uint32_t &value) const;
 	void setRegister(Register::Single reg, uint32_t value);
-	void getRegister(Register::Single reg, uint32_t &value);
+	void getRegister(Register::Single reg, uint32_t &value) const;
 	void setRegister(Register::Double reg, uint64_t value);
-	void getRegister(Register::Double reg, uint64_t &value);
+	void getRegister(Register::Double reg, uint64_t &value) const;
 	void setRegister(Register::Quad reg, uint64_t value);
-	void getRegister(Register::Quad reg, uint64_t &value);
+	void getRegister(Register::Quad reg, uint64_t &value) const;
 
-	uint32_t readRegularRegister(unsigned regno);
-	uint32_t readRmode(unsigned regno, unsigned n);
-	uint32_t readSingleRegister(unsigned regno);
-	uint64_t readDoubleRegister(unsigned regno);
-	uint64_t readQuadRegister(unsigned regno);
+	uint32_t readRegularRegister(unsigned regno) const;
+	uint32_t readRmode(unsigned regno, unsigned n) const;
+	uint32_t readSingleRegister(unsigned regno) const;
+	uint64_t readDoubleRegister(unsigned regno) const;
+	uint64_t readQuadRegister(unsigned regno) const;
 
 	void writeRegularRegister(unsigned regno, uintptr_t value);
 	void writeRmode(unsigned regno, unsigned size, uintptr_t value);
@@ -90,12 +90,12 @@ public:
 	void writeQuadRegister(unsigned regno, uint64_t value);
 
     // Implementation of memory access routines from the manual.
-    uint32_t read_MemA(uintptr_t address, unsigned size);
-    uint32_t read_MemA_unpriv(uintptr_t address, unsigned size);
-    uint32_t read_MemA_with_priv(uintptr_t address, unsigned size, bool privileged);
-    uint32_t read_MemU(uintptr_t address, unsigned size);
-    uint32_t read_MemU_unpriv(uintptr_t address, unsigned size);
-    uint32_t read_MemU_with_priv(uintptr_t address, unsigned size, bool privileged);
+    uint32_t read_MemA(uintptr_t address, unsigned size) const;
+    uint32_t read_MemA_unpriv(uintptr_t address, unsigned size) const;
+    uint32_t read_MemA_with_priv(uintptr_t address, unsigned size, bool privileged) const;
+    uint32_t read_MemU(uintptr_t address, unsigned size) const;
+    uint32_t read_MemU_unpriv(uintptr_t address, unsigned size) const;
+    uint32_t read_MemU_with_priv(uintptr_t address, unsigned size, bool privileged) const;
 
     void write_MemA(uint32_t value, uintptr_t address, unsigned size);
     void write_MemA_unpriv(uint32_t value, uintptr_t address, unsigned size);
@@ -104,26 +104,26 @@ public:
     void write_MemU_unpriv(uint32_t value, uintptr_t address, unsigned size);
     void write_MemU_with_priv(uint32_t value, uintptr_t address, unsigned size, bool privileged);
 
-    uint32_t readMemory(uintptr_t address, unsigned size);
+    uint32_t readMemory(uintptr_t address, unsigned size) const;
 	uint32_t writeMemory(uintptr_t address, unsigned size, uintptr_t value);
-	uint32_t readElement(uintptr_t address, uintptr_t value, unsigned size);
+	uint32_t readElement(uintptr_t address, uintptr_t value, unsigned size) const;
 	uint32_t writeElement(uintptr_t address, unsigned size, uintptr_t value, unsigned what);
 
 	// Processor property query routines.
-	bool BadMode(unsigned mode);
-	bool CurrentModeIsNotUser();
-	bool CurrentModeIsUserOrSystem();
-	bool CurrentModeIsHyp();
-	bool HaveSecurityExt();
-	bool IsSecure();
-	bool HaveVirtExt();
-	bool BigEndian();
-	bool UnalignedSupport();
-	bool HasVirtExt();
-	bool HaveLPAE();
-	bool IntegerZeroDivideTrappingEnabled();
-	bool JazelleAcceptsExecution();
-	bool HaveMPExt();
+	bool BadMode(unsigned mode) const;
+	bool CurrentModeIsNotUser() const;
+	bool CurrentModeIsUserOrSystem() const;
+	bool CurrentModeIsHyp() const;
+	bool HaveSecurityExt() const;
+	bool IsSecure() const;
+	bool HaveVirtExt() const;
+	bool BigEndian() const;
+	bool UnalignedSupport() const;
+	bool HasVirtExt() const;
+	bool HaveLPAE() const;
+	bool IntegerZeroDivideTrappingEnabled() const;
+	bool JazelleAcceptsExecution() const;
+	bool HaveMPExt() const;
 
 	// Debug event generation.
 	void BKPTInstrDebugEvent();
@@ -148,8 +148,8 @@ public:
 	void Hint_Yield();
 
 	// Current instruction accessors.
-	unsigned ThisInstr();
-	unsigned ThisInstrLength();
+	unsigned ThisInstr() const;
+	unsigned ThisInstrLength() const;
 
 	// Barriers.
 	void DataMemoryBarrier(MBReqDomain domain, MBReqTypes types);
@@ -172,11 +172,11 @@ public:
 	void SetExclusiveMonitors(unsigned address, unsigned size);
 
 	// Processor identification.
-	unsigned ProcessorID();
+	unsigned ProcessorID() const;
 
 	// Conditional execution.
-	bool ConditionPassed();
-	uint32_t CurrentCond();
+	bool ConditionPassed() const;
+	uint32_t CurrentCond() const;
 
 	// Capability checks.
 	void CheckAdvSIMDOrVFPEnabled(bool include_fpexc_check, bool advsimd);
@@ -274,19 +274,19 @@ public:
     }
 
 	// Return the value of PC used when storing, this may be +4 or +8.
-	uint32_t PCStoreValue() {
+	uint32_t PCStoreValue() const {
 		return readRegularRegister(15);
 	}
 
-    uint32_t PC() {
+    uint32_t PC() const {
         return readRegularRegister(15);
     }
 
-    uint32_t LR() {
+    uint32_t LR() const {
         return readRegularRegister(14);
     }
 
-    uint32_t SP() {
+    uint32_t SP() const {
         return readRegularRegister(13);
     }
 
@@ -302,24 +302,24 @@ public:
         return writeRegularRegister(13, value);
     }
 
-	ARMMode CurrentInstrSet() {
+	ARMMode CurrentInstrSet() const {
 	    return m_opcode_mode;
 	}
 
-	bool IsZero(unsigned i) {
+	bool IsZero(unsigned i) const {
 		return i == 0;
 	}
 
-	bool InITBlock() {
+	bool InITBlock() const {
 	    return CurrentInstrSet() == InstrSet_Thumb && m_it_session.InITBlock();
 	}
 
-	bool LastInITBlock() {
+	bool LastInITBlock() const {
 	    return CurrentInstrSet() == InstrSet_Thumb && m_it_session.LastInITBlock();
 	}
 
 	// This function returns the major version number of the architecture.
-	ARMVariants ArchVersion() {
+	ARMVariants ArchVersion() const {
 		return m_arm_isa;
 	}
 

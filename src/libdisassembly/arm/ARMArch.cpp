@@ -46,15 +46,15 @@ void ITSession::ITAdvance() {
 	}
 }
 
-bool ITSession::InITBlock() {
+bool ITSession::InITBlock() const{
 	return ITCounter != 0;
 }
 
-bool ITSession::LastInITBlock() {
+bool ITSession::LastInITBlock() const{
 	return ITCounter == 1;
 }
 
-uint32_t ITSession::GetCond() {
+uint32_t ITSession::GetCond() const{
 	if (InITBlock())
 		return get_bits(ITState, 7, 4);
 	else

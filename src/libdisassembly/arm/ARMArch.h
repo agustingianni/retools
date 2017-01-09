@@ -841,9 +841,9 @@ class ITSession {
 
 		bool InitIT(uint32_t bits7_0);
 		void ITAdvance();
-		bool InITBlock();
-		bool LastInITBlock();
-		uint32_t GetCond();
+		bool InITBlock() const;
+		bool LastInITBlock() const;
+		uint32_t GetCond() const;
 
 	private:
 		uint32_t ITCounter;
