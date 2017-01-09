@@ -133,6 +133,8 @@ void ARMContext::setRegister(Register::Core reg, uint32_t value) {
 void ARMContext::getRegister(Register::Core reg, uint32_t &value) const {
     LOG_DEBUG("reg=%s", Register::name(reg).c_str());
     value = m_core_regs[reg];
+    if (reg == Register::Core::ARM_REG_PC)
+        value += CurrentInstrSet() == ARMMode_Thumb ? 4 : 8;
 }
 
 void ARMContext::setRegister(Register::Coproc reg, uint32_t value) {

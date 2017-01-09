@@ -50,7 +50,15 @@ public:
 
 	void dump();
 
-    std::array<uint32_t, Register::ARM_REG_CORE_MAX> getCoreRegisters() {
+    uint32_t getCurrentInstructionAddress() const {
+        return PC() - (CurrentInstrSet() == ARMMode_Thumb ? 4 : 8);
+    }
+
+    void setCurrentInstructionAddress(uint32_t address) {
+        PC(address);
+    }
+
+    std::array<uint32_t, Register::ARM_REG_CORE_MAX> getCoreRegisters() const {
         return m_core_regs;
     }
 
