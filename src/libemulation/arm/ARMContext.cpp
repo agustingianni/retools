@@ -78,15 +78,15 @@ template<typename T> T FPDefaultNaN(unsigned N) {
 }
 
 void UNDEFINED() {
-    LOG_ABORT("Rached an UNDEFINED instruction.");
+    LOG_ERR("Rached an UNDEFINED instruction.");
 }
 
 void UNPREDICTABLE() {
-    LOG_ABORT("Rached an UNPREDICTABLE instruction.");
+    LOG_ERR("Rached an UNPREDICTABLE instruction.");
 }
 
 void AlignmentFault(uint32_t address, bool iswrite) {
-    LOG_ABORT("%s alignment fault at 0x%.8x.", iswrite ? "Write" : "Read", address);
+    LOG_ERR("%s alignment fault at 0x%.8x.", iswrite ? "Write" : "Read", address);
 }
 
 ARMContext::ARMContext(Memory::AbstractMemory *memory) :
@@ -105,9 +105,6 @@ ARMContext::ARMContext(Memory::AbstractMemory *memory) :
 
     for (auto i = 0; i < Register::ARM_REG_QUAD_MAX; i++)
         m_quad_regs[i] = 0;
-}
-
-ARMContext::~ARMContext() {
 }
 
 #include <cstdio>

@@ -36,9 +36,9 @@ template<typename T> T FPMaxNormal(unsigned sign, unsigned N);
 template<typename T> T FPInfinity(unsigned sign, unsigned N);
 template<typename T> T FPDefaultNaN(unsigned N);
 
-[[noreturn]] void UNDEFINED();
-[[noreturn]] void UNPREDICTABLE();
-[[noreturn]] void AlignmentFault(uint32_t address, bool iswrite);
+void UNDEFINED();
+void UNPREDICTABLE();
+void AlignmentFault(uint32_t address, bool iswrite);
 
 class ARMContext {
 public:
@@ -46,7 +46,7 @@ public:
 
     ARMContext() = default;
 	ARMContext(Memory::AbstractMemory *memory);
-	virtual ~ARMContext();
+    ~ARMContext() = default;
 
 	void dump();
 
