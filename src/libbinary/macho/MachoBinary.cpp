@@ -338,12 +338,18 @@ struct load_command *MachoBinary::get_load_command(unsigned idx) const {
     // The first load command is past the mach-o header.
     struct load_command *lc = m_data.offset<load_command>(mach_header_size());
     if (!lc || idx >= ncmds()) {
-        LOG_ERR("Filaed to read load command.");
+        LOG_ERR("Failed to read load command.");
         return nullptr;
     }
 
     // Skip all the load commands up to the one we want.
     for (unsigned i = 0; i < idx; ++i) {
+        // Catch malformed commands.
+        if (!lc->cmdsize) {
+            LOG_ERR("Failed to read load command (command size is zero).");
+            return nullptr;
+        }
+
         // Get the next load command.
         lc = m_data.pointer<load_command>(reinterpret_cast<char *>(lc) + lc->cmdsize);
         if (!lc) {
@@ -373,8 +379,8 @@ bool MachoBinary::parse_load_commands() {
     for (unsigned i = 0; i < ncmds(); ++i) {
         struct load_command *cur_lc = get_load_command(i);
         if (!cur_lc) {
-            LOG_WARN("Could not get command %d, skipping", i);
-            continue;
+            LOG_WARN("Could not get command %u.", i);
+            break;
         }
 
         // Make a copy since we don't want to swap the load command twice.
@@ -458,8 +464,8 @@ bool MachoBinary::parse_load_commands() {
     for (unsigned i = 0; i < ncmds(); ++i) {
         struct load_command *cur_lc = get_load_command(i);
         if (!cur_lc) {
-            LOG_WARN("Could not get command %d", i);
-            continue;
+            LOG_WARN("Could not get command %u.", i);
+            break;
         }
 
         if ((cur_lc->cmdsize & align_mask) != 0) {
