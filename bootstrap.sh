@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -o errexit
+set -o nounset
 
 # Create a symbolic link to the project.
 if [ ! -L retools ]; then
@@ -6,8 +8,8 @@ if [ ! -L retools ]; then
 fi
 
 # Install dependencies.
-apt-get update
-apt-get install build-essential git cmake python-setuptools \
+sudo apt-get update
+sudo apt-get install build-essential git cmake python-setuptools \
     python-dev libboost-python-dev libglib2.0-dev pkg-config \
     llvm clang python-pyparsing -y
 
