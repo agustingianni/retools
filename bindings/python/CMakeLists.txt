@@ -29,3 +29,16 @@ target_link_libraries(
 	${PYTHON_LIBRARIES}
 )
 
+add_library(
+	emulation_py
+	SHARED
+	${CMAKE_CURRENT_SOURCE_DIR}/libemulation.cpp
+)
+
+target_link_libraries(
+	emulation_py
+	emulation
+	${Boost_LIBRARIES}
+	${PYTHON_LIBRARIES}
+)
+
