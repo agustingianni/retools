@@ -135,85 +135,92 @@ struct instruction_effects {
 	}
 
 	static void print(const instruction_effects &effects) {
-		LOG_BLUE("| CPSR: %s", cpsr_to_string(effects.cpsr).c_str());
+		print_cpsr(effects);
+		print_regular_registers(effects);
+		print_double_registers(effects);
+	}
 
-		LOG_BLUE("| Regular 32 bit registers:");
+	static void print_cpsr(const instruction_effects &effects) {
+		LOG_BLUE("CPSR: %s", cpsr_to_string(effects.cpsr).c_str());
+	}
+
+	static void print_regular_registers(const instruction_effects &effects) {
 		LOG_BLUE(
-			"|  r0:0x%.8x  r1:0x%.8x  r2:0x%.8x  r3:0x%.8x",
+			" r0:0x%.8x  r1:0x%.8x  r2:0x%.8x  r3:0x%.8x",
 			effects.regular_regs[0], effects.regular_regs[1],
 			effects.regular_regs[2], effects.regular_regs[3]
 		);
 
 		LOG_BLUE(
-			"|  r4:0x%.8x  r5:0x%.8x  r6:0x%.8x  r7:0x%.8x",
+			" r4:0x%.8x  r5:0x%.8x  r6:0x%.8x  r7:0x%.8x",
 			effects.regular_regs[4], effects.regular_regs[5],
 			effects.regular_regs[6], effects.regular_regs[7]
 		);
 
 		LOG_BLUE(
-			"|  r8:0x%.8x  r9:0x%.8x r10:0x%.8x r11:0x%.8x",
+			" r8:0x%.8x  r9:0x%.8x r10:0x%.8x r11:0x%.8x",
 			effects.regular_regs[8], effects.regular_regs[9],
 			effects.regular_regs[10], effects.regular_regs[11]
 		);
 
 		LOG_BLUE(
-			"| r12:0x%.8x r13:0x%.8x r14:0x%.8x r15:0x%.8x",
+			"r12:0x%.8x r13:0x%.8x r14:0x%.8x r15:0x%.8x",
 			effects.regular_regs[12], effects.regular_regs[13],
 			effects.regular_regs[14], effects.regular_regs[15]
 		);
+	}
 
-		LOG_BLUE("| Floating point 64 bit registers:");
+	static void print_double_registers(const instruction_effects &effects) {
 		LOG_BLUE(
-			"|  d0:0x%.16llx  d1:0x%.16llx  d2:0x%.16llx  d3:0x%.16llx",
+			" d0:0x%.16llx  d1:0x%.16llx  d2:0x%.16llx  d3:0x%.16llx",
 			effects.double_regs[0], effects.double_regs[1],
 			effects.double_regs[2], effects.double_regs[3]
 		);
 
 		LOG_BLUE(
-			"|  d4:0x%.16llx  d5:0x%.16llx  d6:0x%.16llx  d7:0x%.16llx",
+			" d4:0x%.16llx  d5:0x%.16llx  d6:0x%.16llx  d7:0x%.16llx",
 			effects.double_regs[4], effects.double_regs[5],
 			effects.double_regs[6], effects.double_regs[7]
 		);
 
 		LOG_BLUE(
-			"|  d8:0x%.16llx  d9:0x%.16llx d10:0x%.16llx d11:0x%.16llx",
+			" d8:0x%.16llx  d9:0x%.16llx d10:0x%.16llx d11:0x%.16llx",
 			effects.double_regs[8], effects.double_regs[9],
 			effects.double_regs[10], effects.double_regs[11]
 		);
 
 		LOG_BLUE(
-			"| d12:0x%.16llx d13:0x%.16llx d14:0x%.16llx d15:0x%.16llx",
+			"d12:0x%.16llx d13:0x%.16llx d14:0x%.16llx d15:0x%.16llx",
 			effects.double_regs[12], effects.double_regs[13],
 			effects.double_regs[14], effects.double_regs[15]
 		);
 
 		LOG_BLUE(
-			"| d16:0x%.16llx d17:0x%.16llx d18:0x%.16llx d19:0x%.16llx",
+			"d16:0x%.16llx d17:0x%.16llx d18:0x%.16llx d19:0x%.16llx",
 			effects.double_regs[16], effects.double_regs[17],
 			effects.double_regs[18], effects.double_regs[19]
 		);
 
 		LOG_BLUE(
-			"| d20:0x%.16llx d21:0x%.16llx d22:0x%.16llx d23:0x%.16llx",
+			"d20:0x%.16llx d21:0x%.16llx d22:0x%.16llx d23:0x%.16llx",
 			effects.double_regs[20], effects.double_regs[21],
 			effects.double_regs[22], effects.double_regs[23]
 		);
 
 		LOG_BLUE(
-			"| d24:0x%.16llx d25:0x%.16llx d26:0x%.16llx d27:0x%.16llx",
+			"d24:0x%.16llx d25:0x%.16llx d26:0x%.16llx d27:0x%.16llx",
 			effects.double_regs[24], effects.double_regs[25],
 			effects.double_regs[26], effects.double_regs[27]
 		);
 
 		LOG_BLUE(
-			"| d28:0x%.16llx d29:0x%.16llx d30:0x%.16llx d31:0x%.16llx",
+			"d28:0x%.16llx d29:0x%.16llx d30:0x%.16llx d31:0x%.16llx",
 			effects.double_regs[28], effects.double_regs[29],
 			effects.double_regs[30], effects.double_regs[31]
 		);
 	}
 
 	static void print_diff(const char *desc0, const char *desc1, const instruction_effects &base, const instruction_effects &e0, const instruction_effects &e1) {
-		bool differs = false;
 		std::vector<std::tuple<unsigned, u32_t, u32_t>> rr_diffs;
 		std::vector<std::tuple<unsigned, u64_t, u64_t>> dr_diffs;
 
@@ -221,8 +228,6 @@ struct instruction_effects {
 			LOG_RED("%-14s: %s", "original", cpsr_to_string(base.cpsr).c_str());
 			LOG_RED("%-14s: %s", desc0, cpsr_to_string(e0.cpsr).c_str());
 			LOG_RED("%-14s: %s", desc1, cpsr_to_string(e1.cpsr).c_str());
-
-			differs = true;
 		}
 
 		for (unsigned i = 0; i < N_REGULAR_REGS; i++) {
@@ -249,7 +254,7 @@ struct instruction_effects {
 				LOG_RED("r%-2u:0x%.8x  r%-2u:0x%.8x  r%-2u:0x%.8x", reg_no, base.regular_regs[reg_no], reg_no, val0, reg_no, val1);
 			}
 
-			differs = true;
+			instruction_effects::print_regular_registers(base);
 		}
 
 		if (!dr_diffs.empty()) {
@@ -262,11 +267,7 @@ struct instruction_effects {
 				LOG_RED("r%-2u:0x%.16llx != r%-2u:0x%.16llx", reg_no, val0, reg_no, val1);
 			}
 
-			differs = true;
-		}
-
-		if (!differs) {
-			LOG_GREEN("No differences found!");
+			instruction_effects::print_double_registers(base);
 		}
 	}
 };
@@ -429,6 +430,11 @@ public:
 	void reset() override {
 		uc_context_restore(m_engine, m_context);
 		uc_mem_write(m_engine, m_base, &zero[0], zero.size());
+
+		// Make sure unicorn does the right thing with CPSR.
+		uint32_t cpsr = 0;
+		uc_reg_read(m_engine, UC_ARM_REG_CPSR, &cpsr);
+		assert(cpsr == INITIAL_CPSR_VALUE && "Something went wrong with the value of CPSR.");
 	}
 
 private:
@@ -685,8 +691,10 @@ int main(int argc, char **argv) {
 		unicorn_inspector.reset();
 		retools_inspector.reset();
 
-		// Debug.
-		instruction_effects::print_diff("unicorn", "retools", unicorn_base_context, r0, r1);
+		// Check if effects differs.
+		if (r0 != r1) {
+			instruction_effects::print_diff("unicorn", "retools", unicorn_base_context, r0, r1);
+		}
 	}
 
 	return 0;
