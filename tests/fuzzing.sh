@@ -14,6 +14,7 @@ export AFL_FINDINGS_DIR=$AFL_RAMDISK_DIR/afl_findings
 export AFL_TESTCASES_DIR=$AFL_RAMDISK_DIR/afl_testcases
 export AFL_BUILD_DIR=$AFL_RAMDISK_DIR/afl_build
 export AFL_CRASHES_DIR=$AFL_RAMDISK_DIR/afl_findings/crashes
+export AFL_CURRENT_CORPUS=$AFL_FINDINGS_DIR/queue
 
 # Binary to be fuzzed.
 export AFL_HARNESS=$AFL_BUILD_DIR/src/tools/harness_libbinary/harness_libbinary
@@ -25,8 +26,8 @@ sudo mount -t tmpfs -o size=1G tmpfs $AFL_RAMDISK_DIR
 # Build.
 mkdir $AFL_BUILD_DIR
 pushd $AFL_BUILD_DIR
-    CC=afl-gcc CXX=afl-g++ cmake -DBUILD_TYPE=FUZZING $RETOOLS
-    AFL_ASAN=1 make
+    CC=afl-gcc CXX=afl-g++ cmake -DBUILD_TYPE=FUZZING -DCMAKE_CXX_FLAGS=-m32 -DCMAKE_C_FLAGS=-m32 $RETOOLS
+    AFL_USE_ASAN=1 make
 popd
 
 # Copy only the files that optimize coverage.
@@ -36,9 +37,25 @@ cp -r $AFL_TESTCASES_DIR $SAMPLES_DIR
 
 # Run afl-fuzz.
 sudo bash -c "echo core >/proc/sys/kernel/core_pattern"
-afl-fuzz -i $AFL_TESTCASES_DIR -o $AFL_FINDINGS_DIR $AFL_HARNESS @@
-afl-fuzz -M fuzzer00 -m 200 -i $AFL_TESTCASES_DIR -o $AFL_FINDINGS_DIR $AFL_HARNESS @@
-afl-fuzz -S fuzzer01 -m 200 -i $AFL_TESTCASES_DIR -o $AFL_FINDINGS_DIR $AFL_HARNESS @@
+afl-fuzz -m 512 -i $AFL_TESTCASES_DIR -o $AFL_FINDINGS_DIR $AFL_HARNESS @@
+afl-fuzz -M fuzzer00 -m 512 -i $AFL_TESTCASES_DIR -o $AFL_FINDINGS_DIR $AFL_HARNESS @@
+afl-fuzz -S fuzzer01 -m 512 -i $AFL_TESTCASES_DIR -o $AFL_FINDINGS_DIR $AFL_HARNESS @@
+
+###############################################################################
+# Pull queue from vps
+###############################################################################
+ssh vps "tar -czf queue.tar.gz -C /home/anon/afl-ramdisk/afl_findings/queue ."
+scp vps:queue.tar.gz .
+
+###############################################################################
+# Resume fuzzing.
+###############################################################################
+afl-fuzz -i- -o $AFL_FINDINGS_DIR $AFL_HARNESS @@
+
+###############################################################################
+# Read from afl's queue and create a new reduced corpus of files.
+###############################################################################
+afl-cmin -i $NEW_CORPUS -o $AFL_RAMDISK_DIR/afl_testcases_new -- $AFL_HARNESS @@
 
 ###############################################################################
 # Rename all files to its sha1 hash.
@@ -63,7 +80,9 @@ for crash in id:*; do
     fi
 done
 
+###############################################################################
 # Code coverage.
+###############################################################################
 export TEST_BINARY=/Users/anon/workspace/retools/coverage_build/src/tools/binary_info/binary_info
 for crash in coverage/*; do
     $TEST_BINARY $crash > /dev/null 2>&1
