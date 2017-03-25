@@ -19,7 +19,6 @@ before_script:
   - make install
   - popd
   - popd
-  - fi
 
   # Install unicorn.
   - git clone https://github.com/unicorn-engine/unicorn.git
@@ -40,6 +39,7 @@ before_script:
   - cp libdarm.so /usr/lib
   - mkdir -p /usr/include/darm
   - cp *.h /usr/include/darm/
+  - popd
   - popd
 
 build:
