@@ -1,0 +1,12 @@
+Files in this directory have been automatically generated
+and are not supposed to be modified, but I'm just a text
+file I have no control over you.
+
+The reasons why these files are on git are:
+
+  - CI build job crashes due to an OOM condition.
+  - In the future, if we make some changes to the
+    code generators, we may want to have something
+    to compare against.
+
+
