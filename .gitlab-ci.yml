@@ -13,10 +13,10 @@ before_script:
   - git clone https://github.com/aquynh/capstone.git
   - pushd capstone
   - CAPSTONE_ARCHS=arm ./make.sh
-  - sudo ./make.sh install
+  - ./make.sh install
   - pushd bindings/python
   - make
-  - sudo make install
+  - make install
   - popd
   - popd
   - fi
@@ -25,10 +25,10 @@ before_script:
   - git clone https://github.com/unicorn-engine/unicorn.git
   - pushd unicorn
   - MACOS_UNIVERSAL=yes UNICORN_ARCHS=arm UNICORN_DEBUG=yes ./make.sh
-  - sudo ./make.sh install
+  - ./make.sh install
   - pushd bindings/python
   - make
-  - sudo make install
+  - make install
   - popd
   - popd
 
@@ -36,10 +36,10 @@ before_script:
   - git clone https://github.com/jbremer/darm.git
   - pushd darm
   - make
-  - sudo cp libdarm.a /usr/lib
-  - sudo cp libdarm.so /usr/lib
-  - sudo mkdir -p /usr/include/darm
-  - sudo cp *.h /usr/include/darm/
+  - cp libdarm.a /usr/lib
+  - cp libdarm.so /usr/lib
+  - mkdir -p /usr/include/darm
+  - cp *.h /usr/include/darm/
   - popd
 
 build:
