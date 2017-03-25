@@ -1,0 +1,58 @@
+image: gcc
+
+before_script:
+  # Update the system and add dependencies.
+  - apt-get update -qq
+  - apt-get -y -qq install build-essential git cmake python-setuptools python-dev libboost-python-dev libglib2.0-dev pkg-config llvm clang python-pyparsing
+
+  # Compile custom dependencies.
+  - DEPS_DIR=$(mktemp -d)
+  - pushd $DEPS_DIR
+
+  # Install capstone.
+  - git clone https://github.com/aquynh/capstone.git
+  - pushd capstone
+  - CAPSTONE_ARCHS=arm ./make.sh
+  - sudo ./make.sh install
+  - pushd bindings/python
+  - make
+  - sudo make install
+  - popd
+  - popd
+  - fi
+
+  # Install unicorn.
+  - git clone https://github.com/unicorn-engine/unicorn.git
+  - pushd unicorn
+  - MACOS_UNIVERSAL=yes UNICORN_ARCHS=arm UNICORN_DEBUG=yes ./make.sh
+  - sudo ./make.sh install
+  - pushd bindings/python
+  - make
+  - sudo make install
+  - popd
+  - popd
+
+  # Install darm.
+  - git clone https://github.com/jbremer/darm.git
+  - pushd darm
+  - make
+  - sudo cp libdarm.a /usr/lib
+  - sudo cp libdarm.so /usr/lib
+  - sudo mkdir -p /usr/include/darm
+  - sudo cp *.h /usr/include/darm/
+  - popd
+
+build:
+  script:
+    # Run code generators.
+    - pushd src/libdisassembly/arm/scripts
+    - python disgen.py --gen_decoder --gen_to_str
+    - python emugen.py --generate
+    - popd
+
+    # Compile retools sources.
+    - mkdir build/
+    - pushd build/
+    - cmake ..
+    - make
+    - popd
