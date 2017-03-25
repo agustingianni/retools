@@ -58,7 +58,7 @@ $ make -j8
  [PDF](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0406c/index.html)
 
 # Licensing
-BSD License
+See [LICENSE](LICENSE)
 
 # Contact
 Feel free to contact via e-mail to agustin.gianni@gmail.com or twitter @agustingianni.
