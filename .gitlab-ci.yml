@@ -44,12 +44,6 @@ before_script:
 
 build:
   script:
-    # Run code generators.
-    - pushd src/libdisassembly/arm/scripts
-    - python disgen.py --gen_decoder --gen_to_str
-    - python emugen.py --generate
-    - popd
-
     # Compile retools sources.
     - mkdir build/
     - pushd build/
