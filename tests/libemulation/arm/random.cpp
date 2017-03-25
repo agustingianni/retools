@@ -402,7 +402,7 @@ public:
 	}
 
 	~UnicornInstructionInspector() {
-		uc_context_free(m_context);
+		uc_free(m_context);
 		uc_close(m_engine);
 	}
 
