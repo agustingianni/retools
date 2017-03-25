@@ -1,9 +1,9 @@
-image: gcc
+image: gcc:latest
 
 before_script:
   # Update the system and add dependencies.
   - apt-get update -qq
-  - apt-get -y -qq install build-essential git cmake python-setuptools python-dev libboost-python-dev libglib2.0-dev pkg-config llvm clang python-pyparsing
+  - apt-get -y -qq install build-essential git cmake python-setuptools python-dev libboost-python-dev libglib2.0-dev pkg-config python-pyparsing
 
   # Compile custom dependencies.
   - DEPS_DIR=$(mktemp -d)
