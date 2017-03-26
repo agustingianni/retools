@@ -34,8 +34,8 @@ public:
     }
 
     // Get a sane pointer to a given type and an offset.
-    template<typename T> T *offset(uint64_t offset, size_t size = sizeof(T)) const {
-        if ((offset > UINT64_MAX - size) || !valid(m_memory + offset + size)) {
+    template<typename T> T *offset(size_t offset, size_t size = sizeof(T)) const {
+        if ((offset > std::numeric_limits<size_t>::max() - size) || !valid(m_memory + offset + size)) {
             return nullptr;
         }
 
