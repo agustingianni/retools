@@ -405,6 +405,13 @@ bool MachoBinary::parse_load_commands() {
             // Save a reference to the symbol table.
             m_symbol_table_size = cmd->nsyms;
 
+            // Check for overflow as "operator new[]" throws "std::bad_array_new_length" in some implemenations.
+            if (m_symbol_table_size > std::numeric_limits<size_t>::max() / sizeof(*m_symbol_table)) {
+                LOG_ERR("Error symbol table size is too big: 0x%.8x.", m_symbol_table_size);
+                m_symbol_table_size = 0;
+                continue;
+            }
+
             // Create space for the symbol table. This should be freed later.
             m_symbol_table = new (std::nothrow) nlist_64[m_symbol_table_size];
             if (!m_symbol_table) {
