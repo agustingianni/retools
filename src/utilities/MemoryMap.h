@@ -30,7 +30,10 @@ public:
 
     // Get a sane pointer to a given type and a memory pointer.
     template<typename T> T *pointer(void *mem, size_t size = sizeof(T)) const {
-        return valid(static_cast<uint8_t *>(mem) + size) ? reinterpret_cast<T *>(mem) : nullptr;
+        if (!valid(mem) || !valid(static_cast<uint8_t *>(mem) + size))
+            return nullptr;
+
+        return reinterpret_cast<T *>(mem);
     }
 
     // Get a sane pointer to a given type and an offset.
