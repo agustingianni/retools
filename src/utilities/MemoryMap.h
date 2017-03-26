@@ -30,14 +30,32 @@ public:
 
     // Get a sane pointer to a given type and a memory pointer.
     template<typename T> T *pointer(void *mem, size_t size = sizeof(T)) const {
-        return valid(static_cast<uint8_t *>(mem) + size) ? reinterpret_cast<T *>(mem) : nullptr;
+        if (!valid(mem) || !valid(static_cast<uint8_t *>(mem) + size))
+            return nullptr;
+
+        return reinterpret_cast<T *>(mem);
     }
 
     // Get a sane pointer to a given type and an offset.
-    template<typename T> T *offset(uint64_t offset, size_t size = sizeof(T)) const {
-        if ((offset > UINT64_MAX - size) || !valid(m_memory + offset + size)) {
+    template<typename T> T *offset(uint64_t offset, uint64_t size = sizeof(T)) const {
+        // Check if 'offset + size' overflows.
+        if (offset > std::numeric_limits<uint64_t>::max() - size)
             return nullptr;
-        }
+
+        // Calculate the end byte.
+        uint64_t end = offset + size;
+
+        // Check for 32 bits.
+        if (end > std::numeric_limits<uintptr_t>::max())
+            return nullptr;
+
+        // Check if 'm_memory + end' overflows.
+        if (reinterpret_cast<uintptr_t>(m_memory) > std::numeric_limits<uintptr_t>::max() - static_cast<uintptr_t>(end))
+            return nullptr;
+
+        // Check if the last byte is in range.
+        if (!valid(m_memory + end))
+            return nullptr;
 
         return reinterpret_cast<T *>(m_memory + offset);
     }
