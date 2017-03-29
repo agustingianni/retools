@@ -15,4 +15,4 @@ src/libdisassembly/arm/gen/
 third_party/
 .idea/
 cmake-build-debug/
-tests/libbinary/macho/coverage
+tests/libbinary/macho/
