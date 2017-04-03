@@ -31,12 +31,43 @@ Debugger::~Debugger()
 
 bool Debugger::library_load(std::string filename)
 {
-    // TODO: Implement.
+    SBFileSpec remote_image_spec(filename.c_str(), true);
+    if (!remote_image_spec.IsValid()) {
+        printf("Cannot create file spec: %s\n", filename.c_str());
+        return false;
+    }
+
+    SBError error;
+    uint32_t image_token = m_process.LoadImage(remote_image_spec, error);
+    if (!error.Success()) {
+        printf("Error: %s\n", error.GetCString());
+        return false;
+    }
+
+    if (image_token == LLDB_INVALID_IMAGE_TOKEN) {
+        printf("Error: LLDB_INVALID_IMAGE_TOKEN\n");
+        return false;
+    }
+
+    m_libmap[filename] = image_token;
+    return true;
 }
 
 bool Debugger::library_unload(std::string filename)
 {
-    // TODO: Implement.
+    if (m_libmap.find(filename) == m_libmap.end()) {
+        printf("Error: library %s does not map to a valid image token.", filename.c_str());
+        return false;
+    }
+
+    uint32_t image_token = m_libmap[filename];
+    SBError error = m_process.UnloadImage(image_token);
+    if (!error.Success()) {
+        printf("Error: %s\n", error.GetCString());
+        return false;
+    }
+
+    return true;
 }
 
 bool Debugger::process_execute(std::string filename)

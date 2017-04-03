@@ -37,6 +37,8 @@ private:
 
     int m_launch_flags;
 
+    std::map<std::string, uint32_t> m_libmap;
+
 public:
     Debugger();
     ~Debugger();
