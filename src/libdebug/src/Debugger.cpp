@@ -614,6 +614,23 @@ bool Debugger::memory_write(uintptr_t address, T value)
     return memory_write(address, &value, sizeof(T));
 }
 
+template <typename T>
+bool Debugger::memory_write(uintptr_t address, T value, size_t count)
+{
+    bool ret = true;
+    for (auto i = 0; i < count; i++) {
+        ret = memory_write<T>(address, value);
+        if (!ret) {
+            printf("Error: cannot write value to address\n");
+            break;
+        }
+
+        address += sizeof(T);
+    }
+
+    return ret;
+}
+
 bool Debugger::memory_read(uintptr_t address, void* buffer, size_t size)
 {
     SBError error;

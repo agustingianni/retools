@@ -132,6 +132,9 @@ public:
     template <typename T>
     bool memory_write(uintptr_t address, T value);
 
+    template <typename T>
+    bool memory_write(uintptr_t address, T value, size_t count);
+
     // Raw memory operations.
     bool memory_read(uintptr_t address, void* buffer, size_t size);
     bool memory_write(uintptr_t address, const void* buffer, size_t size);
