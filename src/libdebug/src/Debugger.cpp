@@ -42,6 +42,12 @@ bool Debugger::library_load(std::string filename)
         return false;
     }
 
+    // Search in know places for the file.
+    if (!remote_image_spec.Exists() && !remote_image_spec.ResolveExecutableLocation()) {
+        printf("Cannot create file spec: %s\n", filename.c_str());
+        return false;
+    }
+
     SBError error;
     uint32_t image_token = m_process.LoadImage(remote_image_spec, error);
     if (!error.Success()) {
