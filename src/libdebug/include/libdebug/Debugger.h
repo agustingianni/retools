@@ -84,6 +84,8 @@ public:
         m_launch_flags |= lldb::eLaunchFlagStopAtEntry;
     }
 
+    void enable_debug_log(const char *channel, std::vector<const char *> categories);
+
     // Utilities to alter the behavior of the remote process.
     bool library_load(std::string filename);
     bool library_unload(std::string filename);

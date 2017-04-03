@@ -4,7 +4,7 @@ using namespace lldb;
 
 static void logging_callback(const char* msg, void* dbg)
 {
-    printf("LLDB: %s\n", msg);
+    printf("LLDB: %s", msg);
 }
 
 Debugger::Debugger()
@@ -20,13 +20,18 @@ Debugger::Debugger()
     m_debugger.SetErrorFileHandle(stderr, false);
     m_debugger.SetOutputFileHandle(stdout, false);
     m_debugger.SetInputFileHandle(stdin, true);
-    m_debugger.SetLoggingCallback(logging_callback, this);
 }
 
 Debugger::~Debugger()
 {
     SBDebugger::Destroy(m_debugger);
     SBDebugger::Terminate();
+}
+
+void Debugger::enable_debug_log(const char *channel, std::vector<const char *> categories) {
+    categories.push_back(nullptr);
+    m_debugger.SetLoggingCallback(logging_callback, nullptr);
+    m_debugger.EnableLog(channel, categories.data());
 }
 
 bool Debugger::library_load(std::string filename)
