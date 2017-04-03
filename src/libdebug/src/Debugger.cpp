@@ -686,6 +686,29 @@ bool Debugger::memory_write(uintptr_t address, const void* buffer, size_t size)
     return true;
 }
 
+std::optional<lldb::SBMemoryRegionInfoList> Debugger::memory_regions()
+{
+    SBMemoryRegionInfoList regions = m_process.GetMemoryRegions();
+    if (!regions.GetSize()) {
+        printf("Error: no memory regions available\n");
+        return {};
+    }
+
+    return regions;
+}
+
+std::optional<lldb::SBMemoryRegionInfo> Debugger::memory_region(uintptr_t address)
+{
+    SBMemoryRegionInfo region_info;
+    SBError error = m_process.GetMemoryRegionInfo(address, region_info);
+    if (!error.Success()) {
+        printf("Error: could not get memory region information\n");
+        return {};
+    }
+
+    return region_info;
+}
+
 template <typename T>
 bool Debugger::stack_push(T value)
 {

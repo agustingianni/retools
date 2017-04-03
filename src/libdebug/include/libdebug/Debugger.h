@@ -141,6 +141,10 @@ public:
     bool memory_read(uintptr_t address, void* buffer, size_t size);
     bool memory_write(uintptr_t address, const void* buffer, size_t size);
 
+    // Memory querying operations.
+    std::optional<lldb::SBMemoryRegionInfoList> memory_regions();
+    std::optional<lldb::SBMemoryRegionInfo> memory_region(uintptr_t address);
+
     // Stepping functions for the current thread.
     bool step_out();
     bool step_instruction(bool step_over = false);
