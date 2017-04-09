@@ -85,6 +85,27 @@ public:
     }
 
     void enable_debug_log(const char *channel, std::vector<const char *> categories);
+    // Options passed to 'evaluate_expression'.
+    struct ExpressionOptions {
+        ExpressionOptions()
+            : m_ignore_breakpoints{ false }
+            , m_stop_other_threads{ true }
+            , m_persist_expression{ false }
+            , m_unwind_on_error{ true }
+            , m_timeout{ 1000000 }
+        {
+        }
+
+        bool m_ignore_breakpoints;
+        bool m_stop_other_threads;
+        bool m_persist_expression;
+        bool m_unwind_on_error;
+        uint32_t m_timeout;
+    };
+
+    // Expression evaluation.
+    template <typename T>
+    std::optional<T> evaluate_expression(std::string expression, ExpressionOptions options = {});
 
     // Utilities to alter the behavior of the remote process.
     bool library_load(std::string filename);
@@ -200,5 +221,38 @@ public:
     template <typename T>
     bool stack_pop(lldb::SBThread& thread, T* value);
 };
+
+// Evaluate an expression in the context of the current process.
+template <typename T>
+std::optional<T> Debugger::evaluate_expression(std::string expression, ExpressionOptions options)
+{
+    lldb::SBExpressionOptions expression_options;
+    expression_options.SetIgnoreBreakpoints(options.m_ignore_breakpoints);
+    expression_options.SetStopOthers(options.m_stop_other_threads);
+    expression_options.SetSuppressPersistentResult(options.m_persist_expression == false);
+    expression_options.SetUnwindOnError(options.m_unwind_on_error);
+
+    lldb::SBValue value = m_target.EvaluateExpression(expression.c_str(), expression_options);
+    if (!value.IsValid()) {
+        printf("Error while evaluating expression: %s\n", value.GetError().GetCString());
+        return {};
+    }
+
+    lldb::SBData data = value.GetData();
+    if (!data.IsValid() || !data.GetByteSize()) {
+        printf("Error while getting expression data.\n");
+        return {};
+    }
+
+    T typed_value;
+    lldb::SBError error;
+    data.ReadRawData(error, 0, &typed_value, sizeof(T));
+    if (!error.Success()) {
+        printf("Error converting value: %s\n", error.GetCString());
+        return {};
+    }
+
+    return typed_value;
+}
 
 #endif /* DEBUGGER_H_ */
