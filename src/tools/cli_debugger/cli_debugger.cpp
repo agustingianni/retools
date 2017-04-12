@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     auto regions = debugger.memory_regions();
     if (!regions) {
         printf("Could not get memory regions\n");
-        return false;
+        return -1;
     }
 
     for (auto i = 0; i < regions->GetSize(); i++) {
