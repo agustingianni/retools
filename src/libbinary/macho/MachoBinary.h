@@ -56,7 +56,7 @@ public:
     }
 
     // Return the i'th load command in a safe way or nullptr.
-    struct load_command *get_load_command(unsigned i) const;
+    struct load_command *get_load_command(unsigned idx) const;
 
     // Main parsing dispatcher for the mach-o file.
     bool parse_load_commands();
@@ -185,7 +185,7 @@ public:
 
     // Routines to calulate offsets and rvas.
     uint64_t offset_from_rva(uint64_t rva);
-    uint64_t rva_from_offset(uint64_t off);
+    uint64_t rva_from_offset(uint64_t offset);
 
     union {
         mach_header *header_32;
