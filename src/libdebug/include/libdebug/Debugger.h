@@ -84,8 +84,8 @@ public:
         m_launch_flags |= lldb::eLaunchFlagStopAtEntry;
     }
 
-    void enable_debug_log(const char *channel, std::vector<const char *> categories);
     void enable_debug_log(const char* channel, std::vector<const char*> categories);
+
     // Options passed to 'evaluate_expression'.
     struct ExpressionOptions {
         ExpressionOptions()
