@@ -210,6 +210,23 @@ bool Debugger::process_detach()
     return true;
 }
 
+bool Debugger::process_load_core(std::string core_name)
+{
+    m_target = m_debugger.CreateTarget(nullptr);
+    if (!m_target.IsValid()) {
+        printf("Cannot create target\n");
+        return false;
+    }
+
+    m_process = m_target.LoadCore(core_name.c_str());
+    if (!m_process.IsValid()) {
+        printf("Cannot create process from core file\n");
+        return false;
+    }
+
+    return true;
+}
+
 bool Debugger::process_continue()
 {
     SBError error = m_process.Continue();

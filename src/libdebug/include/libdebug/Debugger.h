@@ -123,6 +123,9 @@ public:
     bool process_attach(lldb::pid_t pid);
     bool process_detach();
 
+    // Load a core dump of a process.
+    bool process_load_core(std::string core_name);
+
     // Main process related utilities.
     bool process_continue();
     bool process_kill();
