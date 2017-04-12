@@ -28,7 +28,8 @@ Debugger::~Debugger()
     SBDebugger::Terminate();
 }
 
-void Debugger::enable_debug_log(const char *channel, std::vector<const char *> categories) {
+void Debugger::enable_debug_log(const char* channel, std::vector<const char*> categories)
+{
     categories.push_back(nullptr);
     m_debugger.SetLoggingCallback(logging_callback, nullptr);
     m_debugger.EnableLog(channel, categories.data());
