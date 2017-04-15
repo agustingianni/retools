@@ -1,0 +1,7 @@
+https://rix0r.nl/blog/2015/08/13/cmake-guide/
+http://cicero.xyz/v2/remark/github/scisoft/toolbox-talks/master/cmake-kung-fu.mkd/#38
+http://api.zeromq.org/2-1:zmq-ipc
+https://google.github.io/flatbuffers/flatbuffers_guide_tutorial.html
+
+# Add something to run clang-tidy automatically.
+cmake -DCMAKE_CXX_CLANG_TIDY:STRING="clang-tidy;-checks=*,-cppcoreguidelines-pro-type-vararg,-*readability-braces-around-statements,-performance-unnecessary-value-param,-readability-implicit-bool-cast,-cppcoreguidelines-pro-type-union-access,-google-readability-casting,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-google-build-using-namespace,-cppcoreguidelines-pro-type-cstyle-cast,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-llvm-include-order"
