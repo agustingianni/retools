@@ -68,6 +68,21 @@ debugger.enable_debug_log("lldb", { "api", "break", "module", "platform", "proce
         debugger.step_instruction();
     }
 
+    std::string memory_map = "(void *) mmap(nullptr, 4096, 0x1, 0x1000 | 0x0001, 0, 0)";
+    if (auto memory = debugger.evaluate_expression<void*>(memory_map)) {
+        printf("Mapped memory at %p\n", *memory);
+    }
+
+    auto ret = debugger.evaluate_expression<unsigned>("(unsigned) 1+1");
+    if (ret) {
+        printf("Test: %u\n", *ret);
+    }
+
+    ret = debugger.evaluate_expression<unsigned>("(unsigned) getpid()");
+    if (ret) {
+        printf("Test: %u\n", *ret);
+    }
+
     std::string library_path = "/usr/local/lib/libunicorn.dylib";
     if (!debugger.library_load(library_path)) {
         printf("Could not load library\n");
