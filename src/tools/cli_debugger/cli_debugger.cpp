@@ -45,16 +45,43 @@ debugger.enable_debug_log("lldb", { "api", "break", "module", "platform", "proce
             (void*)info.GetRegionEnd());
     }
 
-    std::string library_path = "/usr/lib/libdarm.so";
+    printf("Dumping instructions from PC=0x%.16llx\n", *debugger.get_pc());
+
+    auto target = debugger.get_target();
+    for (auto i = 0; i < 128; i++) {
+        auto ins = *debugger.instruction_get();
+        std::string comment = ins.GetComment(target);
+        if (!comment.empty()) {
+            comment = "; " + comment;
+        }
+
+        printf("0x%.16llx: %-8s %-40s %s\n",
+            ins.GetAddress().GetLoadAddress(target),
+            ins.GetMnemonic(target),
+            ins.GetOperands(target),
+            comment.c_str());
+
+        if (ins.DoesBranch()) {
+            puts("----------------------------------------------------------------------");
+        }
+
+        debugger.step_instruction();
+    }
+
+    std::string library_path = "/usr/local/lib/libunicorn.dylib";
     if (!debugger.library_load(library_path)) {
         printf("Could not load library\n");
         return -1;
     }
 
+    printf("Loaded library\n");
+
     if (!debugger.library_unload(library_path)) {
         printf("Could not unload library\n");
         return -1;
     }
+
+    printf("Unloaded library\n");
 
     debugger.registers_set({
         { "rax", "0x44444444" },
