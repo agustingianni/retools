@@ -715,6 +715,35 @@ bool Debugger::memory_write(uintptr_t address, const void* buffer, size_t size)
     return true;
 }
 
+std::optional<lldb::SBInstructionList> Debugger::instruction_get(size_t count)
+{
+    auto pc = get_pc();
+    if (!pc) {
+        printf("Could not get value of PC.\n");
+        return {};
+    }
+
+    uintptr_t address = *pc;
+    return instruction_get(address, count);
+}
+
+std::optional<lldb::SBInstructionList> Debugger::instruction_get(uintptr_t address, size_t count)
+{
+    SBAddress sb_address(address, m_target);
+    if (!sb_address.IsValid()) {
+        printf("Could not get instructions from address.\n");
+        return {};
+    }
+
+    SBInstructionList instructions = m_target.ReadInstructions(sb_address, count, "intel");
+    if (!instructions.IsValid()) {
+        printf("Could not get instructions from address.\n");
+        return {};
+    }
+
+    return instructions;
+}
+
 std::optional<lldb::SBMemoryRegionInfoList> Debugger::memory_regions()
 {
     SBMemoryRegionInfoList regions = m_process.GetMemoryRegions();
