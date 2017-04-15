@@ -19,6 +19,11 @@ int main(int argc, char** argv)
     debugger.stop_at_entrypoint();
     debugger.process_execute(binary_file);
 
+#if defined(DEBUG_LLDB)
+// Enable lldb's internal debug log channel.
+debugger.enable_debug_log("lldb", { "api", "break", "module", "platform", "process" });
+#endif
+
     auto regions = debugger.memory_regions();
     if (!regions) {
         printf("Could not get memory regions\n");
