@@ -168,9 +168,14 @@ public:
     bool memory_read(uintptr_t address, void* buffer, size_t size);
     bool memory_write(uintptr_t address, const void* buffer, size_t size);
 
+
+    // Return one instruction.
+    std::optional<lldb::SBInstruction> instruction_get();
+    std::optional<lldb::SBInstruction> instruction_get(uintptr_t address);
+
     // Return a sequence of instructions.
-    std::optional<lldb::SBInstructionList> instruction_get(size_t count = 1);
-    std::optional<lldb::SBInstructionList> instruction_get(uintptr_t address, size_t count);
+    std::optional<lldb::SBInstructionList> instructions_get(size_t count);
+    std::optional<lldb::SBInstructionList> instructions_get(uintptr_t address, size_t count);
 
     // Memory querying operations.
     std::optional<lldb::SBMemoryRegionInfoList> memory_regions();
