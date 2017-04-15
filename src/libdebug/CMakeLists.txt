@@ -6,7 +6,7 @@ project(libdebug CXX)
 # Find LLDB.
 find_library(
 	LLDB_LIBRARY
-	NAMES LLDB
+	NAMES LLDB lldb lldb-4.0
 	PATHS "/Applications/Xcode.app/Contents/SharedFrameworks"
 	ENV LIBRARY_PATH
 	ENV LD_LIBRARY_PATH
