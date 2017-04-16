@@ -779,6 +779,43 @@ std::optional<lldb::SBMemoryRegionInfo> Debugger::memory_region(uintptr_t addres
     return region_info;
 }
 
+std::optional<lldb::SBModule> Debugger::modules_get(std::string name)
+{
+    for (auto i = 0; i < m_target.GetNumModules(); i++) {
+        auto module = m_target.GetModuleAtIndex(i);
+        if (!module.IsValid()) {
+            continue;
+        }
+
+        std::string module_filename(module.GetFileSpec().GetFilename());
+        if (name == module_filename) {
+            return module;
+        }
+    }
+
+    return {};
+}
+
+std::optional<std::vector<lldb::SBModule>> Debugger::modules_get()
+{
+    std::vector<lldb::SBModule> ret;
+    for (auto i = 0; i < m_target.GetNumModules(); i++) {
+        auto module = m_target.GetModuleAtIndex(i);
+        if (!module.IsValid()) {
+            continue;
+        }
+
+        ret.push_back(module);
+    }
+
+    if (ret.empty()) {
+        printf("No valid modules are loaded\n");
+        return {};
+    }
+
+    return ret;
+}
+
 template <typename T>
 bool Debugger::stack_push(T value)
 {

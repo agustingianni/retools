@@ -45,6 +45,19 @@ debugger.enable_debug_log("lldb", { "api", "break", "module", "platform", "proce
             (void*)info.GetRegionEnd());
     }
 
+    printf("Dumping modules\n");
+    auto modules_or_error = debugger.modules_get();
+    if (!modules_or_error) {
+        printf("Error while getting list of modules\n");
+        return -1;
+    }
+
+    for (auto &module : *modules_or_error) {
+        SBStream out;
+        module.GetDescription(out);
+        printf("Module: %s\n", out.GetData());
+    }
+
     printf("Dumping instructions from PC=0x%.16llx\n", *debugger.get_pc());
 
     auto target = debugger.get_target();

@@ -181,6 +181,10 @@ public:
     std::optional<lldb::SBMemoryRegionInfoList> memory_regions();
     std::optional<lldb::SBMemoryRegionInfo> memory_region(uintptr_t address);
 
+    // Executable module operations.
+    std::optional<lldb::SBModule> modules_get(std::string name);
+    std::optional<std::vector<lldb::SBModule>> modules_get();
+
     // Stepping functions for the current thread.
     bool step_out();
     bool step_instruction(bool step_over = false);
