@@ -106,14 +106,8 @@ bool Debugger::process_execute(std::string filename, std::vector<std::string> ar
         return false;
     }
 
-    SBFileSpec file_spec(filename.c_str(), true);
-    if (!file_spec.IsValid()) {
-        printf("Cannot create file spec: %s\n", filename.c_str());
-        return false;
-    }
-
-    // Get the module
-    m_module = m_target.FindModule(file_spec);
+    // Save the main module.
+    m_module = m_target.FindModule(m_target.GetExecutable());
     if (!m_module.IsValid()) {
         printf("Cannot find module: %s\n", filename.c_str());
         return false;
