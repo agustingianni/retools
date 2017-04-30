@@ -212,7 +212,7 @@ const std::string &AbstractBinary::getUniqueId() const {
 }
 
 AbstractBinary *AbstractBinary::create(std::string path) {
-    if (!path.size()) {
+    if (path.empty()) {
         LOG_ERR("Invalid path");
         return nullptr;
     }
@@ -249,7 +249,7 @@ AbstractBinary *AbstractBinary::create(std::string path) {
 
 // Create a new binary by reading the file pointer by 'path'.
 bool AbstractBinary::load(const std::string &path) {
-    if (!path.size()) {
+    if (path.empty()) {
         LOG_ERR("Invalid path");
         return false;
     }
