@@ -5,3 +5,7 @@ https://google.github.io/flatbuffers/flatbuffers_guide_tutorial.html
 
 # Add something to run clang-tidy automatically.
 cmake -DCMAKE_CXX_CLANG_TIDY:STRING="clang-tidy;-checks=*,-cppcoreguidelines-pro-type-vararg,-*readability-braces-around-statements,-performance-unnecessary-value-param,-readability-implicit-bool-cast,-cppcoreguidelines-pro-type-union-access,-google-readability-casting,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-google-build-using-namespace,-cppcoreguidelines-pro-type-cstyle-cast,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-llvm-include-order"
+
+# Change the parser and implement armv8 with fixed shit that I was too lazy to add?
+https://github.com/PsichiX/Kaiju/blob/master/KaijuCompiler/include/grammar.h
+https://github.com/taocpp/PEGTL
