@@ -1,9 +1,14 @@
+#include <csignal>
 #include <iostream>
 #include <libdebug/Debugger.h>
 #include <string>
 
 using namespace std;
 using namespace lldb;
+
+namespace {
+Debugger* g_debugger = nullptr;
+}
 
 int main(int argc, char** argv)
 {
@@ -17,11 +22,28 @@ int main(int argc, char** argv)
     Debugger debugger{};
     debugger.disable_aslr();
     debugger.stop_at_entrypoint();
+
+    // Initialize our global reference to the debugger.
+    g_debugger = &debugger;
+    std::signal(SIGINT, [](int signo) {
+        printf("\nReceived SIGINT, killing process\n");
+        g_debugger->process_kill();
+        exit(-1);
+    });
+
+    // Execute the binary.
     debugger.process_execute(binary_file);
 
+    // Break on main.
+    debugger.breakpoint_add("main");
+    debugger.process_continue();
+    debugger.main_loop();
+
+    exit(0);
+
 #if defined(DEBUG_LLDB)
-// Enable lldb's internal debug log channel.
-debugger.enable_debug_log("lldb", { "api", "break", "module", "platform", "process" });
+    // Enable lldb's internal debug log channel.
+    debugger.enable_debug_log("lldb", { "api", "break", "module", "platform", "process" });
 #endif
 
     auto regions = debugger.memory_regions();
@@ -52,7 +74,7 @@ debugger.enable_debug_log("lldb", { "api", "break", "module", "platform", "proce
         return -1;
     }
 
-    for (auto &module : *modules_or_error) {
+    for (auto& module : *modules_or_error) {
         SBStream out;
         module.GetDescription(out);
         printf("Module: %s\n", out.GetData());
@@ -76,6 +98,7 @@ debugger.enable_debug_log("lldb", { "api", "break", "module", "platform", "proce
 
         if (ins.DoesBranch()) {
             puts("----------------------------------------------------------------------");
+            break;
         }
 
         debugger.step_instruction();
@@ -111,10 +134,8 @@ debugger.enable_debug_log("lldb", { "api", "break", "module", "platform", "proce
 
     printf("Unloaded library\n");
 
-    debugger.registers_set({
-        { "rax", "0x44444444" },
-        { "rbx", "0x88888888" }
-    });
+    debugger.registers_set({ { "rax", "0x44444444" },
+        { "rbx", "0x88888888" } });
 
     if (auto reg_value = debugger.register_get("rax")) {
         printf("Register value: name=%s value=%s\n", reg_value->GetName(), reg_value->GetValue());

@@ -129,11 +129,12 @@ bool Debugger::process_execute(std::string filename, std::vector<std::string> ar
     auto converted_argv = convert(args);
     auto converted_envp = convert(env);
 
-    // TODO: What is the listener for?.
+    // Initialize the main listener.
+    m_listener = m_debugger.GetListener();
+
     SBError error;
-    SBListener listener;
     m_process = m_target.Launch(
-        listener,
+        m_listener,
         converted_argv.data(),
         converted_envp.data(),
         nullptr, // stdin_path
@@ -149,10 +150,327 @@ bool Debugger::process_execute(std::string filename, std::vector<std::string> ar
         return false;
     }
 
+    // Update current thread.
+    m_thread = m_process.GetSelectedThread();
+
+    // Register events.
+    m_listener.StartListeningForEventClass(
+        m_debugger,
+        SBTarget::GetBroadcasterClassName(),
+        SBTarget::eBroadcastBitModulesLoaded | SBTarget::eBroadcastBitModulesUnloaded);
+
+    m_listener.StartListeningForEventClass(
+        m_debugger,
+        SBThread::GetBroadcasterClassName(),
+        SBThread::eBroadcastBitThreadSuspended);
+
+    m_listener.StartListeningForEventClass(
+        m_debugger,
+        SBProcess::GetBroadcasterClassName(),
+        SBProcess::eBroadcastBitStateChanged | SBProcess::eBroadcastBitSTDERR | SBProcess::eBroadcastBitSTDOUT);
+
     auto state = m_process.GetState();
     printf("Launched module with pid=%d state=%s!\n", m_process.GetProcessID(), m_debugger.StateAsCString(state));
+}
 
-    m_thread = m_process.GetSelectedThread();
+bool Debugger::update_selected_thread()
+{
+    if (!m_process.IsValid()) {
+        return false;
+    }
+
+    SBThread thread;
+    auto stop_reason = m_thread.GetStopReason();
+    if (!m_thread.IsValid() || stop_reason == eStopReasonInvalid || stop_reason == eStopReasonNone) {
+        SBThread plan_thread;
+        SBThread other_thread;
+
+        for (auto i = 0; i < m_process.GetNumThreads(); i++) {
+            thread = m_process.GetThreadAtIndex(i);
+            switch (thread.GetStopReason()) {
+            case eStopReasonTrace:
+            case eStopReasonBreakpoint:
+            case eStopReasonWatchpoint:
+            case eStopReasonSignal:
+            case eStopReasonException:
+                if (!other_thread.IsValid())
+                    other_thread = thread;
+                break;
+
+            case eStopReasonPlanComplete:
+                if (!plan_thread.IsValid())
+                    plan_thread = thread;
+                break;
+
+            case eStopReasonInvalid:
+            case eStopReasonNone:
+            default:
+                break;
+            }
+        }
+
+        if (plan_thread.IsValid())
+            thread = plan_thread;
+        else if (other_thread.IsValid())
+            thread = other_thread;
+        else if (m_thread.IsValid())
+            thread = m_thread;
+        else
+            thread = m_process.GetThreadAtIndex(0);
+
+        if (!thread.IsValid()) {
+            printf("Could not update selected thread\n");
+            return false;
+        }
+
+        m_process.SetSelectedThread(thread);
+    }
+
+    return true;
+}
+
+void Debugger::main_loop()
+{
+    bool m_stop = false;
+
+    SBEvent event;
+    while (!m_stop) {
+        printf("Waiting for event.\n");
+
+        // Get an event.
+        if (!m_listener.WaitForEvent(std::numeric_limits<std::uint32_t>::max(), event)) {
+            printf("Timedout while waiting for event.\n");
+            break;
+        }
+
+        if (!event.IsValid()) {
+            printf("Invalid event.\n");
+            continue;
+        }
+
+        if (!event.GetBroadcaster().IsValid()) {
+            printf("Invalid event.\n");
+            continue;
+        }
+
+        printf("Got event: %s\n", SBEvent::GetCStringFromEvent(event));
+
+        // Dispatch event.
+        handle_event(event);
+    }
+}
+
+bool Debugger::handle_event(SBEvent event)
+{
+    if (lldb::SBProcess::EventIsProcessEvent(event)) {
+        return handle_process_event(event);
+    }
+
+    if (lldb::SBThread::EventIsThreadEvent(event)) {
+        return handle_thread_event(event);
+    }
+
+    if (lldb::SBTarget::EventIsTargetEvent(event)) {
+        return handle_target_event(event);
+    }
+
+    return false;
+}
+
+bool Debugger::handle_process_event(SBEvent event)
+{
+    bool ret = false;
+
+    switch (event.GetType()) {
+    case lldb::SBProcess::eBroadcastBitStateChanged:
+        ret = handle_process_state_changed(vEvent);
+        break;
+
+    case lldb::SBProcess::eBroadcastBitSTDERR:
+        ret = handle_process_stderr();
+        break;
+
+    case lldb::SBProcess::eBroadcastBitSTDOUT:
+        ret = handle_process_stdout();
+        break;
+
+    default:
+        break;
+    }
+
+    return ret;
+}
+
+bool Debugger::handle_thread_event(SBEvent event)
+{
+    bool ret = false;
+
+    switch (event.GetType()) {
+    case lldb::SBThread::eBroadcastBitThreadSuspended:
+        handle_thread_suspended(event);
+        break;
+
+    default:
+        break;
+    }
+
+    return ret;
+}
+
+bool Debugger::handle_target_event(SBEvent event)
+{
+    bool ret = false;
+
+    switch (event.GetType()) {
+    case lldb::SBTarget::eBroadcastBitModulesLoaded:
+        handle_target_modules_loaded(event);
+        break;
+
+    case lldb::SBTarget::eBroadcastBitModulesUnloaded:
+        handle_target_modules_unloaded(event);
+        break;
+
+    default:
+        break;
+    }
+
+    return ret;
+}
+
+bool Debugger::handle_target_modules_loaded(event)
+{
+    auto n_modules = SBTarget::GetNumModulesFromEvent(event);
+    for (auto i = 0; i < n_modules; ++i) {
+        auto module = SBTarget::GetModuleAtIndexFromEvent(i, event);
+        SBStream out;
+        module.GetDescription(out);
+        printf("Loaded module: %s\n", out.GetData());
+    }
+
+    return true;
+}
+
+bool Debugger::handle_target_modules_unloaded(event)
+{
+    auto n_modules = SBTarget::GetNumModulesFromEvent(event);
+    for (auto i = 0; i < n_modules; ++i) {
+        auto module = SBTarget::GetModuleAtIndexFromEvent(i, event);
+        SBStream out;
+        module.GetDescription(out);
+        printf("Unloaded module: %s\n", out.GetData());
+    }
+
+    return true;
+}
+
+bool Debugger::handle_process_state_changed(SBEvent event)
+{
+    lldb::StateType state = lldb::SBProcess::GetStateFromEvent(event);
+    if (state == lldb::eStateInvalid) {
+        return false;
+    }
+
+    lldb::SBProcess process = lldb::SBProcess::GetProcessFromEvent(event);
+    if (!process.IsValid()) {
+        return false;
+    }
+
+    bool ret = false;
+    switch (state) {
+    case lldb::eStateStopped:
+        ret = handle_process_state_stopped(event);
+        break;
+
+    case lldb::eStateCrashed:
+    case lldb::eStateSuspended:
+        ret = handle_process_state_suspended(event);
+        break;
+
+    case lldb::eStateRunning:
+        ret = handle_process_state_running(event);
+        break;
+
+    case lldb::eStateExited:
+        ret = handle_process_state_exited(event);
+        break;
+
+    default:
+        break;
+    }
+
+    return ret;
+}
+
+bool Debugger::handle_process_stderr(SBEvent event)
+{
+    // TODO: Implement stderr handling.
+    return true;
+}
+
+bool Debugger::handle_process_stdout(SBEvent event)
+{
+    // TODO: Implement stdout handling.
+    return true;
+}
+
+bool Debugger::handle_process_state_stopped(SBEvent event)
+{
+    SBProcess process = lldb::SBProcess::GetProcessFromEvent(event);
+    if (!process.IsValid()) {
+        return false;
+    }
+
+    SBThread thread = process.GetSelectedThread();
+    if (!thread.IsValid()) {
+        return false;
+    }
+
+    if (!update_selected_thread()) {
+        return false;
+    }
+
+    switch (thread.GetStopReason()) {
+    case lldb::eStopReasonInvalid:
+    case lldb::eStopReasonNone:
+    case lldb::eStopReasonTrace:
+    case lldb::eStopReasonBreakpoint:
+    case lldb::eStopReasonWatchpoint:
+    case lldb::eStopReasonSignal:
+    case lldb::eStopReasonException:
+    case lldb::eStopReasonExec:
+    case lldb::eStopReasonPlanComplete:
+    case lldb::eStopReasonThreadExiting:
+    case lldb::eStopReasonInstrumentation:
+    default:
+        break;
+    }
+
+    return true;
+}
+
+bool Debugger::handle_process_state_suspended(SBEvent event)
+{
+    if (!update_selected_thread()) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Debugger::handle_process_state_running(SBEvent event)
+{
+    // TODO: Implement.
+}
+
+bool Debugger::handle_process_state_exited(SBEvent event)
+{
+    // TODO: Implement.
+}
+
+bool Debugger::handle_thread_suspended(SBEvent event)
+{
+    // TODO: Implement.
+    return true;
 }
 
 bool Debugger::process_attach(std::string process_name, bool wait)

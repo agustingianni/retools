@@ -31,6 +31,7 @@ private:
     lldb::SBTarget m_target;
     lldb::SBProcess m_process;
     lldb::SBThread m_thread;
+    lldb::SBListener m_listener;
 
     // Loaded binary file data.
     lldb::SBModule m_module;
@@ -85,6 +86,11 @@ public:
     }
 
     void enable_debug_log(const char* channel, std::vector<const char*> categories);
+
+    // XXX: Implement.
+    void handle_process_stopped_state(lldb::SBEvent process_event);
+    void handle_process_event(lldb::SBEvent process_event);
+    void main_loop();
 
     // Options passed to 'evaluate_expression'.
     struct ExpressionOptions {
