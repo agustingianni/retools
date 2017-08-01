@@ -51,7 +51,8 @@ add_subdirectory(third_party)
 add_subdirectory(src/libbinary)
 add_subdirectory(src/libdisassembly)
 add_subdirectory(src/libemulation)
-add_subdirectory(src/libdebug)
+# add_subdirectory(src/libdebug)
+add_subdirectory(src/libspec)
 
 # Build the tools.
 add_subdirectory(src/tools)

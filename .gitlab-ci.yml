@@ -9,7 +9,7 @@ before_script:
   - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
   - apt-add-repository "deb http://apt.llvm.org/$UBUNTU_NAME/ llvm-toolchain-$UBUNTU_NAME-$LLDB_VERSION main"
   - apt-get update -qq
-  - apt-get -y -qq install build-essential git cmake python-setuptools python-dev libboost-python-dev libglib2.0-dev pkg-config python-pyparsing liblldb-$LLDB_VERSION
+  - apt-get -y -qq install build-essential git cmake python-setuptools python-dev libboost-python-dev libglib2.0-dev pkg-config python-pyparsing liblldb-$LLDB_VERSION pegtl-dev
 
   # Compile custom dependencies.
   - DEPS_DIR=$(mktemp -d)

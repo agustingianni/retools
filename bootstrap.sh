@@ -19,7 +19,7 @@ sudo apt-add-repository "deb http://apt.llvm.org/$UBUNTU_NAME/ llvm-toolchain-$U
 sudo apt-get update
 sudo apt-get install build-essential git cmake python-setuptools \
     python-dev libboost-python-dev libglib2.0-dev pkg-config \
-    llvm clang python-pyparsing liblldb-$LLDB_VERSION -y
+    llvm clang python-pyparsing liblldb-$LLDB_VERSION pegtl-dev -y
 
 # Create a temporary directory.
 DEPS_DIR=$(mktemp -d)
