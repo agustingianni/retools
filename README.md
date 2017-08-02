@@ -29,17 +29,36 @@ As of now, `libsymbolic` is a *placeholder* for the automaticaly generated forma
 # Installation
 There are two recommended ways you can install this framework, we recommend using `vagrant` if you are just curious about testing the tools and having a look at the code. Otherwise compiling the code should not be difficult on a semi-modern linux system.
 
+## Requirements
+
+`retools` is supported and has been tested on `macOS` and `Linux`. A `Windows` build may be possible if you don't mind not building the `libdebug` part of the framework because as of now, it depends on `lldb` being present.
+
+Software dependencies:
+
+- `pyparsing`
+- `capstone`
+- `unicorn`
+- `darm`
+- `cmake`
+- `Boost.Python`
+- `lldb`
+
+All the dependencies should be handled by the `bootstrap.sh` script.
+
 ### Vagrant
 Use vagrant with the provided `Vagrant` file. It will automatically create an Ubuntu VM and will run `bootstrap.sh` to install all the required files for compilation. Once the VM is created, you will find `retools` code at `$HOME/retools`. Move to that directory and then follow the *compilation* instructions that follow.
 
 ### Compilation
 
 ```
-# Bootstrap installation (skip if using vagrant).
-$ sudo bash bootstrap.sh
+# Clone the repository.
+$ git clone https://github.com/agustingianni/retools.git
 
 # Move to the cloned directory.
 $ cd retools/
+
+# Bootstrap installation (skip if using vagrant).
+$ bash bootstrap.sh
 
 # Run code generators.
 $ pushd src/libdisassembly/arm/scripts
