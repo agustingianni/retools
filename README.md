@@ -16,7 +16,53 @@ Emulation library that allows its clients to emulate instructions. The emulation
 
 ## libbinary
 Library that allows its clients to read/write/parse binary executables in a generic way that is independent of the underliying file format of the binary.
-As of now we only support `mach-o` binaries.
+As of now we only support `mach-o` binaries, both `fat` and `slim` binaries.
+
+### Example
+In this example we will use the `binary_info` tool to inspect some generic details about a macho binary. `binary_info` is meant to be an example of how to use `libbinary`.
+
+```
+$ ./build/src/tools/binary_info/binary_info /bin/ps
+
+Current binary:
+  Linker: /usr/lib/dyld
+
+  Version: 168.0.0.0.0
+
+  UID: 55137f9f2fd933e6b9f39d4c7c65681c
+
+  Entry points:
+    entry: 0x51ac
+    ...
+
+  Libraries:
+    lib: /usr/lib/libSystem.B.dylib
+
+  Strings:
+    val: no valid keywords; valid keywords:
+    val:        ps [-L]
+    ...
+
+  Symbols:
+    sym: __mh_execute_header @ 0x100000000
+    ...
+  Segment:
+    address : 0x0
+    size    : 0x100000000
+    perm    : ---
+  Segment:
+    address : 0x100000000
+    size    : 0x6000
+    perm    : r-x
+  Segment:
+    address : 0x100006000
+    size    : 0x3000
+    perm    : rw-
+  Segment:
+    address : 0x100009000
+    size    : 0x4000
+    perm    : r--
+```
 
 ## libsymbolic
 The main idea of `libsymbolic` is to have an accurate and complete representation of the working architecture (say, ARM, x86, etc.) in a way that can be queried and used in the construction of reverse engineering tools.
