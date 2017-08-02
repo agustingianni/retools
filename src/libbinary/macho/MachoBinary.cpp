@@ -331,6 +331,8 @@ bool MachoBinary::init() {
         return false;
     }
 
+    m_binaries.push_back(this);
+
     return true;
 }
 
