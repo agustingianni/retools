@@ -41,7 +41,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
         header += "class ARMInterpreter {\n"
         header += "public:\n"
         header += "    ARMInterpreter(ARMContext &ctx) :\n"
-        header += "        m_ctx{ctx} {\n"
+        header += "        m_ctx(ctx) {\n"
         header += "    }\n\n"
         header += "    void execute(const ARMInstruction &ins);\n\n"
         header += "private:\n"

@@ -8,7 +8,7 @@ using namespace Disassembler;
 class ARMInterpreter {
 public:
     ARMInterpreter(ARMContext &ctx) :
-        m_ctx{ctx} {
+        m_ctx(ctx) {
     }
 
     void execute(const ARMInstruction &ins);
