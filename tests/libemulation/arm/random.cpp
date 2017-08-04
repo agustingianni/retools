@@ -22,6 +22,7 @@
 #include "Utilities.h"
 #include "test_utils.h"
 #include "debug.h"
+#include "memory.h"
 
 using namespace Memory;
 using namespace Register;
