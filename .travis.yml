@@ -1,12 +1,16 @@
 language: cpp
 dist: trusty
-os: linux
+os:
+  - linux
+  - osx
 compiler:
   - gcc
+  - clang
 
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y libboost-python-dev
+  # Update packages.
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y libboost-python-dev; fi
 
   # Compile custom dependencies.
   - DEPS_DIR=$(mktemp -d)
