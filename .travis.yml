@@ -1,0 +1,55 @@
+language: cpp
+dist: trusty
+os: linux
+compiler:
+  - gcc
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libboost-python-dev
+
+  # Compile custom dependencies.
+  - DEPS_DIR=$(mktemp -d)
+  - pushd $DEPS_DIR
+
+  # Install capstone.
+  - git clone https://github.com/aquynh/capstone.git
+  - pushd capstone
+  - ./make.sh
+  - sudo ./make.sh install
+  - pushd bindings/python
+  - make
+  - sudo make install
+  - popd
+  - popd
+
+  # Install unicorn.
+  - git clone https://github.com/unicorn-engine/unicorn.git
+  - pushd unicorn
+  - ./make.sh
+  - sudo ./make.sh install
+  - pushd bindings/python
+  - make
+  - sudo make install
+  - popd
+  - popd
+
+  # Install darm.
+  - git clone https://github.com/jbremer/darm.git
+  - pushd darm
+  - make
+  - sudo cp libdarm.a /usr/lib
+  - sudo cp libdarm.so /usr/lib
+  - sudo mkdir -p /usr/include/darm
+  - sudo cp *.h /usr/include/darm/
+  - popd
+  - popd
+
+
+script:
+  # Compile retools sources.
+  - mkdir build/
+  - pushd build/
+  - cmake ..
+  - make
+  - popd
