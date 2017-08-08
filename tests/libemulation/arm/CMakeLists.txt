@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
-
 project(random)
 
 # For some reason unicorn on linux is not linked with threads so we need to link it ourselves.

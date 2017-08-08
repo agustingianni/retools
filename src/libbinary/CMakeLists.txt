@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
-
 # Create a new project.
 project(libbinary CXX)
 

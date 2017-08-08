@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
-
 project(cli_disassembler)
 
 add_executable(

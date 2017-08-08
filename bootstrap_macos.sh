@@ -10,4 +10,4 @@ fi
 
 # Install dependencies.
 echo "Installing dependencies using brew"
-brew install capstone unicorn boost-python
+brew install boost-python
