@@ -18,6 +18,12 @@ matrix:
       env:
         - COMPILER=clang++
 
+install:
+  # We need a newer version of cmake on linux.
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://cmake.org/files/v3.9/cmake-3.9.0-Linux-x86_64.tar.gz  ;fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tar -xzf cmake-3.9.0-Linux-x86_64.tar.gz                           ;fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH=$PWD/cmake-3.9.0-Linux-x86_64/bin:$PATH                ;fi
+
 before_install:
   # Update packages.
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq update; fi
