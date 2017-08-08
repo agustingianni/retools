@@ -19,60 +19,22 @@ matrix:
         - COMPILER=clang++
 
 install:
-  # We need a newer version of cmake on linux.
+  # Update packages.
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq update; fi
+
+  # Install dependencies.
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y libboost-python-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then brew install boost-python; fi
+
+  # Install a modern CMake.
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://cmake.org/files/v3.9/cmake-3.9.0-Linux-x86_64.tar.gz  ;fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tar -xzf cmake-3.9.0-Linux-x86_64.tar.gz                           ;fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH=$PWD/cmake-3.9.0-Linux-x86_64/bin:$PATH                ;fi
 
-before_install:
-  # Update packages.
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y libboost-python-dev; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then brew install boost-python; fi
-
-  # Compile custom dependencies.
-  - DEPS_DIR=$(mktemp -d)
-  - pushd $DEPS_DIR
-
-  # Install capstone.
-  - git clone https://github.com/aquynh/capstone.git
-  - pushd capstone
-  - ./make.sh
-  - sudo ./make.sh install
-  - pushd bindings/python
-  - make
-  - sudo make install
-  - popd
-  - popd
-
-  # Install unicorn.
-  - git clone https://github.com/unicorn-engine/unicorn.git
-  - pushd unicorn
-  - ./make.sh
-  - sudo ./make.sh install
-  - pushd bindings/python
-  - make
-  - sudo make install
-  - popd
-  - popd
-
-  # Install darm.
-  - git clone https://github.com/jbremer/darm.git
-  - pushd darm
-  - make
-  - sudo cp libdarm.a /usr/local/lib
-  - sudo cp libdarm.so /usr/local/lib
-  - sudo mkdir -p /usr/local/include/darm
-  - sudo cp *.h /usr/local/include/darm/
-  - popd
-  - popd
-
-
 script:
   # Compile retools sources.
   - mkdir build/
-  - pushd build/
+  - cd build/
   - export CXX=$COMPILER
   - cmake ..
   - make
-  - popd

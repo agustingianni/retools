@@ -12,7 +12,6 @@ retools.sublime-*
 src/libbinary/macho/testfiles/
 deps/
 src/libdisassembly/arm/gen/
-third_party/
 .idea/
 cmake-build-debug/
 tests/libbinary/macho/

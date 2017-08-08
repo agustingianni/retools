@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+include(ExternalProject)
 
 # Options.
 option(USE_CCACHE "Build with ccache" OFF)

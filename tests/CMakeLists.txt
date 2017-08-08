@@ -4,20 +4,6 @@ project(instruction_fuzz)
 
 find_package(Boost REQUIRED)
 
-# Find the paths to capstone's stuff.
-find_path(CAPSTONE_INCLUDE_DIR NAMES capstone/capstone.h)
-find_library(CAPSTONE_LIBRARIES NAMES capstone)
-
-# Find the paths to darm's stuff.
-find_path(DARM_INCLUDE_DIR NAMES darm.h PATHS /usr/include/darm /usr/local/include/darm)
-find_library(DARM_LIBRARIES NAMES darm PATHS /usr/lib /usr/local/lib)
-
-message("-- Include dirs of CAPSTONE  : " ${CAPSTONE_INCLUDE_DIR} )
-message("-- Library dirs of CAPSTONE  : " ${CAPSTONE_LIBRARIES} )
-message("-- Include dirs of DARM      : " ${DARM_INCLUDE_DIR} )
-message("-- Library dirs of DARM      : " ${DARM_LIBRARIES} )
-message("-- Include dirs of boost     : " ${Boost_INCLUDE_DIRS} )
-
 add_executable(
 	instruction_fuzz
 	${CMAKE_CURRENT_SOURCE_DIR}/instruction_fuzz.cpp
@@ -29,15 +15,13 @@ target_include_directories(
 	instruction_fuzz
 	PRIVATE
 	${Boost_INCLUDE_DIRS}
-	${CAPSTONE_INCLUDE_DIR}
-	${DARM_INCLUDE_DIR}
 )
 
 target_link_libraries(
 	instruction_fuzz
 	disassembly
-	${CAPSTONE_LIBRARIES}
-	${DARM_LIBRARIES}
+	capstone
+	darm
 )
 
 add_subdirectory(libemulation/arm)
