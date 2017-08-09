@@ -12,8 +12,7 @@ add_executable(
 
 target_include_directories(
 	random
-	PRIVATE
-	../../
+	PRIVATE ../../
 )
 
 target_link_libraries(
