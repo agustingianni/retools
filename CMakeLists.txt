@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.2)
 include(ExternalProject)
 
 # Options.
-option(ENABLE_LIBDEBUG "Enable libdebug" OFF)
-option(USE_CCACHE "Build with ccache" OFF)
+option(RETOOLS_LIBDEBUG "Enable libdebug" OFF)
+option(RETOOLS_USE_CCACHE "Build with ccache" OFF)
 set(BUILD_TYPE "DEBUG" CACHE STRING "Select type of build [DEBUG | RELEASE | FUZZING | COVERAGE]")
 
 # retools version.
@@ -12,17 +12,15 @@ set(RETOOLS_VERSION_MINOR 1)
 set(RETOOLS_VERSION_PATCH 0)
 
 project(retools VERSION ${RETOOLS_VERSION_MAJOR}.${RETOOLS_VERSION_MINOR}.${RETOOLS_VERSION_PATCH})
-message(STATUS "Building ${PROJECT_NAME} ${PROJECT_VERSION}")
+message(STATUS "Building ${PROJECT_NAME} ${PROJECT_VERSION}.")
 
 # Configure ccache if available.
-if(USE_CCACHE)
-    find_program(CCACHE_FOUND ccache)
-    if(CCACHE_FOUND)
-        message("-- Found 'cache', using it for compilation.")
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-    endif(CCACHE_FOUND)
-endif(USE_CCACHE)
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND AND RETOOLS_USE_CCACHE)
+    message(STATUS "Using ccache for compilation.")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif()
 
 # Enable C++11 standard.
 set(CMAKE_CXX_STANDARD 11)
@@ -66,7 +64,7 @@ add_subdirectory(src/libdisassembly)
 add_subdirectory(src/libemulation)
 
 # Build libdebug if enabled.
-if(ENABLE_LIBDEBUG)
+if(RETOOLS_LIBDEBUG)
     add_subdirectory(src/libdebug)
 endif()
 
