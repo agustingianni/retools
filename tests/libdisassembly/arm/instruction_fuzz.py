@@ -167,34 +167,13 @@ def process_instruction_fuzz_tests(in_file, start, end):
 
     # These are tests that we have manually verified that are correct.
     arm_ignored_tests = []
-    arm_ignored_tests.append("CDP, CDP2")                  # Reason: capstone fails to disassemble this.
     arm_ignored_tests.append("ERET")                       # Reason: capstone does not disassemble this.
-    arm_ignored_tests.append("HVC")                        # Reason: capstone does not disassemble this.
-    arm_ignored_tests.append("LDR (immediate, ARM)")       # Reason: capstone fails to disassemble this.
-    arm_ignored_tests.append("LDRB (immediate, ARM)")      # Reason: capstone fails to disassemble this.
-    arm_ignored_tests.append("LDRD (immediate)")           # Reason: capstone fails to disassemble this.
-    arm_ignored_tests.append("LDRH (immediate, ARM)")      # Reason: capstone fails to disassemble this.
-    arm_ignored_tests.append("LDRSB (immediate)")          # Reason: capstone fails to disassemble this.
-    arm_ignored_tests.append("LDRSH (immediate)")          # Reason: capstone fails to disassemble this.
-    arm_ignored_tests.append("MCR, MCR2")                  # Reason: capstone fails to disassemble this.
-    arm_ignored_tests.append("MRS (Banked register)")      # Reason: capstone does not disassemble this.
 
     thumb_ignored_tests = []
-    thumb_ignored_tests.append("B")                        # Reason: capstone fails to disassemble this.
-    thumb_ignored_tests.append("CDP, CDP2")                # Reason: capstone fails to disassemble this.
-    thumb_ignored_tests.append("CPS (Thumb)")              # Reason: capstone fails to disassemble this.
-    thumb_ignored_tests.append("ERET")                     # Reason: capstone does not disassemble this.
     thumb_ignored_tests.append("HVC")                      # Reason: capstone does not disassemble this.
-    thumb_ignored_tests.append("IT")                       # Reason: capstone fails to disassemble this.
-    thumb_ignored_tests.append("LDRH (immediate, Thumb)")  # Reason: capstone fails to disassemble this.
-    thumb_ignored_tests.append("LDRH (literal)")           # Reason: capstone fails to disassemble this.
-    thumb_ignored_tests.append("MRS (Banked register)")    # Reason: capstone does not disassemble this.
     thumb_ignored_tests.append("POP (Thumb)")              # Reason: capstone represents pop as a ldr.
     thumb_ignored_tests.append("PUSH")                     # Reason: capstone represents push as a str.
     thumb_ignored_tests.append("SMC (previously SMI)")     # Reason: capstone does not disassemble this.
-    thumb_ignored_tests.append("SMC")                      # Reason: capstone does not disassemble this.
-    thumb_ignored_tests.append("SSAT")                     # Reason: capstone fails to disassemble this.
-    thumb_ignored_tests.append("STC, STC2")                # Reason: capstone fails to disassemble this.
 
     ignored_tests = arm_ignored_tests
     if data["mode"] == "THUMB":
@@ -297,11 +276,18 @@ def process_instruction_fuzz_tests(in_file, start, end):
 
     json_data.close()
 
-n = int(sys.argv[1])
-start = int(sys.argv[2])
-end = int(sys.argv[3])
-mode = 0
+# Number of tests for each instruction.
+n = int(sys.argv[1]) if len(sys.argv) >= 2 else 1000
 
-print "Testing instructions from %d to %d, %d times" % (start, end, n)
+# Start at instruction 'start'.
+start = int(sys.argv[2]) if len(sys.argv) >= 3 else 0
+
+# Finish at instruction 'finish'.
+end = int(sys.argv[3]) if len(sys.argv) >= 4 else start + 1
+
+# Disassembly mode, 0 for ARM, 1 for THUMB.
+mode = int(sys.argv[4]) if len(sys.argv) >= 5 else 0
+
+print "Testing instructions from %d to %d, %d times with mode %s" % (start, end, n, "ARM" if mode == 0 else "THUMB")
 test_instruction_fuzz(n, start, end, mode, PATH_TESTS_JSON)
 process_instruction_fuzz_tests(PATH_TESTS_JSON, start, end)
