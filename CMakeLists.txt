@@ -6,6 +6,14 @@ option(ENABLE_LIBDEBUG "Enable libdebug" OFF)
 option(USE_CCACHE "Build with ccache" OFF)
 set(BUILD_TYPE "DEBUG" CACHE STRING "Select type of build [DEBUG | RELEASE | FUZZING | COVERAGE]")
 
+# retools version.
+set(RETOOLS_VERSION_MAJOR 0)
+set(RETOOLS_VERSION_MINOR 1)
+set(RETOOLS_VERSION_PATCH 0)
+
+project(retools VERSION ${RETOOLS_VERSION_MAJOR}.${RETOOLS_VERSION_MINOR}.${RETOOLS_VERSION_PATCH})
+message(STATUS "Building ${PROJECT_NAME} ${PROJECT_VERSION}")
+
 # Configure ccache if available.
 if(USE_CCACHE)
     find_program(CCACHE_FOUND ccache)
