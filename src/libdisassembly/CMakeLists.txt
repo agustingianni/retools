@@ -25,7 +25,6 @@ add_library(
 	${CMAKE_CURRENT_SOURCE_DIR}/generic/Instruction.h
 	${CMAKE_CURRENT_SOURCE_DIR}/generic/Module.h
 	${CMAKE_CURRENT_SOURCE_DIR}/generic/Operand.h
-	${CMAKE_SOURCE_DIR}/src/utilities/Utilities.h
 )
 
 # Avoid specific warnings on the target.
@@ -41,9 +40,9 @@ target_include_directories(
  	PUBLIC
  	${CMAKE_CURRENT_SOURCE_DIR}				# Add the current directory as an include path.
  	${CMAKE_CURRENT_SOURCE_DIR}/arm/gen		# Add the automatically generated headers as an include path.
- 	${CMAKE_SOURCE_DIR}/src/utilities
 )
 
 target_link_libraries(
 	disassembly
+	utilities
 )

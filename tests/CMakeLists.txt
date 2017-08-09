@@ -20,6 +20,7 @@ target_link_libraries(
 	disassembly
 	capstone
 	darm
+	utilities
 )
 
 add_subdirectory(libemulation/arm)

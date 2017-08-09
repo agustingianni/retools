@@ -33,12 +33,12 @@ add_dependencies(
 
 target_link_libraries(
 	target_debug
+	utilities
 	${LLDB_LIBRARY}
 )
 
 target_include_directories(
     target_debug
-	PUBLIC ${CMAKE_SOURCE_DIR}/src/utilities
 	PUBLIC ${LLDB_LIBRARY_INCLUDES}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

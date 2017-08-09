@@ -22,5 +22,6 @@ target_link_libraries(
 	disassembly
 	capstone
 	unicorn
+	utilities
 	${CMAKE_THREAD_LIBS_INIT}
 )

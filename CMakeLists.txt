@@ -48,6 +48,9 @@ endif()
 # Build third party dependencies.
 add_subdirectory(third_party)
 
+# Build header only utilities.
+add_subdirectory(src/utilities)
+
 # Build related libraries.
 add_subdirectory(src/libbinary)
 add_subdirectory(src/libdisassembly)

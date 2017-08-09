@@ -23,6 +23,7 @@ set_target_properties(
 target_link_libraries(
 	emulation
 	disassembly
+	utilities
 )
 
 # Set target specific include directories.
@@ -33,5 +34,4 @@ target_include_directories(
  	${CMAKE_CURRENT_SOURCE_DIR}/arm
  	${CMAKE_CURRENT_SOURCE_DIR}/../libdisassembly/
  	${CMAKE_CURRENT_SOURCE_DIR}/../libdisassembly/arm
- 	${CMAKE_CURRENT_SOURCE_DIR}/../utilities
 )

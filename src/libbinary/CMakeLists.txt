@@ -23,11 +23,15 @@ add_library(
     ${CMAKE_CURRENT_SOURCE_DIR}/macho/Swap.h
 )
 
+target_link_libraries(
+    binary
+    utilities
+)
+
 # Set target specific include directories.
 target_include_directories(
     binary
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/utilities
     ${CMAKE_SOURCE_DIR}/src/include
 )
