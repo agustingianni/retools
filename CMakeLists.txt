@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 include(ExternalProject)
 
 # Options.
+option(ENABLE_LIBDEBUG "Enable libdebug" OFF)
 option(USE_CCACHE "Build with ccache" OFF)
 set(BUILD_TYPE "DEBUG" CACHE STRING "Select type of build [DEBUG | RELEASE | FUZZING | COVERAGE]")
 
@@ -55,7 +56,11 @@ add_subdirectory(src/utilities)
 add_subdirectory(src/libbinary)
 add_subdirectory(src/libdisassembly)
 add_subdirectory(src/libemulation)
-# add_subdirectory(src/libdebug)
+
+# Build libdebug if enabled.
+if(ENABLE_LIBDEBUG)
+    add_subdirectory(src/libdebug)
+endif()
 
 # Build the tools.
 add_subdirectory(src/tools)
