@@ -83,7 +83,7 @@ std::string c_rt_rn_rm_shift(const char *opname, const Disassembler::ARMInstruct
     // OPNAME{<c>}{<q>} <Rt>, [<Rn>, <Rm>{, <shift>}]  Offset: index==TRUE, wback==FALSE
     // OPNAME{<c>}{<q>} <Rt>, [<Rn>, <Rm>{, <shift>}]! Pre-indexed: index==TRUE, wback==TRUE
     // OPNAME{<c>}{<q>} <Rt>, [<Rn>], <Rm>{, <shift>}  Post-indexed: index==FALSE, wback==TRUE
-    char op_name[64], op_args[64];
+    char op_name[64] = {0}, op_args[64] = {0};
     if (ins->index == false && ins->wback == true) {
         snprintf(op_name, sizeof(op_name),
                 "%s%s %s, [%s], %s",
@@ -1788,7 +1788,7 @@ std::string decode_vext_t1_to_string(const Disassembler::ARMInstruction *ins) {
         imm = ins->imm32;
     }
 
-    snprintf(buffer, sizeof(buffer), "VEXT.%d %s, %s, %s, #%s",
+    snprintf(buffer, sizeof(buffer), "VEXT.%u %s, %s, %s, #%s",
         size,
         (ins->Q) ? quad_reg_str(ins->d >> 1).c_str() : double_reg_str(ins->d).c_str(),
         (ins->Q) ? quad_reg_str(ins->n >> 1).c_str() : double_reg_str(ins->n).c_str(),
