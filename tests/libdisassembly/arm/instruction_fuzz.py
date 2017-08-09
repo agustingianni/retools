@@ -4,7 +4,7 @@ import json
 import subprocess
 from pprint import pprint
 
-PATH_BUILD_DIR = os.path.abspath("../build/")
+PATH_BUILD_DIR = os.path.abspath("../../../build/")
 PATH_INSTRUCTION_FUZZ_BIN = os.path.join(PATH_BUILD_DIR, "tests/instruction_fuzz")
 PATH_TESTS_JSON = os.path.join(PATH_BUILD_DIR, "tests.json")
 
@@ -178,7 +178,7 @@ def process_instruction_fuzz_tests(in_file, start, end):
     arm_ignored_tests.append("LDRSH (immediate)")          # Reason: capstone fails to disassemble this.
     arm_ignored_tests.append("MCR, MCR2")                  # Reason: capstone fails to disassemble this.
     arm_ignored_tests.append("MRS (Banked register)")      # Reason: capstone does not disassemble this.
-    
+
     thumb_ignored_tests = []
     thumb_ignored_tests.append("B")                        # Reason: capstone fails to disassemble this.
     thumb_ignored_tests.append("CDP, CDP2")                # Reason: capstone fails to disassemble this.
@@ -234,7 +234,7 @@ def process_instruction_fuzz_tests(in_file, start, end):
             # VMRS et all are not disassembled by capstone.
             if "custom_reg" in retools or "vpop" in retools or "vpush" in retools:
                 n_ok += 1
-                continue                
+                continue
 
             # If retools says that this is unpredictable, it certainly is.
             if is_invalid_or_unpredictable(retools):
