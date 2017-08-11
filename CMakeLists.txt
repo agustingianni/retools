@@ -58,6 +58,9 @@ add_subdirectory(third_party)
 # Build header only utilities.
 add_subdirectory(src/utilities)
 
+# Call source code generators.
+add_subdirectory(src/libspec)
+
 # Build related libraries.
 add_subdirectory(src/libbinary)
 add_subdirectory(src/libdisassembly)

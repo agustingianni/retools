@@ -2229,7 +2229,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description='Generator.')
-    parser.add_argument("-D", "--directory", default="../gen", help="Directory where the generated files will be placed.")
+    parser.add_argument("-o", "--directory", default="../gen", help="Directory where the generated files will be placed.")
     parser.add_argument("--gen_custom_to_str", action='store_true', help="Generate ARMtoStringCustom[.h|.cpp] stubs")
     parser.add_argument("--gen_to_str", action='store_true', help="Generate ARMtoString[.h|.cpp] stubs")
     parser.add_argument("-g", "--gen_decoder", action='store_true', help="Generate ARMDecodingTable[.h|.cpp]")

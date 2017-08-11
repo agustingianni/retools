@@ -1,16 +1,22 @@
 # Create a new project.
 project(libemulation CXX)
 
+# Get the paths of the generated files for the decoder.
+get_target_property(GENERATED_FILES_DIRECTORY libspec_arm_interpreter GENERATED_FILES_DIRECTORY)
+get_target_property(GENERATED_FILES libspec_arm_interpreter GENERATED_FILES)
+set_source_files_properties(${GENERATED_FILES} PROPERTIES GENERATED TRUE)
+
+message("GENERATED_FILES_DIRECTORY=${GENERATED_FILES_DIRECTORY}")
+
 # Create the library target.
 add_library(
 	emulation
 	SHARED
+	${GENERATED_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMEmulator.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMEmulator.h
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMContext.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/arm/ARMContext.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../libdisassembly/arm/gen/ARMInterpreter.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../libdisassembly/arm/gen/ARMInterpreter.h
 )
 
 # Avoid specific warnings in the target.
@@ -30,8 +36,12 @@ target_link_libraries(
 target_include_directories(
  	emulation
  	PUBLIC
- 	${CMAKE_CURRENT_SOURCE_DIR}				# Add the current directory as an include path.
+	${GENERATED_FILES_DIRECTORY}
+ 	${CMAKE_CURRENT_SOURCE_DIR}
  	${CMAKE_CURRENT_SOURCE_DIR}/arm
  	${CMAKE_CURRENT_SOURCE_DIR}/../libdisassembly/
- 	${CMAKE_CURRENT_SOURCE_DIR}/../libdisassembly/arm
+	${CMAKE_CURRENT_SOURCE_DIR}/../libdisassembly/arm
 )
+
+# Add a dependency to the generated files.
+add_dependencies(emulation libspec_arm_interpreter)
