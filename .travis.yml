@@ -1,6 +1,9 @@
 language: cpp
 dist: trusty
 
+python:
+  - "pypy"
+
 matrix:
   include:
     - os: linux
@@ -25,6 +28,9 @@ install:
   # Install dependencies.
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y libboost-python-dev; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then brew install boost-python; fi
+
+  # Install python dependencies.
+  - pip install pyparsing
 
   # Install a modern CMake.
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://cmake.org/files/v3.9/cmake-3.9.0-Linux-x86_64.tar.gz  ;fi
