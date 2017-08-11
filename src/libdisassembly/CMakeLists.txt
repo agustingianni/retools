@@ -43,6 +43,7 @@ target_include_directories(
  	PUBLIC
 	${GENERATED_FILES_DIRECTORY}
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/arm
 )
 
 target_link_libraries(

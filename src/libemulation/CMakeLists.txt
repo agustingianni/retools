@@ -39,8 +39,6 @@ target_include_directories(
 	${GENERATED_FILES_DIRECTORY}
  	${CMAKE_CURRENT_SOURCE_DIR}
  	${CMAKE_CURRENT_SOURCE_DIR}/arm
- 	${CMAKE_CURRENT_SOURCE_DIR}/../libdisassembly/
-	${CMAKE_CURRENT_SOURCE_DIR}/../libdisassembly/arm
 )
 
 # Add a dependency to the generated files.
