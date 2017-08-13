@@ -3,6 +3,7 @@ include(ExternalProject)
 
 # Options.
 option(RETOOLS_LIBDEBUG "Enable libdebug" OFF)
+option(RETOOLS_DISABLE_WARNINGS "Enable warnings" ON)
 option(RETOOLS_USE_CCACHE "Build with ccache" OFF)
 option(RETOOLS_USE_CACHED_SOURCES "" ON)
 
@@ -28,6 +29,12 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# The genera
+if(RETOOLS_DISABLE_WARNINGS)
+    message("Disabling warnings.")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+endif()
 
 # Disable C++ exceptions.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-unwind-tables -fno-asynchronous-unwind-tables")
