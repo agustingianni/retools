@@ -108,12 +108,6 @@ $ cd retools/
 # Bootstrap installation (skip if using vagrant).
 $ bash bootstrap.sh
 
-# Run code generators.
-$ pushd src/libdisassembly/arm/scripts
-$ python disgen.py --gen_decoder --gen_to_str
-$ python emugen.py -g
-$ popd
-
 # Compile sources.
 $ mkdir build
 $ cd build/
