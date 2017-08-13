@@ -15,3 +15,7 @@ sudo apt-get update
 sudo apt-get install build-essential git cmake python-setuptools \
     python-dev libboost-python-dev libglib2.0-dev pkg-config \
     llvm clang python-pyparsing liblldb-$LLDB_VERSION -y
+
+wget https://cmake.org/files/v3.9/cmake-3.9.0-Linux-x86_64.tar.gz
+tar -xzf cmake-3.9.0-Linux-x86_64.tar.gz
+export PATH=$PWD/cmake-3.9.0-Linux-x86_64/bin:$PATH
