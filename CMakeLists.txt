@@ -32,27 +32,17 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Disable C++ exceptions.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-unwind-tables -fno-asynchronous-unwind-tables")
 
-# Enable @rpath for shared libraries.
-set(CMAKE_MACOSX_RPATH 1)
-
-if(BUILD_TYPE STREQUAL "COVERAGE")
-    message(STATUS "Code coverage build")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fno-omit-frame-pointer -fprofile-arcs -ftest-coverage")
-
-elseif(BUILD_TYPE STREQUAL "DEBUG")
-    message(STATUS "Debug build")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g -fno-omit-frame-pointer -w -Wall -Wextra")
-
-elseif(BUILD_TYPE STREQUAL "RELEASE")
-    message(STATUS "Release build")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -w")
-    add_definitions(-DNDEBUG)
-
-elseif(BUILD_TYPE STREQUAL "FUZZING")
-    message(STATUS "Fuzzing build")
-    add_definitions(-DFUZZING)
-
+if(APPLE)
+    # Enable @rpath for shared libraries.
+    set(CMAKE_MACOSX_RPATH 1)
 endif()
+
+# Default to a release build.
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type." FORCE)
+endif()
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # Build third party dependencies.
 add_subdirectory(third_party)
