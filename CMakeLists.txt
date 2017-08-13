@@ -4,6 +4,8 @@ include(ExternalProject)
 # Options.
 option(RETOOLS_LIBDEBUG "Enable libdebug" OFF)
 option(RETOOLS_USE_CCACHE "Build with ccache" OFF)
+option(RETOOLS_USE_CACHED_SOURCES "" ON)
+
 set(BUILD_TYPE "DEBUG" CACHE STRING "Select type of build [DEBUG | RELEASE | FUZZING | COVERAGE]")
 
 # retools version.

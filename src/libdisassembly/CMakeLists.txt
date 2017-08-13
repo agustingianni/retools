@@ -6,8 +6,6 @@ get_target_property(GENERATED_FILES_DIRECTORY libspec_arm_decoder GENERATED_FILE
 get_target_property(GENERATED_FILES libspec_arm_decoder GENERATED_FILES)
 set_source_files_properties(${GENERATED_FILES} PROPERTIES GENERATED TRUE)
 
-message("GENERATED_FILES_DIRECTORY=${GENERATED_FILES_DIRECTORY}")
-
 # Create the library target.
 add_library(
 	disassembly
