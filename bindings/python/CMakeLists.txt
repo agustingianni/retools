@@ -4,16 +4,6 @@ find_package(PythonInterp REQUIRED)
 find_package(PythonLibs REQUIRED)
 find_package(Boost COMPONENTS python REQUIRED)
 
-message("-- Include dirs of boost  : " ${Boost_INCLUDE_DIRS} )
-message("-- Libs of boost          : " ${Boost_LIBRARIES} )
-message("-- Include dirs of python : " ${PYTHON_INCLUDE_DIRS} )
-message("-- Libs of python         : " ${PYTHON_LIBRARIES} )
-
-include_directories(
-	${Boost_INCLUDE_DIRS}
-	${PYTHON_INCLUDE_DIRS}
-)
-
 add_library(
 	disassembler_py
 	SHARED
@@ -25,6 +15,11 @@ target_link_libraries(
 	disassembly
 	${Boost_LIBRARIES}
 	${PYTHON_LIBRARIES}
+)
+
+target_include_directories(
+	disassembler_py
+	PRIVATE ${PYTHON_INCLUDE_DIRS}
 )
 
 add_library(
@@ -40,3 +35,7 @@ target_link_libraries(
 	${PYTHON_LIBRARIES}
 )
 
+target_include_directories(
+	emulation_py
+	PRIVATE ${PYTHON_INCLUDE_DIRS}
+)
