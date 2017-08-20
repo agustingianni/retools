@@ -1,0 +1,1018 @@
+{
+  "arrays": [
+    [
+      "bits(64)", 
+      "_Dclone", 
+      "0", 
+      "31"
+    ], 
+    [
+      "bits(64)", 
+      "RC", 
+      "0", 
+      "4"
+    ], 
+    [
+      "bits(64)", 
+      "_R", 
+      "0", 
+      "30"
+    ], 
+    [
+      "bits(128)", 
+      "_V", 
+      "0", 
+      "31"
+    ]
+  ], 
+  "typedefs": [
+    {
+      "fields": [
+        "SRType_LSL", 
+        "SRType_LSR", 
+        "SRType_ASR", 
+        "SRType_ROR", 
+        "SRType_RRX"
+      ], 
+      "name": "SRType"
+    }, 
+    {
+      "fields": [
+        "OpType_Load", 
+        "OpType_Store", 
+        "OpType_LoadAtomic", 
+        "OpType_Branch", 
+        "OpType_Other"
+      ], 
+      "name": "OpType"
+    }, 
+    {
+      "fields": [
+        "SysRegAccess_OK", 
+        "SysRegAccess_UNDEFINED", 
+        "SysRegAccess_TrapToEL1", 
+        "SysRegAccess_TrapToEL2", 
+        "SysRegAccess_TrapToEL3"
+      ], 
+      "name": "SysRegAccess"
+    }, 
+    {
+      "fields": [
+        "TimeStamp_None", 
+        "TimeStamp_Virtual", 
+        "TimeStamp_Physical"
+      ], 
+      "name": "TimeStamp"
+    }, 
+    {
+      "fields": [
+        "CountOp_CLZ", 
+        "CountOp_CLS", 
+        "CountOp_CNT"
+      ], 
+      "name": "CountOp"
+    }, 
+    {
+      "fields": [
+        "ExtendType_SXTB", 
+        "ExtendType_SXTH", 
+        "ExtendType_SXTW", 
+        "ExtendType_SXTX", 
+        "ExtendType_UXTB", 
+        "ExtendType_UXTH", 
+        "ExtendType_UXTW", 
+        "ExtendType_UXTX"
+      ], 
+      "name": "ExtendType"
+    }, 
+    {
+      "fields": [
+        "FPMaxMinOp_MAX", 
+        "FPMaxMinOp_MIN", 
+        "FPMaxMinOp_MAXNUM", 
+        "FPMaxMinOp_MINNUM"
+      ], 
+      "name": "FPMaxMinOp"
+    }, 
+    {
+      "fields": [
+        "FPUnaryOp_ABS", 
+        "FPUnaryOp_MOV", 
+        "FPUnaryOp_NEG", 
+        "FPUnaryOp_SQRT"
+      ], 
+      "name": "FPUnaryOp"
+    }, 
+    {
+      "fields": [
+        "FPConvOp_CVT_FtoI", 
+        "FPConvOp_CVT_ItoF", 
+        "FPConvOp_MOV_FtoI", 
+        "FPConvOp_MOV_ItoF", 
+        "FPConvOp_CVT_FtoI_JS"
+      ], 
+      "name": "FPConvOp"
+    }, 
+    {
+      "fields": [
+        "MoveWideOp_N", 
+        "MoveWideOp_Z", 
+        "MoveWideOp_K"
+      ], 
+      "name": "MoveWideOp"
+    }, 
+    {
+      "fields": [
+        "ShiftType_LSL", 
+        "ShiftType_LSR", 
+        "ShiftType_ASR", 
+        "ShiftType_ROR"
+      ], 
+      "name": "ShiftType"
+    }, 
+    {
+      "fields": [
+        "LogicalOp_AND", 
+        "LogicalOp_EOR", 
+        "LogicalOp_ORR"
+      ], 
+      "name": "LogicalOp"
+    }, 
+    {
+      "fields": [
+        "MemAtomicOp_ADD", 
+        "MemAtomicOp_BIC", 
+        "MemAtomicOp_EOR", 
+        "MemAtomicOp_ORR", 
+        "MemAtomicOp_SMAX", 
+        "MemAtomicOp_SMIN", 
+        "MemAtomicOp_UMAX", 
+        "MemAtomicOp_UMIN", 
+        "MemAtomicOp_SWP"
+      ], 
+      "name": "MemAtomicOp"
+    }, 
+    {
+      "fields": [
+        "MemOp_LOAD", 
+        "MemOp_STORE", 
+        "MemOp_PREFETCH"
+      ], 
+      "name": "MemOp"
+    }, 
+    {
+      "fields": [
+        "MemBarrierOp_DSB", 
+        "MemBarrierOp_DMB", 
+        "MemBarrierOp_ISB"
+      ], 
+      "name": "MemBarrierOp"
+    }, 
+    {
+      "fields": [
+        "SystemHintOp_NOP", 
+        "SystemHintOp_YIELD", 
+        "SystemHintOp_WFE", 
+        "SystemHintOp_WFI", 
+        "SystemHintOp_SEV", 
+        "SystemHintOp_SEVL", 
+        "SystemHintOp_ESB", 
+        "SystemHintOp_PSB", 
+        ""
+      ], 
+      "name": "SystemHintOp"
+    }, 
+    {
+      "fields": [
+        "PSTATEField_DAIFSet", 
+        "PSTATEField_DAIFClr", 
+        "PSTATEField_PAN", 
+        "PSTATEField_UAO", 
+        "PSTATEField_SP"
+      ], 
+      "name": "PSTATEField"
+    }, 
+    {
+      "fields": [
+        "Sys_AT", 
+        "Sys_DC", 
+        "Sys_IC", 
+        "Sys_TLBI", 
+        "Sys_SYS"
+      ], 
+      "name": "SystemOp"
+    }, 
+    {
+      "fields": [
+        "VBitOp_VBIF", 
+        "VBitOp_VBIT", 
+        "VBitOp_VBSL", 
+        "VBitOp_VEOR"
+      ], 
+      "name": "VBitOp"
+    }, 
+    {
+      "fields": [
+        "CompareOp_GT", 
+        "CompareOp_GE", 
+        "CompareOp_EQ", 
+        "CompareOp_LE", 
+        "CompareOp_LT"
+      ], 
+      "name": "CompareOp"
+    }, 
+    {
+      "fields": [
+        "ImmediateOp_MOVI", 
+        "ImmediateOp_MVNI", 
+        "ImmediateOp_ORR", 
+        "ImmediateOp_BIC"
+      ], 
+      "name": "ImmediateOp"
+    }, 
+    {
+      "fields": [
+        "ReduceOp_FMINNUM", 
+        "ReduceOp_FMAXNUM", 
+        "ReduceOp_FMIN", 
+        "ReduceOp_FMAX", 
+        "ReduceOp_FADD", 
+        "ReduceOp_ADD"
+      ], 
+      "name": "ReduceOp"
+    }, 
+    {
+      "fields": [
+        "CrossTriggerOut_DebugRequest", 
+        "CrossTriggerOut_RestartRequest", 
+        "CrossTriggerOut_IRQ", 
+        "CrossTriggerOut_RSVD3", 
+        "CrossTriggerOut_TraceExtIn0", 
+        "CrossTriggerOut_TraceExtIn1", 
+        "CrossTriggerOut_TraceExtIn2", 
+        "CrossTriggerOut_TraceExtIn3};\n\nenumeration CrossTriggerIn  {CrossTriggerIn_CrossHalt", 
+        "CrossTriggerIn_PMUOverflow", 
+        "CrossTriggerIn_RSVD2", 
+        "CrossTriggerIn_RSVD3", 
+        "CrossTriggerIn_TraceExtOut0", 
+        "CrossTriggerIn_TraceExtOut1", 
+        "CrossTriggerIn_TraceExtOut2", 
+        "CrossTriggerIn_TraceExtOut3"
+      ], 
+      "name": "CrossTriggerOut"
+    }, 
+    {
+      "fields": [
+        "InterruptID_PMUIRQ", 
+        "InterruptID_COMMIRQ", 
+        "InterruptID_CTIIRQ", 
+        "InterruptID_COMMRX", 
+        "InterruptID_COMMTX"
+      ], 
+      "name": "InterruptID"
+    }, 
+    {
+      "fields": [
+        "Exception_Uncategorized", 
+        "Exception_WFxTrap", 
+        "Exception_CP15RTTrap", 
+        "Exception_CP15RRTTrap", 
+        "Exception_CP14RTTrap", 
+        "Exception_CP14DTTrap", 
+        "Exception_AdvSIMDFPAccessTrap", 
+        "Exception_FPIDTrap", 
+        "Exception_PACTrap", 
+        "Exception_CP14RRTTrap", 
+        "Exception_IllegalState", 
+        "Exception_SupervisorCall", 
+        "Exception_HypervisorCall", 
+        "Exception_MonitorCall", 
+        "Exception_SystemRegisterTrap", 
+        "Exception_ERetTrap", 
+        "Exception_InstructionAbort", 
+        "Exception_PCAlignment", 
+        "Exception_DataAbort", 
+        "Exception_SPAlignment", 
+        "Exception_FPTrappedException", 
+        "Exception_SError", 
+        "Exception_Breakpoint", 
+        "Exception_SoftwareStep", 
+        "Exception_Watchpoint", 
+        "Exception_SoftwareBreakpoint", 
+        "Exception_VectorCatch", 
+        "Exception_IRQ", 
+        "Exception_FIQ"
+      ], 
+      "name": "Exception"
+    }, 
+    {
+      "fields": [
+        "SystemAccessType_RT", 
+        "SystemAccessType_RRT", 
+        "SystemAccessType_DT"
+      ], 
+      "name": "SystemAccessType"
+    }, 
+    {
+      "fields": [
+        "FPExc_InvalidOp", 
+        "FPExc_DivideByZero", 
+        "FPExc_Overflow", 
+        "FPExc_Underflow", 
+        "FPExc_Inexact", 
+        "FPExc_InputDenorm"
+      ], 
+      "name": "FPExc"
+    }, 
+    {
+      "fields": [
+        "FPRounding_TIEEVEN", 
+        "FPRounding_POSINF", 
+        "FPRounding_NEGINF", 
+        "FPRounding_ZERO", 
+        "FPRounding_TIEAWAY", 
+        "FPRounding_ODD"
+      ], 
+      "name": "FPRounding"
+    }, 
+    {
+      "fields": [
+        "FPType_Nonzero", 
+        "FPType_Zero", 
+        "FPType_Infinity", 
+        "FPType_QNaN", 
+        "FPType_SNaN"
+      ], 
+      "name": "FPType"
+    }, 
+    {
+      "fields": [
+        "AccType_NORMAL", 
+        "AccType_VEC", 
+        "AccType_STREAM", 
+        "AccType_VECSTREAM", 
+        "AccType_ATOMIC", 
+        "AccType_ATOMICRW", 
+        "AccType_ORDERED", 
+        "AccType_ORDEREDRW", 
+        "AccType_LIMITEDORDERED", 
+        "AccType_UNPRIV", 
+        "AccType_IFETCH", 
+        "AccType_PTW", 
+        "AccType_DC", 
+        "AccType_IC", 
+        "AccType_DCZVA", 
+        "AccType_AT"
+      ], 
+      "name": "AccType"
+    }, 
+    {
+      "fields": [
+        "DeviceType_GRE", 
+        "DeviceType_nGRE", 
+        "DeviceType_nGnRE", 
+        "DeviceType_nGnRnE"
+      ], 
+      "name": "DeviceType"
+    }, 
+    {
+      "fields": [
+        "Fault_None", 
+        "Fault_AccessFlag", 
+        "Fault_Alignment", 
+        "Fault_Background", 
+        "Fault_Domain", 
+        "Fault_Permission", 
+        "Fault_Translation", 
+        "Fault_AddressSize", 
+        "Fault_SyncExternal", 
+        "Fault_SyncExternalOnWalk", 
+        "Fault_SyncParity", 
+        "Fault_SyncParityOnWalk", 
+        "Fault_AsyncParity", 
+        "Fault_AsyncExternal", 
+        "Fault_Debug", 
+        "Fault_TLBConflict", 
+        "Fault_Lockdown", 
+        "Fault_Exclusive", 
+        "Fault_ICacheMaint"
+      ], 
+      "name": "Fault"
+    }, 
+    {
+      "fields": [
+        "MBReqDomain_Nonshareable", 
+        "MBReqDomain_InnerShareable", 
+        "MBReqDomain_OuterShareable", 
+        "MBReqDomain_FullSystem"
+      ], 
+      "name": "MBReqDomain"
+    }, 
+    {
+      "fields": [
+        "MBReqTypes_Reads", 
+        "MBReqTypes_Writes", 
+        "MBReqTypes_All"
+      ], 
+      "name": "MBReqTypes"
+    }, 
+    {
+      "fields": [
+        "MemType_Normal", 
+        "MemType_Device"
+      ], 
+      "name": "MemType"
+    }, 
+    {
+      "fields": [
+        "Prefetch_READ", 
+        "Prefetch_WRITE", 
+        "Prefetch_EXEC"
+      ], 
+      "name": "PrefetchHint"
+    }, 
+    {
+      "fields": [
+        "BranchType_CALL", 
+        "BranchType_ERET", 
+        "BranchType_DBGEXIT", 
+        "BranchType_RET", 
+        "BranchType_JMP", 
+        "BranchType_EXCEPTION", 
+        "BranchType_UNKNOWN"
+      ], 
+      "name": "BranchType"
+    }, 
+    {
+      "fields": [
+        "ARMv8p0", 
+        "ARMv8p1", 
+        "ARMv8p2", 
+        "ARMv8p3"
+      ], 
+      "name": "ArchVersion"
+    }, 
+    {
+      "fields": [
+        "InstrSet_A64", 
+        "InstrSet_A32", 
+        "InstrSet_T32"
+      ], 
+      "name": "InstrSet"
+    }, 
+    {
+      "fields": [
+        "PL3", 
+        "PL2", 
+        "PL1", 
+        "PL0"
+      ], 
+      "name": "PrivilegeLevel"
+    }, 
+    {
+      "fields": [
+        "Constraint_NONE", 
+        "Constraint_UNKNOWN", 
+        "Constraint_UNDEF", 
+        "Constraint_UNDEFEL0", 
+        "Constraint_NOP", 
+        "Constraint_TRUE", 
+        "Constraint_FALSE", 
+        "Constraint_DISABLED", 
+        "Constraint_UNCOND", 
+        "Constraint_COND", 
+        "Constraint_ADDITIONAL_DECODE", 
+        "Constraint_WBSUPPRESS", 
+        "Constraint_FAULT", 
+        "Constraint_FORCE", 
+        "Constraint_FORCENOSLCHECK"
+      ], 
+      "name": "Constraint"
+    }, 
+    {
+      "fields": [
+        "Unpredictable_WBOVERLAPLD", 
+        "Unpredictable_WBOVERLAPST", 
+        "Unpredictable_LDPOVERLAP", 
+        "Unpredictable_BASEOVERLAP", 
+        "Unpredictable_DATAOVERLAP", 
+        "Unpredictable_DEVPAGE2", 
+        "Unpredictable_INSTRDEVICE", 
+        "Unpredictable_RESCPACR", 
+        "Unpredictable_RESMAIR", 
+        "Unpredictable_RESTEXCB", 
+        "Unpredictable_RESPRRR", 
+        "Unpredictable_RESDACR", 
+        "Unpredictable_RESVTCRS", 
+        "Unpredictable_RESTnSZ", 
+        "Unpredictable_OORTnSZ", 
+        "Unpredictable_LARGEIPA", 
+        "Unpredictable_ESRCONDPASS", 
+        "Unpredictable_ILZEROIT", 
+        "Unpredictable_ILZEROT", 
+        "Unpredictable_BPVECTORCATCHPRI", 
+        "Unpredictable_VCMATCHHALF", 
+        "Unpredictable_VCMATCHDAPA", 
+        "Unpredictable_WPMASKANDBAS", 
+        "Unpredictable_WPBASCONTIGUOUS", 
+        "Unpredictable_RESWPMASK", 
+        "Unpredictable_WPMASKEDBITS", 
+        "Unpredictable_RESBPWPCTRL", 
+        "Unpredictable_BPNOTIMPL", 
+        "Unpredictable_RESBPTYPE", 
+        "Unpredictable_BPNOTCTXCMP", 
+        "Unpredictable_BPMATCHHALF", 
+        "Unpredictable_BPMISMATCHHALF", 
+        "Unpredictable_RESTARTALIGNPC", 
+        "Unpredictable_RESTARTZEROUPPERPC", 
+        "Unpredictable_ZEROUPPER", 
+        "Unpredictable_ERETZEROUPPERPC", 
+        "Unpredictable_A32FORCEALIGNPC", 
+        "Unpredictable_SMD", 
+        "Unpredictable_AFUPDATE", 
+        "Unpredictable_IESBinDebug", 
+        "Unpredictable_ZEROPMSEVFR", 
+        "Unpredictable_NOOPTYPES", 
+        "Unpredictable_ZEROMINLATENCY", 
+        "Unpredictable_CLEARERRITEZERO", 
+        "Unpredictable_TBD"
+      ], 
+      "name": "Unpredictable"
+    }
+  ], 
+  "types": [
+    {
+      "fields": [
+        [
+          "bits(2)", 
+          "AET"
+        ], 
+        [
+          "bit", 
+          "ExT"
+        ]
+      ], 
+      "name": "AArch32.SErrorSyndrome"
+    }, 
+    {
+      "fields": [
+        [
+          "boolean", 
+          "valid"
+        ], 
+        [
+          "bits(64)", 
+          "pc"
+        ], 
+        [
+          "bits(2)", 
+          "el"
+        ], 
+        [
+          "bit", 
+          "rw"
+        ], 
+        [
+          "bit", 
+          "ns"
+        ], 
+        [
+          "bits(32)", 
+          "contextidr"
+        ], 
+        [
+          "bits(32)", 
+          "contextidr_el2"
+        ], 
+        [
+          "bits(16)", 
+          "vmid"
+        ]
+      ], 
+      "name": "PCSample"
+    }, 
+    {
+      "fields": [
+        [
+          "Exception", 
+          "type"
+        ], 
+        [
+          "bits(25)", 
+          "syndrome"
+        ], 
+        [
+          "bits(64)", 
+          "vaddress"
+        ], 
+        [
+          "boolean", 
+          "ipavalid"
+        ], 
+        [
+          "bits(52)", 
+          "ipaddress"
+        ]
+      ], 
+      "name": "ExceptionRecord"
+    }, 
+    {
+      "fields": [
+        [
+          "AccType", 
+          "acctype"
+        ], 
+        [
+          "boolean", 
+          "page_table_walk"
+        ], 
+        [
+          "boolean", 
+          "secondstage"
+        ], 
+        [
+          "boolean", 
+          "s2fs1walk"
+        ], 
+        [
+          "integer", 
+          "level"
+        ]
+      ], 
+      "name": "AccessDescriptor"
+    }, 
+    {
+      "fields": [
+        [
+          "FaultRecord", 
+          "fault"
+        ], 
+        [
+          "MemoryAttributes", 
+          "memattrs"
+        ], 
+        [
+          "FullAddress", 
+          "paddress"
+        ], 
+        [
+          "bits(64)", 
+          "vaddress"
+        ]
+      ], 
+      "name": "AddressDescriptor"
+    }, 
+    {
+      "fields": [
+        [
+          "boolean", 
+          "AF"
+        ], 
+        [
+          "boolean", 
+          "AP"
+        ], 
+        [
+          "AddressDescriptor", 
+          "descaddr"
+        ]
+      ], 
+      "name": "DescriptorUpdate"
+    }, 
+    {
+      "fields": [
+        [
+          "Fault", 
+          "type"
+        ], 
+        [
+          "AccType", 
+          "acctype"
+        ], 
+        [
+          "bits(52)", 
+          "ipaddress"
+        ], 
+        [
+          "boolean", 
+          "s2fs1walk"
+        ], 
+        [
+          "boolean", 
+          "write"
+        ], 
+        [
+          "integer", 
+          "level"
+        ], 
+        [
+          "bit", 
+          "extflag"
+        ], 
+        [
+          "boolean", 
+          "secondstage"
+        ], 
+        [
+          "bits(4)", 
+          "domain"
+        ], 
+        [
+          "bits(2)", 
+          "errortype"
+        ], 
+        [
+          "bits(4)", 
+          "debugmoe"
+        ]
+      ], 
+      "name": "FaultRecord"
+    }, 
+    {
+      "fields": [
+        [
+          "bits(52)", 
+          "physicaladdress"
+        ], 
+        [
+          "bit", 
+          "NS"
+        ]
+      ], 
+      "name": "FullAddress"
+    }, 
+    {
+      "fields": [
+        [
+          "bits(2)", 
+          "attrs"
+        ], 
+        [
+          "bits(2)", 
+          "hints"
+        ], 
+        [
+          "boolean", 
+          "transient"
+        ]
+      ], 
+      "name": "MemAttrHints"
+    }, 
+    {
+      "fields": [
+        [
+          "MemType", 
+          "type"
+        ], 
+        [
+          "DeviceType", 
+          "device"
+        ], 
+        [
+          "MemAttrHints", 
+          "inner"
+        ], 
+        [
+          "MemAttrHints", 
+          "outer"
+        ], 
+        [
+          "boolean", 
+          "shareable"
+        ], 
+        [
+          "boolean", 
+          "outershareable"
+        ]
+      ], 
+      "name": "MemoryAttributes"
+    }, 
+    {
+      "fields": [
+        [
+          "bits(3)", 
+          "ap"
+        ], 
+        [
+          "bit", 
+          "xn"
+        ], 
+        [
+          "bit", 
+          "xxn"
+        ], 
+        [
+          "bit", 
+          "pxn"
+        ]
+      ], 
+      "name": "Permissions"
+    }, 
+    {
+      "fields": [
+        [
+          "Permissions", 
+          "perms"
+        ], 
+        [
+          "bit", 
+          "nG"
+        ], 
+        [
+          "bits(4)", 
+          "domain"
+        ], 
+        [
+          "boolean", 
+          "contiguous"
+        ], 
+        [
+          "integer", 
+          "level"
+        ], 
+        [
+          "integer", 
+          "blocksize"
+        ], 
+        [
+          "DescriptorUpdate", 
+          "descupdate"
+        ], 
+        [
+          "bit", 
+          "CnP"
+        ], 
+        [
+          "AddressDescriptor", 
+          "addrdesc"
+        ]
+      ], 
+      "name": "TLBRecord"
+    }, 
+    {
+      "fields": [
+        [
+          "bits", 
+          "(1)", 
+          "N"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "Z"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "C"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "V"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "D"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "A"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "I"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "F"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "PAN"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "UAO"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "SS"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "IL"
+        ], 
+        [
+          "bits", 
+          "(2)", 
+          "EL"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "nRW"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "SP"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "Q"
+        ], 
+        [
+          "bits", 
+          "(4)", 
+          "GE"
+        ], 
+        [
+          "bits", 
+          "(8)", 
+          "IT"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "J"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "T"
+        ], 
+        [
+          "bits", 
+          "(1)", 
+          "E"
+        ], 
+        [
+          "bits", 
+          "(5)", 
+          "M"
+        ]
+      ], 
+      "name": "ProcState"
+    }
+  ], 
+  "variables": [
+    [
+      "bits(32)", 
+      "SP_mon"
+    ], 
+    [
+      "bits(32)", 
+      "LR_mon"
+    ], 
+    [
+      "signal", 
+      "DBGEN"
+    ], 
+    [
+      "signal", 
+      "NIDEN"
+    ], 
+    [
+      "signal", 
+      "SPIDEN"
+    ], 
+    [
+      "signal", 
+      "SPNIDEN"
+    ], 
+    [
+      "bits(32)", 
+      "DTRRX"
+    ], 
+    [
+      "bits(32)", 
+      "DTRTX"
+    ], 
+    [
+      "PCSample", 
+      "pc_sample"
+    ], 
+    [
+      "bits(64)", 
+      "_PC"
+    ], 
+    [
+      "bits(1)", 
+      "EventRegister"
+    ], 
+    [
+      "ProcState", 
+      "PSTATE"
+    ]
+  ]
+}
