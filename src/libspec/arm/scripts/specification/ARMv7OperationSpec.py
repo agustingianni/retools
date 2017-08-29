@@ -1120,13 +1120,15 @@ if ConditionPassed() then
     address = if index then offset_addr else R[n];
     data = MemU[address,4];
 
-    if wback then R[n] = offset_addr;
-        if t == 15 then
-            if address<1:0> == '00' then
-                LoadWritePC(data);
-            else
-                UNPREDICTABLE;
-            endif
+    if wback then
+        R[n] = offset_addr;
+    endif
+
+    if t == 15 then
+        if address<1:0> == '00' then
+            LoadWritePC(data);
+        else
+            UNPREDICTABLE;
         endif
     endif
 
