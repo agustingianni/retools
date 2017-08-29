@@ -35,7 +35,7 @@
     "classes": [
       {
         "constraints": [], 
-        "decoder_pre": "integer d =\n            UInt(Rd);\ninteger n =\n            UInt(Rn);\ninteger m =\n            UInt(Rm);\ninteger datasize = if sf == '1' then 64 else 32;\nboolean sub_op = (op == '1');\nboolean setflags = (S == '1');\n", 
+        "decoder_pre": "integer d = UInt(Rd);\ninteger n = UInt(Rn);\ninteger m = UInt(Rm);\ninteger datasize = if sf == '1' then 64 else 32;\nboolean sub_op = (op == '1');\nboolean setflags = (S == '1');\n", 
         "encodings": [
           {
             "condition": "sf == 0", 
@@ -53,7 +53,7 @@
     "decoder_post": null, 
     "description": "Add with Carry", 
     "name": "ADC", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 =\n        X[n];\nbits(datasize) operand2 =\n        X[m];\nbits(4) nzcv;\nif sub_op then    operand2 =\n        NOT(operand2);\n(result, nzcv) =\n        AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then    PSTATE.<N,Z,C,V> = nzcv;\n        X[d] = result;\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then    operand2 = NOT(operand2);\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then    PSTATE.<N,Z,C,V> = nzcv;\n        X[d] = result;\n"
   }, 
   {
     "classes": [
