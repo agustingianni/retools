@@ -2,6 +2,7 @@
 Python parser for the ARM Architecture Reference Manual (ARMv7-A and ARMv7-R edition)
 pseudocode.
 """
+import sys
 import string
 from pyparsing import *
 
@@ -289,7 +290,7 @@ atom = MatchFirst([procedure_call_expr, bit_extract_expr, if_expression, list_ex
     array_access_expr, boolean, identifier, number, enum, ignored])
 
 # Define the order of precedence.
-expr = operatorPrecedence(atom, [
+expr = infixNotation(atom, [
     (unary_operator, 1, opAssoc.RIGHT, decode_unary ),
     (bit_concat_operator, 2, opAssoc.LEFT, decode_binary),
     (mul_div_mod_operator, 2, opAssoc.LEFT, decode_binary),
@@ -307,7 +308,7 @@ expr = operatorPrecedence(atom, [
 
 # Define a procedure call and its allowed arguments. We do this because things
 # break if we get too recursive.
-procedure_argument = operatorPrecedence(atom, [
+procedure_argument = infixNotation(atom, [
     (unary_operator, 1, opAssoc.RIGHT, decode_unary ),
     (bit_concat_operator, 2, opAssoc.LEFT, decode_binary),
     (mul_div_mod_operator, 2, opAssoc.LEFT, decode_binary),
@@ -319,7 +320,7 @@ procedure_argument = operatorPrecedence(atom, [
 
 # Operations being used by an array indexing expression.
 array_index_atom = MatchFirst([array_access_expr, identifier, number])
-array_index_expr = operatorPrecedence(array_index_atom, [
+array_index_expr = infixNotation(array_index_atom, [
     (oneOf("* / %"), 2, opAssoc.LEFT, decode_binary),
     (oneOf("+ - >>"), 2, opAssoc.LEFT, decode_binary)
 ])
