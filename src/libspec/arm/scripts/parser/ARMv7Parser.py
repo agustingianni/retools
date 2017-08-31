@@ -129,34 +129,31 @@ def decode_if_expression(x):
     assert "else" == x[4]
     return IfExpression(x[1], x[3], x[5])
 
-def decode_if(x):
+def decode_singleline_if_statement(a,b,x):
     assert "if" == x[0]
     assert "then" == x[2]
     return If(x[1], map(lambda y: y[0], list(x[3:])), [])
 
-def decode_if_no_else(x):
-    assert "if" == x[0]
-    assert "then" == x[2]
-    assert "endif" == x[4]
+def decode_multiline_if_statement(s, l, x):
+    # List of tuples in the form (expression, statements)
+    conditional_statements = []
 
-    cond, if_st = x[1], map(lambda y: y[0], x[3])
-    assert type(if_st) == type([])
-    
-    return If(cond, if_st, [])
+    # Collect indexes of 'if' and 'elsif' parts.
+    indexes = [i for i, j in enumerate(x) if j in ["if", "elsif"]]
+    for i in indexes:
+        condition = x[i + 1]
+        statements = map(lambda y: y[0], x[i + 3])
+        conditional_statements.append((condition, statements))
 
-def decode_if_else(x):
-    assert "if" == x[0]
-    assert "then" == x[2]
-    assert "else" == x[4]
-    assert "endif" == x[6]
+    # Get the else statements if any.
+    else_statements = map(lambda y: y[0], x[-2]) if x[-3] == "else" else []
 
-    cond, if_st, then_st = x[1], map(lambda y: y[0], x[3]), map(lambda y: y[0], x[5])
-
-    assert type(if_st) == type([])
-    assert type(then_st) == type([])
+    # HACK: Implement the correct mechanism here.
+    cond = conditional_statements[0][0]
+    if_st = conditional_statements[0][1]
+    then_st = else_statements
 
     return If(cond, if_st, then_st)
-
 
 def decode_bit_extract(x):
     return BitExtraction(x[0][0], list(x[0][1:]))
@@ -185,6 +182,17 @@ def decode_masked_base2(x):
 
 def decode_list(x):
     return List(x[0:])
+
+def decode_var_type(x):
+    variable_name = x[0]
+    variable_size = str(x[1]) if len(x) > 1 else None
+    return VariableType(variable_name, variable_size)
+
+def decode_var_declaration(x):
+    variable_type = x[0]
+    variable_name = x[1]
+    variable_value = x[3] if len(x) > 3 else None
+    return VariableDeclaration(variable_type, variable_name, variable_value)
 
 # Define the boolean values.
 boolean = MatchFirst([TRUE, FALSE]).setParseAction(lambda x: BooleanValue(x[0] == "TRUE"))
@@ -323,7 +331,7 @@ bit_extract_expr <<= Group(
 array_access_expr <<= Group(
     identifier +
     LBRACK +
-    delimitedList(array_index_expr) + 
+    delimitedList(array_index_expr) +
     RBRACK
 ).setParseAction(decode_array_access)
 
@@ -334,6 +342,46 @@ procedure_call_expr <<= Group(identifier + LPAR + Optional(procedure_arguments) 
 
 # Define an if expression.
 if_expression <<= (IF + expr + THEN + expr + ELSE + expr).setParseAction(decode_if_expression)
+
+# Standard types used in ARMv8 pseudocode.
+single_bitstring = Keyword("bit")
+multi_bitstring = Keyword("bits") + LPAR + MatchFirst([identifier, number]) + RPAR
+bitstring_type = single_bitstring | multi_bitstring
+
+enum_types = Or([
+    Keyword("AccType"),
+    Keyword("BranchType"),
+    Keyword("CompareOp"),
+    Keyword("Constraint"),
+    Keyword("CountOp"),
+    Keyword("ExtendType"),
+    Keyword("FPConvOp"),
+    Keyword("FPExc"),
+    Keyword("FPMaxMinOp"),
+    Keyword("FPRounding"),
+    Keyword("FPUnaryOp"),
+    Keyword("ImmediateOp"),
+    Keyword("LogicalOp"),
+    Keyword("MBReqDomain"),
+    Keyword("MBReqTypes"),
+    Keyword("MemAtomicOp"),
+    Keyword("MemBarrierOp"),
+    Keyword("MemOp"),
+    Keyword("MoveWideOp"),
+    Keyword("PSTATEField"),
+    Keyword("ReduceOp"),
+    Keyword("ShiftType"),
+    Keyword("SystemHintOp"),
+    Keyword("VBitOp")
+])
+
+# Simple variable types.
+variable_type = bitstring_type | INTEGER | BOOLEAN | enum_types
+variable_type.setParseAction(decode_var_type)
+
+# A variable declaration has an optional initialization part.
+variable_declaration = variable_type + identifier + Optional(assignment_operator + expr)
+variable_declaration.setParseAction(decode_var_declaration)
 
 # Forward declaration of a generic statement.
 statement = Forward()
@@ -358,16 +406,18 @@ assignment_statement = (expr + assignment_operator + expr).setParseAction(lambda
 inline_statement_list = OneOrMore(statement)
 
 # Parse: if <cond> then st1; st2; st3; ... stn;
-single_line_if_statement = (IF + expr + THEN + inline_statement_list).setParseAction(decode_if)
+singleline_if_statement = (IF + expr + THEN + inline_statement_list).setParseAction(decode_singleline_if_statement)
 
-# Parse: if <cond> then <statements> else <statements> endif
-multiline_if_statement = (IF + expr + THEN + ZeroOrMore(EOL) + Group(statement_list) + ELSE + ZeroOrMore(EOL) + Group(statement_list) + ENDIF).setParseAction(decode_if_else)
+# Parse a complete if/elsif/else statement.
+multiline_if_statement = IF + expr + THEN + OneOrMore(EOL) + Group(statement_list) \
+    + ZeroOrMore(ELSIF + expr + THEN + OneOrMore(EOL) + Group(statement_list)) \
+    + Optional(ELSE + OneOrMore(EOL) + Group(statement_list)) \
+    + ENDIF
 
-# This sucks. At this point I've continued with the grammar without caring too much.    
-multiline_if_statement_no_else = (IF + expr + THEN + ZeroOrMore(EOL) + Group(statement_list) + ENDIF).setParseAction(decode_if_no_else)
+multiline_if_statement.setParseAction(decode_multiline_if_statement)
 
 # Two types of if statements.
-if_statement = MatchFirst([multiline_if_statement, multiline_if_statement_no_else, single_line_if_statement])
+if_statement = MatchFirst([multiline_if_statement, singleline_if_statement])
 
 # Define a case statement.
 otherwise_case = Group(OTHERWISE + Optional(EOL) + Group(statement_list))
@@ -384,7 +434,7 @@ while_statement = (WHILE + expr + DO + statement_list).setParseAction(decode_whi
 for_statement = (FOR + assignment_statement + TO + expr + EOL + Group(statement_list) + ENDFOR).setParseAction(decode_for)
 
 # Collect all statements. We have two kinds, the ones that end with a semicolon and other statements that do not.
-t1 = MatchFirst([undefined_statement, unpredictable_statement, see_statement, \
+t1 = MatchFirst([variable_declaration, undefined_statement, unpredictable_statement, see_statement, \
     implementation_defined_statement, subarchitecture_defined_statement, \
     return_statement, procedure_call_statement, assignment_statement])
 

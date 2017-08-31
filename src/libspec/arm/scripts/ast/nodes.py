@@ -206,3 +206,20 @@ class Return(BaseNode):
 
     def __str__(self):
         return "Return: %s" % (str(self.value))
+
+class VariableType(BaseNode):
+    def __init__(self, name, size=None):
+        self.name = name
+        self.size = size
+
+    def __str__(self):
+        return "VariableType: name=%s size=%s" % (self.name, self.size)
+
+class VariableDeclaration(BaseNode):
+    def __init__(self, var_type, name, value):
+        self.type = var_type
+        self.name = name
+        self.value = value
+
+    def __str__(self):
+        return "VariableDeclaration: type=%s name=%s value=%s" % (self.type, self.name, self.value)
