@@ -47,6 +47,8 @@ REAL = Keyword("real")
 ENUMERATION = Keyword("enumeration")
 LIST = Keyword("list")
 ARRAY = Keyword("array")
+CONSTANT = Keyword("constant")
+ASSERT = Keyword("assert")
 
 # Commonly used constants.
 TRUE = Keyword("TRUE")
@@ -193,6 +195,9 @@ def decode_var_declaration(x):
     variable_name = x[1]
     variable_value = x[3] if len(x) > 3 else None
     return VariableDeclaration(variable_type, variable_name, variable_value)
+
+def decode_assertion_statement(x):
+    return Assertion(x[1])
 
 # Define the boolean values.
 boolean = MatchFirst([TRUE, FALSE]).setParseAction(lambda x: BooleanValue(x[0] == "TRUE"))
@@ -345,7 +350,7 @@ if_expression <<= (IF + expr + THEN + expr + ELSE + expr).setParseAction(decode_
 
 # Standard types used in ARMv8 pseudocode.
 single_bitstring = Keyword("bit")
-multi_bitstring = Keyword("bits") + LPAR + MatchFirst([identifier, number]) + RPAR
+multi_bitstring = Keyword("bits") + LPAR + expr + RPAR
 bitstring_type = single_bitstring | multi_bitstring
 
 enum_types = Or([
@@ -380,8 +385,13 @@ variable_type = bitstring_type | INTEGER | BOOLEAN | enum_types
 variable_type.setParseAction(decode_var_type)
 
 # A variable declaration has an optional initialization part.
-variable_declaration = variable_type + identifier + Optional(assignment_operator + expr)
+variable = identifier + Optional(assignment_operator + expr)
+variable_declaration = Suppress(Optional(CONSTANT)) + variable_type + delimitedList(variable)
 variable_declaration.setParseAction(decode_var_declaration)
+
+# Assertion statement.
+assertion_statement = ASSERT + expr
+assertion_statement.setParseAction(decode_assertion_statement)
 
 # Forward declaration of a generic statement.
 statement = Forward()
@@ -434,7 +444,7 @@ while_statement = (WHILE + expr + DO + statement_list).setParseAction(decode_whi
 for_statement = (FOR + assignment_statement + TO + expr + EOL + Group(statement_list) + ENDFOR).setParseAction(decode_for)
 
 # Collect all statements. We have two kinds, the ones that end with a semicolon and other statements that do not.
-t1 = MatchFirst([variable_declaration, undefined_statement, unpredictable_statement, see_statement, \
+t1 = MatchFirst([assertion_statement, variable_declaration, undefined_statement, unpredictable_statement, see_statement, \
     implementation_defined_statement, subarchitecture_defined_statement, \
     return_statement, procedure_call_statement, assignment_statement])
 

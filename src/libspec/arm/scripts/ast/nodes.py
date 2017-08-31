@@ -223,3 +223,10 @@ class VariableDeclaration(BaseNode):
 
     def __str__(self):
         return "VariableDeclaration: type=%s name=%s value=%s" % (self.type, self.name, self.value)
+
+class Assertion(BaseNode):
+    def __init__(self, expression):
+        self.expression = expression
+
+    def __str__(self):
+        return "Assertion: expression=%s" % self.expression
