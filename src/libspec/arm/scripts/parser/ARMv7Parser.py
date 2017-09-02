@@ -180,8 +180,26 @@ def decode_array_access(x):
     raise RuntimeError("Cannot decode '%s'" % str(x))
 
 def decode_masked_base2(x):
-    return MaskedBinary(x[0])
+    # Remove the initial quotes, ie.: "01x" -> 01x.
+    value = x[0][1:-1]
+    return MaskedBinary(value)
 
+def decode_base2_integer(s, l, t):
+    # Remove the initial quotes, ie.: "01x" -> 01x.
+    value = t[0][1:-1]
+    size = len(value)
+    return NumberValue(int(value, 2) & 0xffffffff, len(value))
+
+def decode_base10_integer(s, l, t):
+    value = t[0]
+    return NumberValue(int(value) & 0xffffffff)
+
+def decode_base16_integer(s, l, t):
+    value = t[0]
+    return NumberValue(int(value, 16) & 0xffffffff)
+
+def decode_identifier(x):
+    return Identifier(x[0])
 
 def decode_list(x):
     return List(x[0:])
@@ -204,7 +222,7 @@ def decode_assertion_statement(x):
 boolean = MatchFirst([TRUE, FALSE]).setParseAction(lambda x: BooleanValue(x[0] == "TRUE"))
 
 # An identifier is a name.
-identifier = Word(alphas + "_", alphanums + "_.").setParseAction(lambda x: Identifier(x[0]))
+identifier = Word(alphas + "_", alphanums + "_.").setParseAction(decode_identifier)
 
 # Unary operators.
 unary_operator = oneOf("! - ~ +")
@@ -248,14 +266,11 @@ in_operator = Literal("IN")
 # Assignment operator.
 assignment_operator = Literal("=")
 
-# Use the already defined C multi-line comment and C++ inline comments.
-comment = cppStyleComment
-
 # Define an integer for base 2, 10 and 16 and make sure it is 32 bits long.
-base_2_masked = (QUOTE + Word("01x") + QUOTE).setParseAction(decode_masked_base2)
-base2_integer = (Literal("'") + Word("01") + Literal("'")).setParseAction(lambda s, l, t: NumberValue(int(t[1], 2) & 0xffffffff, len(t[1])))
-base10_integer = Word(initChars=string.digits).setParseAction(lambda s, l, t: NumberValue(int(t[0]) & 0xffffffff))
-base16_integer = Regex("0x[a-fA-F0-9]+").setParseAction(lambda s, l, t: NumberValue(int(t[0], 16) & 0xffffffff))
+base_2_masked = Regex("[\'\"][01x]+[\'\"]").setParseAction(decode_masked_base2)
+base2_integer = Regex("\'[01x]+\'").setParseAction(decode_base2_integer)
+base10_integer = Regex("\d+").setParseAction(decode_base10_integer)
+base16_integer = Regex("0x[a-fA-F0-9]+").setParseAction(decode_base16_integer)
 
 # Join all the supported numbers.
 number = MatchFirst([base16_integer, base2_integer, base10_integer, base_2_masked])
