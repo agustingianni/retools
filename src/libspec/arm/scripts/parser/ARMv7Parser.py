@@ -240,28 +240,16 @@ add_sub_operator = oneOf("+ -")
 shift_operator = oneOf("<< >>")
 
 # Less than, less than or equal, etc.
-lt_lte_gt_gte_operator = oneOf("< <= > >=")
+relational_operator = oneOf("< <= > >= IN")
 
 # Equal or not equal operators.
 eq_neq_operator = oneOf("== !=")
 
-# Bitwise and operator.
-bit_and_operator = oneOf("& AND")
+# Bitwise operators.
+bit_operator = oneOf("& AND | OR ^ EOR")
 
-# Bitwise eor operator.
-bit_eor_operator = oneOf("^ EOR")
-
-# Bitwise or operator.
-bit_or_operator = oneOf("| OR")
-
-# Logical and operator.
-logical_and_operator = Literal("&&")
-
-# Logical or operator.
-logical_or_operator = Literal("||")
-
-# Includes operator
-in_operator = Literal("IN")
+# Logical operators.
+logical_operator = oneOf("&& ||")
 
 # Assignment operator.
 assignment_operator = Literal("=")
@@ -273,10 +261,10 @@ base10_integer = Regex("\d+").setParseAction(decode_base10_integer)
 base16_integer = Regex("0x[a-fA-F0-9]+").setParseAction(decode_base16_integer)
 
 # Join all the supported numbers.
-number = MatchFirst([base16_integer, base2_integer, base10_integer, base_2_masked])
+number = base16_integer | base2_integer | base10_integer | base_2_masked
 
 # Enumeration ::= {var0, 1, 2} | "01x"
-enum_atom = MatchFirst([identifier, number])
+enum_atom = identifier | number
 enum_elements = delimitedList(enum_atom)
 enum = Group(LBRACE + enum_elements + RBRACE).setParseAction(lambda x: Enumeration(x[0][:])) ^ base_2_masked
 
@@ -296,53 +284,48 @@ array_access_expr = Forward()
 if_expression = Forward()
 
 # List: (a, b)
-list_atom = MatchFirst([ignored, procedure_call_expr, array_access_expr, boolean, identifier, number])
+list_atom = ignored | procedure_call_expr | array_access_expr | boolean | identifier | number
 list_elements = delimitedList(list_atom)
 list_expr = (LPAR + list_elements + RPAR).setParseAction(decode_list)
 
 # Atoms are the most basic elements of expressions.
-atom = MatchFirst([procedure_call_expr, bit_extract_expr, if_expression, list_expr, \
-    array_access_expr, boolean, identifier, number, enum, ignored])
+atom = Or([
+    boolean,
+    number,
+    ignored,
+    identifier,
+    if_expression,
+    procedure_call_expr,
+    array_access_expr,
+    bit_extract_expr,
+    list_expr,
+    enum
+])
 
 # Define the order of precedence.
 expr = infixNotation(atom, [
-    (unary_operator, 1, opAssoc.RIGHT, decode_unary ),
+    (unary_operator, 1, opAssoc.RIGHT, decode_unary),
     (bit_concat_operator, 2, opAssoc.LEFT, decode_binary),
     (mul_div_mod_operator, 2, opAssoc.LEFT, decode_binary),
     (add_sub_operator, 2, opAssoc.LEFT, decode_binary),
     (shift_operator, 2, opAssoc.LEFT, decode_binary),
-    (in_operator, 2, opAssoc.LEFT, decode_binary),
-    (lt_lte_gt_gte_operator, 2, opAssoc.LEFT, decode_binary),
+    (relational_operator, 2, opAssoc.LEFT, decode_binary),
     (eq_neq_operator, 2, opAssoc.LEFT, decode_binary),
-    (bit_and_operator, 2, opAssoc.LEFT, decode_binary),
-    (bit_or_operator, 2, opAssoc.LEFT, decode_binary),
-    (bit_eor_operator, 2, opAssoc.LEFT, decode_binary),
-    (logical_and_operator, 2, opAssoc.LEFT, decode_binary),
-    (logical_or_operator, 2, opAssoc.LEFT, decode_binary),
-])
-
-# Define a procedure call and its allowed arguments. We do this because things
-# break if we get too recursive.
-procedure_argument = infixNotation(atom, [
-    (unary_operator, 1, opAssoc.RIGHT, decode_unary ),
-    (bit_concat_operator, 2, opAssoc.LEFT, decode_binary),
-    (mul_div_mod_operator, 2, opAssoc.LEFT, decode_binary),
-    (add_sub_operator, 2, opAssoc.LEFT, decode_binary),
-    (shift_operator, 2, opAssoc.LEFT, decode_binary),
-    (bit_and_operator, 2, opAssoc.LEFT, decode_binary),
-    (bit_eor_operator, 2, opAssoc.LEFT, decode_binary),
+    (bit_operator, 2, opAssoc.LEFT, decode_binary),
+    (logical_operator, 2, opAssoc.LEFT, decode_binary),
 ])
 
 # Operations being used by an array indexing expression.
-array_index_atom = MatchFirst([array_access_expr, identifier, number])
+array_index_atom = array_access_expr | procedure_call_expr | identifier | number
 array_index_expr = infixNotation(array_index_atom, [
-    (oneOf("* / %"), 2, opAssoc.LEFT, decode_binary),
+    (oneOf("* / % DIV"), 2, opAssoc.LEFT, decode_binary),
     (oneOf("+ - >>"), 2, opAssoc.LEFT, decode_binary)
 ])
 
 # Define a bit extraction expression.
+bit_extract_expr_atom = array_index_expr | array_access_expr | identifier
 bit_extract_expr <<= Group(
-    MatchFirst([array_access_expr, identifier]) +
+    bit_extract_expr_atom +
     LANGLE +
     delimitedList(array_index_expr, delim=":") +
     RANGLE
@@ -357,7 +340,7 @@ array_access_expr <<= Group(
 ).setParseAction(decode_array_access)
 
 # Define a procedure call.
-procedure_arguments = delimitedList(procedure_argument)
+procedure_arguments = delimitedList(expr)
 procedure_call_expr <<= Group(identifier + LPAR + Optional(procedure_arguments) + RPAR).setParseAction(
     lambda x: ProcedureCall(x[0][0], x[0][1:]))
 
