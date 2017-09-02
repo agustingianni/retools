@@ -596,15 +596,15 @@ EncodingSpecificOperations();
 if CurrentModeIsNotUser() then
     cpsr_val = CPSR;
     if enable then
-        if affectA then set_bit(cpsr_val, 8, 0); endif
-        if affectI then set_bit(cpsr_val, 7, 0); endif
-        if affectF then set_bit(cpsr_val, 6, 0); endif
+        if affectA then set_bit(cpsr_val, 8, 0);
+        if affectI then set_bit(cpsr_val, 7, 0);
+        if affectF then set_bit(cpsr_val, 6, 0);
     endif
 
     if disable then
-        if affectA then set_bit(cpsr_val, 8, 1); endif
-        if affectI then set_bit(cpsr_val, 7, 1); endif
-        if affectF then set_bit(cpsr_val, 6, 1); endif
+        if affectA then set_bit(cpsr_val, 8, 1);
+        if affectI then set_bit(cpsr_val, 7, 1);
+        if affectF then set_bit(cpsr_val, 6, 1);
     endif
 
     if changemode then
@@ -624,15 +624,15 @@ EncodingSpecificOperations();
 if CurrentModeIsNotUser() then
     cpsr_val = CPSR;
     if enable then
-        if affectA then set_bit(cpsr_val, 8, 0); endif
-        if affectI then set_bit(cpsr_val, 7, 0); endif
-        if affectF then set_bit(cpsr_val, 6, 0); endif
+        if affectA then set_bit(cpsr_val, 8, 0);
+        if affectI then set_bit(cpsr_val, 7, 0);
+        if affectF then set_bit(cpsr_val, 6, 0);
     endif
 
     if disable then
-        if affectA then set_bit(cpsr_val, 8, 1); endif
-        if affectI then set_bit(cpsr_val, 7, 1); endif
-        if affectF then set_bit(cpsr_val, 6, 1); endif
+        if affectA then set_bit(cpsr_val, 8, 1);
+        if affectI then set_bit(cpsr_val, 7, 1);
+        if affectF then set_bit(cpsr_val, 6, 1);
     endif
 
     if changemode then
