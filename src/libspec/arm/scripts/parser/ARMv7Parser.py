@@ -1,5 +1,5 @@
 """
-Python parser for the ARM Architecture Reference Manual (ARMv7-A and ARMv7-R edition)
+Grammar for the ARMv7-A, ARMv7-R, ARMv8-A specification
 pseudocode.
 """
 import sys
@@ -85,18 +85,14 @@ def decode_case(x):
 
     return Case(case_variable, t)
 
-
 def decode_repeat_until(x):
     return RepeatUntil(x[1], x[4])
-
 
 def decode_for(x):
     return For(x[1], x[3], [e[0] for e in x[4]])
 
-
 def decode_while(x):
     return While(x[1], x[3])
-
 
 def decode_unary(x):
     x = x[0]
@@ -108,14 +104,13 @@ def decode_unary(x):
     op = op_name[x[0]]
     return UnaryExpression(op, x[1])
 
-
-op_name = {"+": "add", "-": "sub", "/": "div", "*": "mul",
-           "<<": "lshift", ">>": "rshift", "DIV": "idiv", "MOD": "imod",
-           "^": "xor", "||": "or", "&&": "and", "==": "eq", "!=": "ne",
-           ">": "gt", "<": "lt", ">=": "gte", "<=": "lte", "IN": "in",
-           "=": "assign", "EOR": "xor", ":": "concatenation", "AND": "band", "OR": "bor"}
-
 def decode_binary(x):
+    op_name = {"+": "add", "-": "sub", "/": "div", "*": "mul",
+            "<<": "lshift", ">>": "rshift", "DIV": "idiv", "MOD": "imod",
+            "^": "xor", "||": "or", "&&": "and", "==": "eq", "!=": "ne",
+            ">": "gt", "<": "lt", ">=": "gte", "<=": "lte", "IN": "in",
+            "=": "assign", "EOR": "xor", ":": "concatenation", "AND": "band", "OR": "bor"}
+
     x = x[0]
 
     prev_ = x[0]
@@ -125,14 +120,13 @@ def decode_binary(x):
 
     return prev_
 
-
 def decode_if_expression(x):
     assert "if" == x[0]
     assert "then" == x[2]
     assert "else" == x[4]
     return IfExpression(x[1], x[3], x[5])
 
-def decode_singleline_if_statement(a,b,x):
+def decode_singleline_if_statement(a, b, x):
     assert "if" == x[0]
     assert "then" == x[2]
     return If(x[1], map(lambda y: y[0], list(x[3:])), [])
@@ -218,11 +212,43 @@ def decode_var_declaration(x):
 def decode_assertion_statement(x):
     return Assertion(x[1])
 
+def decode_procedure_call_expr(x):
+    return ProcedureCall(x[0][0], x[0][1:])
+
+def decode_boolean(x):
+    return BooleanValue(x[0] == "TRUE")
+
+def decode_enum(x):
+    return Enumeration(x[0][:])
+
+def decode_ignore(x):
+    return Ignore()
+
+def decode_undefined(x):
+    return Undefined()
+
+def decode_unpredictable(x):
+    return Unpredictable()
+
+def decode_see(x):
+    return See(x[0][1])
+
+def decode_implementation_defined(x):
+    return ImplementationDefined()
+
+def decode_subarchitecture_defined(x):
+    return SubArchitectureDefined()
+
+def decode_return(x):
+    return Return(x[0][1])
+
 # Define the boolean values.
-boolean = MatchFirst([TRUE, FALSE]).setParseAction(lambda x: BooleanValue(x[0] == "TRUE"))
+boolean = MatchFirst([TRUE, FALSE])
+boolean.setParseAction(decode_boolean)
 
 # An identifier is a name.
-identifier = Word(alphas + "_", alphanums + "_.").setParseAction(decode_identifier)
+identifier = Word(alphas + "_", alphanums + "_.")
+identifier.setParseAction(decode_identifier)
 
 # Unary operators.
 unary_operator = oneOf("! - ~ +")
@@ -266,10 +292,11 @@ number = base16_integer | base2_integer | base10_integer | base_2_masked
 # Enumeration ::= {var0, 1, 2} | "01x"
 enum_atom = identifier | number
 enum_elements = delimitedList(enum_atom)
-enum = Group(LBRACE + enum_elements + RBRACE).setParseAction(lambda x: Enumeration(x[0][:])) ^ base_2_masked
+enum = Group(LBRACE + enum_elements + RBRACE) ^ base_2_masked
+enum.setParseAction(decode_enum)
 
 # Ignore '-' value.
-ignored = Literal("-").setParseAction(lambda: Ignore())
+ignored = Literal("-").setParseAction(decode_ignore)
 
 # Forward declaration of a function call.
 procedure_call_expr = Forward()
@@ -286,7 +313,8 @@ if_expression = Forward()
 # List: (a, b)
 list_atom = ignored | procedure_call_expr | array_access_expr | boolean | identifier | number
 list_elements = delimitedList(list_atom)
-list_expr = (LPAR + list_elements + RPAR).setParseAction(decode_list)
+list_expr = LPAR + list_elements + RPAR
+list_expr.setParseAction(decode_list)
 
 # Atoms are the most basic elements of expressions.
 atom = Or([
@@ -324,28 +352,21 @@ array_index_expr = infixNotation(array_index_atom, [
 
 # Define a bit extraction expression.
 bit_extract_expr_atom = array_index_expr | array_access_expr | identifier
-bit_extract_expr <<= Group(
-    bit_extract_expr_atom +
-    LANGLE +
-    delimitedList(array_index_expr, delim=":") +
-    RANGLE
-).setParseAction(decode_bit_extract)
+bit_extract_expr <<= Group(bit_extract_expr_atom + LANGLE + delimitedList(array_index_expr, delim=":") + RANGLE)
+bit_extract_expr.setParseAction(decode_bit_extract)
 
 # Define a array access expression
-array_access_expr <<= Group(
-    identifier +
-    LBRACK +
-    delimitedList(array_index_expr) +
-    RBRACK
-).setParseAction(decode_array_access)
+array_access_expr <<= Group(identifier + LBRACK + delimitedList(expr) + RBRACK)
+array_access_expr.setParseAction(decode_array_access)
 
 # Define a procedure call.
 procedure_arguments = delimitedList(expr)
-procedure_call_expr <<= Group(identifier + LPAR + Optional(procedure_arguments) + RPAR).setParseAction(
-    lambda x: ProcedureCall(x[0][0], x[0][1:]))
+procedure_call_expr <<= Group(identifier + LPAR + Optional(procedure_arguments) + RPAR)
+procedure_call_expr.setParseAction(decode_procedure_call_expr)
 
 # Define an if expression.
-if_expression <<= (IF + expr + THEN + expr + ELSE + expr).setParseAction(decode_if_expression)
+if_expression <<= IF + expr + THEN + expr + ELSE + expr
+if_expression.setParseAction(decode_if_expression)
 
 # Standard types used in ARMv8 pseudocode.
 single_bitstring = Keyword("bit")
@@ -390,32 +411,42 @@ variable_declaration.setParseAction(decode_var_declaration)
 
 # Assertion statement.
 assertion_statement = ASSERT + expr
+assertion_statement
 assertion_statement.setParseAction(decode_assertion_statement)
 
 # Forward declaration of a generic statement.
 statement = Forward()
 statement_list = OneOrMore(statement + Optional(EOL))
 
-# Simple statements.
-undefined_statement = UNDEFINED.setParseAction(lambda: Undefined())
-unpredictable_statement = UNPREDICTABLE.setParseAction(lambda: Unpredictable())
 see_allowed = string.letters + string.digits + " -()/\","
-see_statement = Group(SEE + Word(see_allowed + " ")).setParseAction(lambda x: See(x[0][1]))
-implementation_defined_statement = Group(IMPLEMENTATION_DEFINED + Word(see_allowed)).setParseAction(
-    lambda: ImplementationDefined())
-subarchitecture_defined_statement = Group(SUBARCHITECTURE_DEFINED + Word(see_allowed)).setParseAction(
-    lambda: SubArchitectureDefined())
-return_statement = Group(RETURN + Optional(expr)).setParseAction(lambda x: Return(x[0][1]))
+see_statement = Group(SEE + Word(see_allowed + " "))
+see_statement.setParseAction(decode_see)
+
+undefined_statement = UNDEFINED
+undefined_statement.setParseAction(decode_undefined)
+
+unpredictable_statement = UNPREDICTABLE
+unpredictable_statement.setParseAction(decode_unpredictable)
+
+implementation_defined_statement = Group(IMPLEMENTATION_DEFINED + Word(see_allowed))
+implementation_defined_statement.setParseAction(decode_implementation_defined)
+
+subarchitecture_defined_statement = Group(SUBARCHITECTURE_DEFINED + Word(see_allowed))
+subarchitecture_defined_statement.setParseAction(decode_subarchitecture_defined)
+
+return_statement = Group(RETURN + Optional(expr))
+return_statement.setParseAction(decode_return)
+
 procedure_call_statement = procedure_call_expr
 
 # Assignment statement.
-assignment_statement = (expr + assignment_operator + expr).setParseAction(lambda x: decode_binary([x]))
-
-# This is used for inline if statements with multiple statements.
-inline_statement_list = OneOrMore(statement)
+assignment_statement = expr + assignment_operator + expr
+assignment_statement.setParseAction(lambda x: decode_binary([x]))
 
 # Parse: if <cond> then st1; st2; st3; ... stn;
-singleline_if_statement = (IF + expr + THEN + inline_statement_list).setParseAction(decode_singleline_if_statement)
+singleline_if_statements = OneOrMore(statement)
+singleline_if_statement = IF + expr + THEN + singleline_if_statements
+singleline_if_statement.setParseAction(decode_singleline_if_statement)
 
 # Parse a complete if/elsif/else statement.
 multiline_if_statement = IF + expr + THEN + OneOrMore(EOL) + Group(statement_list) \
@@ -431,23 +462,43 @@ if_statement = MatchFirst([multiline_if_statement, singleline_if_statement])
 # Define a case statement.
 otherwise_case = Group(OTHERWISE + Optional(EOL) + Group(statement_list))
 case_list = Group(OneOrMore(Group(WHEN + expr + Optional(EOL) + Group(statement_list))) + Optional(otherwise_case))
-case_statement = (CASE + expr + OF + EOL + case_list + ENDCASE).setParseAction(decode_case)
+case_statement = CASE + expr + OF + EOL + case_list + ENDCASE
+case_statement.setParseAction(decode_case)
 
 # Repeat until statement.
-repeat_until_statement = (REPEAT + EOL + statement_list + UNTIL + expr).setParseAction(decode_repeat_until)
+repeat_until_statement = REPEAT + EOL + statement_list + UNTIL + expr
+repeat_until_statement.setParseAction(decode_repeat_until)
 
 # While statement.
-while_statement = (WHILE + expr + DO + statement_list).setParseAction(decode_while)
+while_statement = WHILE + expr + DO + statement_list
+while_statement.setParseAction(decode_while)
 
 # For statement.
-for_statement = (FOR + assignment_statement + TO + expr + EOL + Group(statement_list) + ENDFOR).setParseAction(decode_for)
+for_statement = FOR + assignment_statement + TO + expr + EOL + Group(statement_list) + ENDFOR
+for_statement.setParseAction(decode_for)
 
-# Collect all statements. We have two kinds, the ones that end with a semicolon and other statements that do not.
-t1 = MatchFirst([assertion_statement, variable_declaration, undefined_statement, unpredictable_statement, see_statement, \
-    implementation_defined_statement, subarchitecture_defined_statement, \
-    return_statement, procedure_call_statement, assignment_statement])
+# Two kinds of statements: the ones that end with a semicolon and the ones that do not.
+t1 = MatchFirst([
+    assertion_statement,
+    variable_declaration,
+    undefined_statement,
+    unpredictable_statement,
+    see_statement,
+    implementation_defined_statement,
+    subarchitecture_defined_statement,
+    return_statement,
+    procedure_call_statement,
+    assignment_statement
+])
 
-t2 = MatchFirst([if_statement, repeat_until_statement, while_statement, for_statement, case_statement])
+t2 = MatchFirst([
+    if_statement,
+    repeat_until_statement,
+    while_statement,
+    for_statement,
+    case_statement
+])
+
 statement <<= Group(MatchFirst([t1 + SEMI, t2]))
 
 # Define a basic program.
