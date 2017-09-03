@@ -9,7 +9,7 @@ import logging
 import argparse
 from collections import defaultdict
 
-from parser import ARMv7Parser
+from parser.ARMParser import ARMCodeParser
 from specification import ARMv7DecodingSpec, ARMv7Types
 from ast.translators import CPPTranslatorVisitor, indent, NeedsSemiColon
 
@@ -348,6 +348,8 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
         # Set that contains all the fields used in _all_ the instructions.
         ins_fields = set(["encoding"])
 
+        code_parser = ARMCodeParser()
+
         for i, instruction in enumerate(ARMv7DecodingSpec.instructions):
             input_vars = get_input_vars(instruction["pattern"])
             decoder = instruction["decoder"]
@@ -392,7 +394,7 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
                 fd.write("#endif\n")
 
             # Get the AST for the decoder pseudocode and translate it to C++.
-            program_ast = ARMv7Parser.parse_program(decoder)
+            program_ast = code_parser.parse(decoder)
             translator = CPPTranslatorVisitor(known_types=known_types, input_vars=input_vars)
 
             body = ""
@@ -1955,7 +1957,7 @@ std::string x_str(const Disassembler::ARMInstruction *ins);
 std::string y_str(const Disassembler::ARMInstruction *ins);
 '''
 def create_to_string(to_string_name_h, to_string_name_cpp):
-    parser = ARMv7Parser.InstructionFormatParser()
+    parser = ARMParser.InstructionFormatParser()
     names = set()
 
     reg2string = {}
@@ -2049,7 +2051,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
 
             # We divide the instruction in two pices, the name and the arguments.
             op_name = r[0]
-            op_args = ARMv7Parser.MandatoryToken("")
+            op_args = ARMParser.MandatoryToken("")
             if len(r) == 2:
                 op_args = r[1]
 
@@ -2067,7 +2069,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
 
             # For each of the name's variables.
             for i, val in enumerate(op_name.name[1:]):
-                if type(val) is ARMv7Parser.OptionalToken:
+                if type(val) is ARMParser.OptionalToken:
                     assert len(val.name) == 1
                     fd.write("            %s_str(ins).c_str()" % str(val.name[0]))
 
@@ -2075,7 +2077,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                     # if not str(val) in ["<c>", "{S}"]:
                     #    print val, "case %s:" % instruction_id_name(instruction), "//", instruction["name"]
 
-                elif type(val) is ARMv7Parser.MandatoryToken:
+                elif type(val) is ARMParser.MandatoryToken:
                     fd.write("            %s_str(ins).c_str()" % str(val.name))
 
                     # Whenever we change the ARMv7DecodingSpec.py we need to re-enble this and fix stuff.
@@ -2103,7 +2105,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
             format_string = ""
             vars = []
             for i, val in enumerate(op_args.name):
-                if type(val) is ARMv7Parser.MandatoryToken:
+                if type(val) is ARMParser.MandatoryToken:
                     if val.pound:
                         format_string += val.pound
 
@@ -2118,7 +2120,7 @@ def create_to_string(to_string_name_h, to_string_name_cpp):
                     format_string += "%s"
                     vars.append(reg2string[val.name])
 
-                elif type(val) is ARMv7Parser.OptionalToken:
+                elif type(val) is ARMParser.OptionalToken:
                     for optional in val.name:
                         # If the token is the write back optional emit the corresponding code.
                         if type(optional) == type(""):

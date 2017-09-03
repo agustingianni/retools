@@ -6,7 +6,7 @@ import logging
 import tempfile
 import argparse
 
-from parser import ARMv7Parser
+from parser.ARMParser import ARMCodeParser
 from specification import ARMv7OperationSpec, ARMv7Types, ARMv7Context
 from ast.passes import IdentifierRenamer, ListAssignmentRewriter, SimpleFunctionOptimization
 from ast.translators import InterpreterCPPTranslator, indent, NeedsSemiColon
@@ -204,6 +204,8 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             if real_name in ARMv7Context.field_names:
                 entry["name"] = "m_ctx." + original_name
 
+        code_parser = ARMCodeParser()
+
         for i, instruction in enumerate(ARMv7OperationSpec.instructions):
             ins_name = instruction["name"]
             logging.info("Processing instruction '%s' (%d)" % (ins_name, i))
@@ -216,7 +218,7 @@ def create_interpreter(interpreter_name_h, interpreter_name_cpp, symbols_file):
             ins_operation = os.linesep.join([s for s in ins_operation.splitlines() if not re.match(r'^\s*$', s)])
 
             # Get the AST for the decoder pseudocode and translate it to C++.
-            program_ast = ARMv7Parser.parse_program(ins_operation)
+            program_ast = code_parser.parse(ins_operation)
 
             # Expand the known_types with the instruction fields.
             ins_types = list(known_types)
