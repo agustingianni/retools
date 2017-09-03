@@ -14,9 +14,9 @@ ParserElement.setDefaultWhitespaceChars(" \t")
 # Enable optimizations.
 ParserElement.enablePackrat()
 
-def DumpTokens(s, l, t):
+def DumpTokens(token_list):
     import pprint
-    pprint.pprint(t.asList())
+    pprint.pprint(token_list)
 
 def decode_case(x):
     assert "case" == x[0]
@@ -523,7 +523,7 @@ class ARMCodeParser():
 if False:
     code = """(hola + hola() + 10)<31:0>"""
     code = "p = if BigEndian then value<63:32> else value<31:0>;"
-    print ARMCodeParser().parse(code)
+    DumpTokens(ARMCodeParser().parse(code))
     sys.exit()
 
 
