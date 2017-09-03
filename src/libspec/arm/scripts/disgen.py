@@ -7,6 +7,7 @@ import re
 import json
 import logging
 import argparse
+import multiprocessing
 from collections import defaultdict
 
 from parser.ARMParser import ARMCodeParser
@@ -345,26 +346,17 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
         fd.write("    return UnknownInstruction {};\n")
         fd.write("}\n\n")
 
-        # Set that contains all the fields used in _all_ the instructions.
-        ins_fields = set(["encoding"])
+        # Translate pseucodode to C++.
+        def transpile(instruction):
+            # Set that contains all the fields used in _all_ the instructions.
+            ins_fields = set(["encoding"])
 
-        code_parser = ARMCodeParser()
+            # Transpiled code.
+            output = ""
 
-        for i, instruction in enumerate(ARMv7DecodingSpec.instructions):
+            # Get information from the instruction.
             input_vars = get_input_vars(instruction["pattern"])
             decoder = instruction["decoder"]
-
-            if DEBUG:
-                fd.write("// Translating: %d -> %s %s %s\n" % (i, instruction["name"], instruction["encoding"], instruction["pattern"]))
-                fd.write("// Pseudocode:\n")
-                for line in decoder.split("\n"):
-                    for line2 in line.split(";"):
-                        if not len(line2):
-                            continue
-                        fd.write("// " + line2.strip() + "\n")
-
-            if i % 50 == 0:
-                logging.info("Processing instruction %.4d of %.4d" % (i, len(ARMv7DecodingSpec.instructions)))
 
             # Generate the decoder function signature for the current instruction.
             decoder_name = instruction_decoder_name(instruction)
@@ -373,25 +365,25 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
             ins_name = instruction_id_name(instruction)
 
             # Define the decoder.
-            fd.write("ARMInstruction ARMDecoder::%s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n" % decoder_name)
+            output += "ARMInstruction ARMDecoder::%s(uint32_t opcode, Disassembler::ARMInstrSize ins_size, ARMEncoding encoding) {\n" % decoder_name
 
             # Generate the local variables containing the bits decoded from the opcode.
             ret = __translate_bit_patterns__(instruction["pattern"].split())
             for r in ret:
-                fd.write("    %s\n" % r)
+                output += "    %s\n" % r
 
             # Make the disassembler print the details about an instruction when decoding.
             if DEBUG:
-                fd.write("#ifdef DEBUG_DECODER\n")
-                fd.write("    std::cout << \"opcode=\" << std::hex << opcode << \" decoder=%s\" << std::endl;\n" % decoder_name)
+                output += "#ifdef DEBUG_DECODER\n"
+                output += "    std::cout << \"opcode=\" << std::hex << opcode << \" decoder=%s\" << std::endl;\n" % decoder_name
 
                 # Get the names of the decoded variables.
                 decoded_vars = map(lambda y: y.split("#")[0], filter(lambda x: x.count("#"), instruction["pattern"].split()))
-                fd.write("    std::cout << ")
+                output += "    std::cout << "
                 for decoded_var in decoded_vars:
-                    fd.write('''"%s=" << %s << " " << ''' % (decoded_var, decoded_var))
-                fd.write("std::endl;\n")
-                fd.write("#endif\n")
+                    output += '''"%s=" << %s << " " << ''' % (decoded_var, decoded_var)
+                output += "std::endl;\n"
+                output += "#endif\n"
 
             # Get the AST for the decoder pseudocode and translate it to C++.
             program_ast = code_parser.parse(decoder)
@@ -412,24 +404,21 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
                 if var == "imm64":
                     type_ = "uint64_t"
 
-                fd.write("    %s %s = 0;\n" % (type_, var))
+                output += "    %s %s = 0;\n" % (type_, var)
 
-            fd.write("\n")
+            output += "\n"
 
             # Write the translated body of the decoding procedure.
-            fd.write(body)
+            output += body
 
             # All the variables defined in the body end up in the instruction.
-            fd.write("    ARMInstruction ins = ARMInstruction::create();\n")
-            fd.write("    ins.opcode = opcode;\n")
-            fd.write("    ins.ins_size = ins_size;\n")
-            fd.write("    ins.id = %s;\n" % instruction_id_name(instruction))
-            fd.write("    ins.m_to_string = %s_to_string;\n" % instruction_decoder_name(instruction))
-            fd.write("    ins.m_decoded_by = \"ARMDecoder::%s\";\n" % instruction_decoder_name(instruction))
-            fd.write("    ins.encoding = encoding;\n")
-
-            # Add the 'encoding' field to the instruction fields.
-            instruction_fields[ins_name].add("encoding")
+            output += "    ARMInstruction ins = ARMInstruction::create();\n"
+            output += "    ins.opcode = opcode;\n"
+            output += "    ins.ins_size = ins_size;\n"
+            output += "    ins.id = %s;\n" % instruction_id_name(instruction)
+            output += "    ins.m_to_string = %s_to_string;\n" % instruction_decoder_name(instruction)
+            output += "    ins.m_decoded_by = \"ARMDecoder::%s\";\n" % instruction_decoder_name(instruction)
+            output += "    ins.encoding = encoding;\n"
 
             # Save all the variables defined inside the decoding procedure.
             for var in translator.define_me:
@@ -438,19 +427,34 @@ def create_decoders(decoder_name_h, decoder_name_cpp, symbols_file, create_decod
                     continue
 
                 ins_fields.add(var)
-                instruction_fields[ins_name].add(var)
-                fd.write("    ins.%s = %s;\n" % (var, var))
+                output += "    ins.%s = %s;\n" % (var, var)
 
             # Also save the hard coded variables.
             for var in input_vars:
                 if var[0] in hard:
                     ins_fields.add(var[0])
-                    instruction_fields[ins_name].add(var[0])
-                    fd.write("    ins.%s = %s;\n" % (var[0], var[0]))
+                    output += "    ins.%s = %s;\n" % (var[0], var[0])
 
-            fd.write("\n")
-            fd.write("    return ins;\n")
-            fd.write("}\n\n")
+            output += "\n"
+            output += "    return ins;\n"
+            output += "}\n\n"
+
+            return (ins_name, ins_fields, output)
+
+        # Create a per process code parser.
+        def init():
+            global code_parser
+            code_parser = ARMCodeParser()
+
+        # Create a pool of processing processes.
+        pool = multiprocessing.Pool(initializer=init)
+        results = pool.map(transpile, ARMv7DecodingSpec.instructions)
+        for ins_name, ins_fields, output in results:
+            # Collect all the instruction fields.
+            instruction_fields[ins_name].update(ins_fields)
+
+            # Write the transpiled code to disk.
+            fd.write(output)
 
     class SetEncoder(json.JSONEncoder):
         def default(self, obj):
