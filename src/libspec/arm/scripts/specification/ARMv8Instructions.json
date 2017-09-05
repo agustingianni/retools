@@ -53,7 +53,7 @@
     "decoder_post": "", 
     "description": "Add with Carry", 
     "name": "ADC", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then    operand2 = NOT(operand2);\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then    PSTATE.<N,Z,C,V> = nzcv;\n        X[d] = result;\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then    operand2 = NOT(operand2);\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\n        X[d] = result;\n"
   }, 
   {
     "classes": [
@@ -77,7 +77,7 @@
     "decoder_post": "", 
     "description": "Add with Carry, setting flags", 
     "name": "ADCS", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then\n    operand2 = NOT(operand2);\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then\n    operand2 = NOT(operand2);\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -101,7 +101,7 @@
     "decoder_post": "", 
     "description": "Add (extended register)", 
     "name": "ADD (extended register)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = ExtendReg(m, extend_type, shift);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = ExtendReg(m, extend_type, shift);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -125,7 +125,7 @@
     "decoder_post": "", 
     "description": "Add (immediate)", 
     "name": "ADD (immediate)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = imm;\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = imm;\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -149,7 +149,7 @@
     "decoder_post": "", 
     "description": "Add (shifted register)", 
     "name": "ADD (shifted register)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -265,7 +265,7 @@
     "decoder_post": "", 
     "description": "Add (extended register), setting flags", 
     "name": "ADDS (extended register)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = ExtendReg(m, extend_type, shift);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = ExtendReg(m, extend_type, shift);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -289,7 +289,7 @@
     "decoder_post": "", 
     "description": "Add (immediate), setting flags", 
     "name": "ADDS (immediate)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = imm;\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = imm;\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -313,7 +313,7 @@
     "decoder_post": "", 
     "description": "Add (shifted register), setting flags", 
     "name": "ADDS (shifted register)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -497,7 +497,7 @@
     "decoder_post": "", 
     "description": "Bitwise AND (immediate)", 
     "name": "AND (immediate)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -521,7 +521,7 @@
     "decoder_post": "", 
     "description": "Bitwise AND (shifted register)", 
     "name": "AND (shifted register)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -545,7 +545,7 @@
     "decoder_post": "", 
     "description": "Bitwise AND (immediate), setting flags", 
     "name": "ANDS (immediate)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -569,7 +569,7 @@
     "decoder_post": "", 
     "description": "Bitwise AND (shifted register), setting flags", 
     "name": "ANDS (shifted register)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -909,7 +909,7 @@
     "decoder_post": "", 
     "description": "Bitwise Bit Clear (shifted register)", 
     "name": "BIC (shifted register)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -933,7 +933,7 @@
     "decoder_post": "", 
     "description": "Bitwise Bit Clear (shifted register), setting flags", 
     "name": "BICS (shifted register)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -1375,7 +1375,7 @@
     "decoder_post": "", 
     "description": "Conditional Compare Negative (immediate)", 
     "name": "CCMN (immediate)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\nbit carry_in = '0';\nif ConditionHolds(condition) then\n    if sub_op then\n        operand2 = NOT(operand2);\n        carry_in = '1';\n    endif\n    (-, flags) = AddWithCarry(operand1, operand2, carry_in);\nendif\nPSTATE.<N,Z,C,V> = flags;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\nbit carry_in = '0';\nif ConditionHolds(condition) then\n    if sub_op then\n        operand2 = NOT(operand2);\n        carry_in = '1';\n    endif\n    (-, flags) = AddWithCarry(operand1, operand2, carry_in);\nendif\n(PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = flags;\n"
   }, 
   {
     "classes": [
@@ -1399,7 +1399,7 @@
     "decoder_post": "", 
     "description": "Conditional Compare Negative (register)", 
     "name": "CCMN (register)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbit carry_in = '0';\nif ConditionHolds(condition) then\n    if sub_op then\n        operand2 = NOT(operand2);\n        carry_in = '1';\n    endif\n    (-, flags) = AddWithCarry(operand1, operand2, carry_in);\nendif\nPSTATE.<N,Z,C,V> = flags;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbit carry_in = '0';\nif ConditionHolds(condition) then\n    if sub_op then\n        operand2 = NOT(operand2);\n        carry_in = '1';\n    endif\n    (-, flags) = AddWithCarry(operand1, operand2, carry_in);\nendif\n(PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = flags;\n"
   }, 
   {
     "classes": [
@@ -1423,7 +1423,7 @@
     "decoder_post": "", 
     "description": "Conditional Compare (immediate)", 
     "name": "CCMP (immediate)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\nbit carry_in = '0';\nif ConditionHolds(condition) then\n    if sub_op then\n        operand2 = NOT(operand2);\n        carry_in = '1';\n    endif\n    (-, flags) = AddWithCarry(operand1, operand2, carry_in);\nendif\nPSTATE.<N,Z,C,V> = flags;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\nbit carry_in = '0';\nif ConditionHolds(condition) then\n    if sub_op then\n        operand2 = NOT(operand2);\n        carry_in = '1';\n    endif\n    (-, flags) = AddWithCarry(operand1, operand2, carry_in);\nendif\n(PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = flags;\n"
   }, 
   {
     "classes": [
@@ -1447,7 +1447,7 @@
     "decoder_post": "", 
     "description": "Conditional Compare (register)", 
     "name": "CCMP (register)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbit carry_in = '0';\nif ConditionHolds(condition) then\n    if sub_op then\n        operand2 = NOT(operand2);\n        carry_in = '1';\n    endif\n    (-, flags) = AddWithCarry(operand1, operand2, carry_in);\nendif\nPSTATE.<N,Z,C,V> = flags;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbit carry_in = '0';\nif ConditionHolds(condition) then\n    if sub_op then\n        operand2 = NOT(operand2);\n        carry_in = '1';\n    endif\n    (-, flags) = AddWithCarry(operand1, operand2, carry_in);\nendif\n(PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = flags;\n"
   }, 
   {
     "classes": [
@@ -2283,7 +2283,7 @@
     "decoder_post": "", 
     "description": "Bitwise Exclusive OR NOT (shifted register)", 
     "name": "EON (shifted register)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -2347,7 +2347,7 @@
     "decoder_post": "", 
     "description": "Bitwise Exclusive OR (immediate)", 
     "name": "EOR (immediate)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -2371,7 +2371,7 @@
     "decoder_post": "", 
     "description": "Bitwise Exclusive OR (shifted register)", 
     "name": "EOR (shifted register)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -2879,7 +2879,7 @@
     "decoder_post": "", 
     "description": "Floating-point Conditional quiet Compare (scalar)", 
     "name": "FCCMP", 
-    "operation": "CheckFPAdvSIMDEnabled64();\nbits(datasize) operand1 = V[n];\nbits(datasize) operand2;\noperand2 = V[m];\nif ConditionHolds(condition) then\n    flags = FPCompare(operand1, operand2, signal_all_nans, FPCR);\nendif\nPSTATE.<N,Z,C,V> = flags;\n"
+    "operation": "CheckFPAdvSIMDEnabled64();\nbits(datasize) operand1 = V[n];\nbits(datasize) operand2;\noperand2 = V[m];\nif ConditionHolds(condition) then\n    flags = FPCompare(operand1, operand2, signal_all_nans, FPCR);\nendif\n(PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = flags;\n"
   }, 
   {
     "classes": [
@@ -2907,7 +2907,7 @@
     "decoder_post": "", 
     "description": "Floating-point Conditional signaling Compare (scalar)", 
     "name": "FCCMPE", 
-    "operation": "CheckFPAdvSIMDEnabled64();\nbits(datasize) operand1 = V[n];\nbits(datasize) operand2;\noperand2 = V[m];\nif ConditionHolds(condition) then\n    flags = FPCompare(operand1, operand2, signal_all_nans, FPCR);\nendif\nPSTATE.<N,Z,C,V> = flags;\n"
+    "operation": "CheckFPAdvSIMDEnabled64();\nbits(datasize) operand1 = V[n];\nbits(datasize) operand2;\noperand2 = V[m];\nif ConditionHolds(condition) then\n    flags = FPCompare(operand1, operand2, signal_all_nans, FPCR);\nendif\n(PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = flags;\n"
   }, 
   {
     "classes": [
@@ -3445,7 +3445,7 @@
     "decoder_post": "", 
     "description": "Floating-point quiet Compare (scalar)", 
     "name": "FCMP", 
-    "operation": "CheckFPAdvSIMDEnabled64();\nbits(datasize) operand1 = V[n];\nbits(datasize) operand2;\noperand2 = if cmp_with_zero then FPZero('0') else V[m];\nPSTATE.<N,Z,C,V> = FPCompare(operand1, operand2, signal_all_nans, FPCR);\n"
+    "operation": "CheckFPAdvSIMDEnabled64();\nbits(datasize) operand1 = V[n];\nbits(datasize) operand2;\noperand2 = if cmp_with_zero then FPZero('0') else V[m];\n(PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = FPCompare(operand1, operand2, signal_all_nans, FPCR);\n"
   }, 
   {
     "classes": [
@@ -3491,7 +3491,7 @@
     "decoder_post": "", 
     "description": "Floating-point signaling Compare (scalar)", 
     "name": "FCMPE", 
-    "operation": "CheckFPAdvSIMDEnabled64();\nbits(datasize) operand1 = V[n];\nbits(datasize) operand2;\noperand2 = if cmp_with_zero then FPZero('0') else V[m];\nPSTATE.<N,Z,C,V> = FPCompare(operand1, operand2, signal_all_nans, FPCR);\n"
+    "operation": "CheckFPAdvSIMDEnabled64();\nbits(datasize) operand1 = V[n];\nbits(datasize) operand2;\noperand2 = if cmp_with_zero then FPZero('0') else V[m];\n(PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = FPCompare(operand1, operand2, signal_all_nans, FPCR);\n"
   }, 
   {
     "classes": [
@@ -11064,7 +11064,7 @@
     "decoder_post": "", 
     "description": "Bitwise OR NOT (shifted register)", 
     "name": "ORN (shifted register)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -11138,7 +11138,7 @@
     "decoder_post": "", 
     "description": "Bitwise OR (immediate)", 
     "name": "ORR (immediate)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = imm;\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -11162,7 +11162,7 @@
     "decoder_post": "", 
     "description": "Bitwise OR (shifted register)", 
     "name": "ORR (shifted register)", 
-    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    PSTATE.<N,Z,C,V> = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nif invert then operand2 = NOT(operand2);\ncase op of\n    when LogicalOp_AND result = operand1 AND operand2;\n    when LogicalOp_ORR result = operand1 OR  operand2;\n    when LogicalOp_EOR result = operand1 EOR operand2;\nendcase\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = result<datasize-1>:IsZeroBit(result):'00';\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -12016,7 +12016,7 @@
     "decoder_post": "", 
     "description": "Subtract with Carry", 
     "name": "SBC", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then\n    operand2 = NOT(operand2);\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then\n    operand2 = NOT(operand2);\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -12040,7 +12040,7 @@
     "decoder_post": "", 
     "description": "Subtract with Carry, setting flags", 
     "name": "SBCS", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then\n    operand2 = NOT(operand2);\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then\n    operand2 = NOT(operand2);\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -17006,7 +17006,7 @@
     "decoder_post": "", 
     "description": "Subtract (extended register)", 
     "name": "SUB (extended register)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = ExtendReg(m, extend_type, shift);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = ExtendReg(m, extend_type, shift);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -17030,7 +17030,7 @@
     "decoder_post": "", 
     "description": "Subtract (immediate)", 
     "name": "SUB (immediate)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = imm;\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = imm;\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -17054,7 +17054,7 @@
     "decoder_post": "", 
     "description": "Subtract (shifted register)", 
     "name": "SUB (shifted register)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
@@ -17130,7 +17130,7 @@
     "decoder_post": "", 
     "description": "Subtract (extended register), setting flags", 
     "name": "SUBS (extended register)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = ExtendReg(m, extend_type, shift);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = ExtendReg(m, extend_type, shift);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -17154,7 +17154,7 @@
     "decoder_post": "", 
     "description": "Subtract (immediate), setting flags", 
     "name": "SUBS (immediate)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = imm;\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = if n == 31 then SP else X[n];\nbits(datasize) operand2 = imm;\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nif d == 31 && !setflags then\n    SP = result;\nelse\n    X[d] = result;\nendif\n"
   }, 
   {
     "classes": [
@@ -17178,7 +17178,7 @@
     "decoder_post": "", 
     "description": "Subtract (shifted register), setting flags", 
     "name": "SUBS (shifted register)", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    PSTATE.<N,Z,C,V> = nzcv;\nendif\nX[d] = result;\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = ShiftReg(m, shift_type, shift_amount);\nbits(4) nzcv;\nbit carry_in;\nif sub_op then\n    operand2 = NOT(operand2);\n    carry_in = '1';\nelse\n    carry_in = '0';\nendif\n(result, nzcv) = AddWithCarry(operand1, operand2, carry_in);\nif setflags then \n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
