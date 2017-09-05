@@ -528,9 +528,19 @@ class ARMCodeParser():
             return map(lambda x: x[0], ret)
 
         except ParseException, e:
-            print code
-            print e
+            print "Error at line %u column %u" % (e.lineno - 1, e.column)
+            for i, line in enumerate(code.split("\n")):
+                if i == e.lineno - 1:
+                    print '\033[91m'
+
+                print "%3u: %s" % (i, line)
+                if i == e.lineno - 1:
+                    print '\033[0m',
+                    print " " * (e.column - 3 + 5 if e.column != 0 else 0), "^"
+
             raise e
+
+        return ret
 
 if False:
     code = """(hola + hola() + 10)<31:0>"""
