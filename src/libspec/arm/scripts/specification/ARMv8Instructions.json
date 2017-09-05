@@ -12882,7 +12882,7 @@
     "decoder_post": "", 
     "description": "SM3TT1A", 
     "name": "SM3TT1A", 
-    "operation": "bits(128) Vm = V[m];\nbits(128) Vn = V[n];\nbits(128) Vd = V[d];\nbits(32) WjPrime;\nbits(128) result; \nbits(32) TT1;\nbits(32) SS2;\nWjPrime = Elem[Vm,i,32];\nSS2 = Vn<127:96> EOR ROL(Vd<127:96>,12); \nTT1 = Vd<63:32> EOR (Vd<127:96> EOR Vd<95:64>);\nTT1 = (TT1 + Vd<31:0> + SS2 + WjPrime)<31:0>;\nresult<31:0> = Vd<63:32>;\nresult<63:32> = ROL(Vd<95:64>,9); \nresult<95:64> = Vd<127:96>; \nresult<127:96> = TT1; \nV[d] = result;\n"
+    "operation": "bits(128) Vm = V[m];\nbits(128) Vn = V[n];\nbits(128) Vd = V[d];\nbits(32) WjPrime;\nbits(128) result; \nbits(32) TT1;\nbits(32) SS2;\nWjPrime = Elem[Vm,i,32];\nSS2 = Vn<127:96> EOR ROL(Vd<127:96>,12); \nTT1 = Vd<63:32> EOR (Vd<127:96> EOR Vd<95:64>);\nTT1 = TT1 + Vd<31:0> + SS2 + WjPrime;\nTT1 = TT1<31:0>;\nresult<31:0> = Vd<63:32>;\nresult<63:32> = ROL(Vd<95:64>,9); \nresult<95:64> = Vd<127:96>; \nresult<127:96> = TT1; \nV[d] = result;\n"
   }, 
   {
     "classes": [
@@ -12902,7 +12902,7 @@
     "decoder_post": "", 
     "description": "SM3TT1B", 
     "name": "SM3TT1B", 
-    "operation": "bits(128) Vm = V[m];\nbits(128) Vn = V[n];\nbits(128) Vd = V[d];\nbits(32) WjPrime;\nbits(128) result; \nbits(32) TT1;\nbits(32) SS2;\nWjPrime = Elem[Vm,i,32];\nSS2 = Vn<127:96> EOR ROL(Vd<127:96>,12); \nTT1 = (Vd<127:96> AND Vd<63:32>) OR (Vd<127:96> AND Vd<95:64>) OR (Vd<63:32> AND Vd<95:64>); \nTT1 = (TT1 + Vd<31:0> + SS2 + WjPrime)<31:0>;\nresult<31:0> = Vd<63:32>;\nresult<63:32> = ROL(Vd<95:64>,9); \nresult<95:64> = Vd<127:96>; \nresult<127:96> = TT1; \nV[d] = result;\n"
+    "operation": "bits(128) Vm = V[m];\nbits(128) Vn = V[n];\nbits(128) Vd = V[d];\nbits(32) WjPrime;\nbits(128) result; \nbits(32) TT1;\nbits(32) SS2;\nWjPrime = Elem[Vm,i,32];\nSS2 = Vn<127:96> EOR ROL(Vd<127:96>,12); \nTT1 = (Vd<127:96> AND Vd<63:32>) OR (Vd<127:96> AND Vd<95:64>) OR (Vd<63:32> AND Vd<95:64>); \nTT1 = TT1 + Vd<31:0> + SS2 + WjPrime;\nTT1 = TT1<31:0>;\nresult<31:0> = Vd<63:32>;\nresult<63:32> = ROL(Vd<95:64>,9); \nresult<95:64> = Vd<127:96>; \nresult<127:96> = TT1; \nV[d] = result;\n"
   }, 
   {
     "classes": [
@@ -12922,7 +12922,7 @@
     "decoder_post": "", 
     "description": "SM3TT2A", 
     "name": "SM3TT2A", 
-    "operation": "bits(128) Vm = V[m];\nbits(128) Vn = V[n];\nbits(128) Vd = V[d];\nbits(32) Wj;\nbits(128) result; \nbits(32) TT1;\nWj = Elem[Vm,i,32];\nTT2 = Vd<63:32> EOR (Vd<127:96> EOR Vd<95:64>);\nTT2 = (TT2 + Vd<31:0> + Vn<127:96> + Wj)<31:0>;\nresult<31:0> = Vd<63:32>;\nresult<63:32> = ROL(Vd<95:64>,19); \nresult<95:64> = Vd<127:96>; \nresult<127:96> = TT2 EOR ROL(TT2,9) EOR ROL(TT2,17); \nV[d] = result;\n"
+    "operation": "bits(128) Vm = V[m];\nbits(128) Vn = V[n];\nbits(128) Vd = V[d];\nbits(32) Wj;\nbits(128) result; \nbits(32) TT1;\nWj = Elem[Vm,i,32];\nTT2 = Vd<63:32> EOR (Vd<127:96> EOR Vd<95:64>);\nTT2 = TT2 + Vd<31:0> + Vn<127:96> + Wj;\nTT2 = TT2<31:0>;\nresult<31:0> = Vd<63:32>;\nresult<63:32> = ROL(Vd<95:64>,19); \nresult<95:64> = Vd<127:96>; \nresult<127:96> = TT2 EOR ROL(TT2,9) EOR ROL(TT2,17); \nV[d] = result;\n"
   }, 
   {
     "classes": [
@@ -12942,7 +12942,7 @@
     "decoder_post": "", 
     "description": "SM3TT2B", 
     "name": "SM3TT2B", 
-    "operation": "bits(128) Vm = V[m];\nbits(128) Vn = V[n];\nbits(128) Vd = V[d];\nbits(32) Wj;\nbits(128) result; \nbits(32) TT2;\nWj = Elem[Vm,i,32];\nTT2 = (Vd<127:96> AND Vd<95:64>) OR (NOT(Vd<127:96>) AND Vd<63:32>); \nTT2 = (TT2 + Vd<31:0> + Vn<127:96> + Wj)<31:0>;\nresult<31:0> = Vd<63:32>;\nresult<63:32> = ROL(Vd<95:64>,19); \nresult<95:64> = Vd<127:96>; \nresult<127:96> = TT2 EOR ROL(TT2,9) EOR ROL(TT2,17); \nV[d] = result;\n"
+    "operation": "bits(128) Vm = V[m];\nbits(128) Vn = V[n];\nbits(128) Vd = V[d];\nbits(32) Wj;\nbits(128) result; \nbits(32) TT2;\nWj = Elem[Vm,i,32];\nTT2 = (Vd<127:96> AND Vd<95:64>) OR (NOT(Vd<127:96>) AND Vd<63:32>); \nTT2 = TT2 + Vd<31:0> + Vn<127:96> + Wj;\nTT2 = TT2<31:0>;\nresult<31:0> = Vd<63:32>;\nresult<63:32> = ROL(Vd<95:64>,19); \nresult<95:64> = Vd<127:96>; \nresult<127:96> = TT2 EOR ROL(TT2,9) EOR ROL(TT2,17); \nV[d] = result;\n"
   }, 
   {
     "classes": [
