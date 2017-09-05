@@ -136,7 +136,7 @@ def decode_masked_base2(x):
     return MaskedBinary(value)
 
 def decode_base2_integer(s, l, t):
-    # Remove the initial quotes, ie.: "01x" -> 01x.
+    # Remove the initial quotes, ie.: "01" -> 01.
     value = t[0][1:-1]
     size = len(value)
     return NumberValue(int(value, 2) & 0xffffffff, len(value))
@@ -288,7 +288,7 @@ class ARMCodeParser():
 
         # Define an integer for base 2, 10 and 16 and make sure it is 32 bits long.
         base_2_masked = Regex("[\'\"][01x]+[\'\"]").setParseAction(decode_masked_base2)
-        base2_integer = Regex("\'[01x]+\'").setParseAction(decode_base2_integer)
+        base2_integer = Regex("\'[01]+\'").setParseAction(decode_base2_integer)
         base10_integer = Regex("\d+").setParseAction(decode_base10_integer)
         base16_integer = Regex("0x[a-fA-F0-9]+").setParseAction(decode_base16_integer)
 
@@ -527,6 +527,13 @@ class ARMCodeParser():
             ret = self.program.parseString(code, parseAll=True)
             return map(lambda x: x[0], ret)
 
+        except ValueError, e:
+            print '\033[91m'
+            print "Error: %s" % e
+            print '\033[0m',
+            for i, line in enumerate(code.split("\n")):
+                print "%3u: %s" % (i, line)
+
         except ParseException, e:
             print "Error at line %u column %u" % (e.lineno - 1, e.column)
             for i, line in enumerate(code.split("\n")):
@@ -541,13 +548,6 @@ class ARMCodeParser():
             raise e
 
         return ret
-
-if False:
-    code = """(hola + hola() + 10)<31:0>"""
-    code = "p = if BigEndian then value<63:32> else value<31:0>;"
-    DumpTokens(ARMCodeParser().parse(code))
-    sys.exit()
-
 
 class OptionalToken(object):
     def __init__(self, name):
