@@ -349,16 +349,28 @@ class ARMCodeParser():
             (logical_operator, 2, opAssoc.LEFT, decode_binary),
         ])
 
-        # Operations being used by an array indexing expression.
-        array_index_atom = array_access_expr | procedure_call_expr | identifier | number
-        array_index_expr = infixNotation(array_index_atom, [
-            (oneOf("* / % DIV"), 2, opAssoc.LEFT, decode_binary),
-            (oneOf("+ - >>"), 2, opAssoc.LEFT, decode_binary)
+        # Define a bit extraction expression-
+        simplified_atom = Or([
+            number,
+            identifier,
+            if_expression,
+            procedure_call_expr,
+            array_access_expr
         ])
 
-        # Define a bit extraction expression.
-        bit_extract_expr_atom = array_index_expr | array_access_expr | identifier
-        bit_extract_expr <<= Group(bit_extract_expr_atom + LANGLE + delimitedList(array_index_expr, delim=":") + RANGLE)
+        simplified_expr = infixNotation(simplified_atom, [
+            (oneOf("*"), 2, opAssoc.LEFT, decode_binary),
+            (oneOf("+ -"), 2, opAssoc.LEFT, decode_binary)
+        ])
+
+        # Define a simple index expression used in bit extraction expressions.
+        bit_extract_idx_atom = number | identifier
+        bit_extract_idx_expr = infixNotation(bit_extract_idx_atom, [
+            (oneOf("*"), 2, opAssoc.LEFT, decode_binary),
+            (oneOf("+ -"), 2, opAssoc.LEFT, decode_binary)
+        ])
+
+        bit_extract_expr <<= Group(simplified_expr + LANGLE + delimitedList(bit_extract_idx_expr, delim=":") + RANGLE)
         bit_extract_expr.setParseAction(decode_bit_extract)
 
         # Define a array access expression
