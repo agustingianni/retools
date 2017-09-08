@@ -89,6 +89,15 @@ class Visitor(object):
         elif type(node) is Return:
             r = self.accept_Return(parent, node)
 
+        elif type(node) is VariableType:
+            r = self.accept_VariableType(parent, node)
+
+        elif type(node) is VariableDeclaration:
+            r = self.accept_VariableDeclaration(parent, node)
+
+        elif type(node) is Assertion:
+            r = self.accept_Assertion(parent, node)
+
         else:
             raise RuntimeError("Invalid type: '%r' (%s)" % (type(node), str(node)))
 
@@ -196,3 +205,15 @@ class Visitor(object):
         self.accept(node, node.condition)
         for statement in node.statements:
             self.accept(node, statement)
+
+    def accept_VariableType(self, parent, node):
+        self.accept(node, node.name)
+        self.accept(node, node.size)
+
+    def accept_VariableDeclaration(self, parent, node):
+        self.accept(node, node.type)
+        self.accept(node, node.name)
+        self.accept(node, node.value)
+
+    def accept_Assertion(self, parent, node):
+        self.accept(node, node.expression)
