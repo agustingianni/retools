@@ -53,7 +53,7 @@
     "decoder_post": "", 
     "description": "Add with Carry", 
     "name": "ADC", 
-    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then    operand2 = NOT(operand2);\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\n        X[d] = result;\n"
+    "operation": "bits(datasize) result;\nbits(datasize) operand1 = X[n];\nbits(datasize) operand2 = X[m];\nbits(4) nzcv;\nif sub_op then    operand2 = NOT(operand2);\n(result, nzcv) = AddWithCarry(operand1, operand2, PSTATE.C);\nif setflags then\n    (PSTATE.N, PSTATE.Z, PSTATE.C, PSTATE.V) = nzcv;\nendif\nX[d] = result;\n"
   }, 
   {
     "classes": [
